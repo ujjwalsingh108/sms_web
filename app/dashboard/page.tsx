@@ -1,28 +1,37 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { DashboardStats } from '@/components/dashboard/stats'
-import { RecentActivity } from '@/components/dashboard/recent-activity'
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { DashboardStats } from "@/components/dashboard/stats";
+import { RecentActivity } from "@/components/dashboard/recent-activity";
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
-    redirect('/login')
+    redirect("/login");
   }
 
   // Get user's member record
-  const { data: member } = await supabase
-    .from('members')
-    .select('*, role:roles(*), tenant:tenants(*)')
-    .eq('user_id', user.id)
-    .eq('status', 'approved')
-    .single()
+  const { data: members } = await supabase
+    .from("members")
+    .select(
+      `
+      *,
+      role:role_id(id, name, display_name),
+      tenant:tenant_id(id, name, email)
+    `
+    )
+    .eq("user_id", user.id)
+    .eq("status", "approved");
 
-  if (!member) {
-    redirect('/login')
+  if (!members || members.length === 0) {
+    redirect("/login");
   }
+
+  const member = members[0];
 
   return (
     <div className="space-y-6">
@@ -37,10 +46,10 @@ export default async function DashboardPage() {
       </div>
 
       <DashboardStats tenantId={member.tenant_id} role={member.role.name} />
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RecentActivity tenantId={member.tenant_id} />
       </div>
     </div>
-  )
+  );
 }
