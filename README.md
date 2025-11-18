@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# School ERP - Comprehensive School Management System
 
-## Getting Started
+A modern, full-featured Enterprise Resource Planning (ERP) system built specifically for schools using Next.js 15, Supabase, and TypeScript.
 
-First, run the development server:
+## 🎯 Features
 
-```bash
+### Core Modules
+
+1. **Admission Management** - Student admission forms, application tracking and approval workflows
+2. **Student Management** - Comprehensive student profiles and academic records
+3. **Staff Management** - Employee records, salary, qualifications
+4. **Transport Management** - Route management, vehicle tracking, transport allocation
+5. **Fee Management** - Fee collection, receipts, payment tracking
+6. **Library Management** - Book cataloging, issue/return tracking, fine calculation
+7. **Examination Management** - Exam scheduling, marks entry, result generation
+8. **Attendance Management** - Daily attendance for students and staff
+9. **Timetable Management** - Class-wise timetable creation
+10. **Inventory & Purchase** - Stock management, purchase orders
+11. **Accounts Management** - Income/expense tracking, financial reporting
+12. **Hostel Management** - Room allocation, capacity management
+13. **Infirmary** - Health records and medical management
+14. **Security & Reception** - Visitor management and tracking
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui
+- **State Management**: Zustand
+- **Form Handling**: React Hook Form + Zod
+
+## 🚀 Getting Started
+
+### 1. Install Dependencies
+
+\`\`\`bash
+npm install
+\`\`\`
+
+### 2. Set Up Supabase
+
+1. Create a new project in [Supabase](https://supabase.com)
+2. Run the SQL schema from \`database/schema.sql\`
+3. Insert default roles (see schema.sql)
+
+### 3. Configure Environment
+
+Create \`.env.local\`:
+
+\`\`\`env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+\`\`\`
+
+### 4. Run Development Server
+
+\`\`\`bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+\`\`\`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 👥 User Roles
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Super Admin**: Full system access
+- **Admin**: School administrator
+- **Teacher**: Attendance, marks, timetable
+- **Accountant**: Fees and accounts
+- **Librarian**: Library management
+- **Parent**: View child's records
+- **Student**: View own records
+- **Driver**: Transport routes
 
-## Learn More
+## 📄 License
 
-To learn more about Next.js, take a look at the following resources:
+MIT License - **Ujjwal Singh** for **Nescomm**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
