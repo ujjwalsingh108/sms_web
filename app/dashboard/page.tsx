@@ -31,7 +31,11 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const member = members[0];
+  const member = members[0] as {
+    tenant_id: string;
+    role: { id: string; name: string; display_name: string };
+    tenant: { id: string; name: string; email: string };
+  };
 
   return (
     <div className="space-y-6">

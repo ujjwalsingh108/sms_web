@@ -17,12 +17,19 @@ export default async function LibraryPage() {
     redirect("/login");
   }
 
-  const { data: member } = await supabase
+  const { data: members } = await supabase
     .from("members")
-    .select("*, role:roles(*), tenant:tenants(*)")
+    .select(
+      `
+      *,
+      role:role_id(id, name, display_name),
+      tenant:tenant_id(id, name, email)
+    `
+    )
     .eq("user_id", user.id)
-    .eq("status", "approved")
-    .single();
+    .eq("status", "approved");
+
+  const member = members?.[0] as { tenant_id: string } | undefined;
 
   if (!member) {
     redirect("/login");
@@ -48,9 +55,16 @@ export default async function LibraryPage() {
     .eq("tenant_id", member.tenant_id)
     .eq("status", "overdue");
 
-  const totalBooks = books?.reduce((sum, b) => sum + b.total_copies, 0) || 0;
+  type Book = {
+    total_copies: number;
+    available_copies: number;
+  };
+
+  const totalBooks =
+    (books as Book[] | null)?.reduce((sum, b) => sum + b.total_copies, 0) || 0;
   const availableBooks =
-    books?.reduce((sum, b) => sum + b.available_copies, 0) || 0;
+    (books as Book[] | null)?.reduce((sum, b) => sum + b.available_copies, 0) ||
+    0;
 
   return (
     <div className="space-y-6">
