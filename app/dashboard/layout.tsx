@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { AutoLogout } from "@/components/auth/auto-logout";
 
 export default function DashboardLayout({
   children,
@@ -8,6 +9,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex h-screen bg-gray-50">
+      <AutoLogout />
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
