@@ -17,12 +17,19 @@ export default async function LibraryPage() {
     redirect("/login");
   }
 
-  const { data: member } = await supabase
+  const { data: members } = await supabase
     .from("members")
-    .select("*, role:roles(*), tenant:tenants(*)")
+    .select(
+      `
+      *,
+      role:role_id(id, name, display_name),
+      tenant:tenant_id(id, name, email)
+    `
+    )
     .eq("user_id", user.id)
-    .eq("status", "approved")
-    .single();
+    .eq("status", "approved");
+
+  const member = members?.[0] as { tenant_id: string } | undefined;
 
   if (!member) {
     redirect("/login");

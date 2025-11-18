@@ -70,9 +70,6 @@ export default function LoginPage() {
           return;
         }
 
-        // Use the first member record
-        const member = members[0];
-
         toast.success("Login successful!");
         router.push("/dashboard");
         router.refresh();
