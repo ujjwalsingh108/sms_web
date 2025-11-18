@@ -13,6 +13,18 @@ export async function RecentActivity({ tenantId }: { tenantId: string }) {
     .order("created_at", { ascending: false })
     .limit(5);
 
+  type Payment = {
+    id: string;
+    amount_paid: number;
+    payment_method: string;
+    created_at: string;
+    student?: {
+      first_name: string;
+      last_name: string;
+      admission_no: string;
+    };
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -21,7 +33,7 @@ export async function RecentActivity({ tenantId }: { tenantId: string }) {
       <CardContent>
         {recentPayments && recentPayments.length > 0 ? (
           <div className="space-y-4">
-            {recentPayments.map((payment) => (
+            {(recentPayments as Payment[]).map((payment) => (
               <div
                 key={payment.id}
                 className="flex items-center justify-between border-b pb-3 last:border-0"

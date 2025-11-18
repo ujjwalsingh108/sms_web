@@ -74,8 +74,13 @@ export async function DashboardStats({
           .split("T")[0]
       );
 
+    type PaymentData = { amount_paid: number };
+
     const totalRevenue =
-      payments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+      (payments as PaymentData[] | null)?.reduce(
+        (sum, p) => sum + Number(p.amount_paid),
+        0
+      ) || 0;
 
     stats.push({
       title: "Monthly Revenue",

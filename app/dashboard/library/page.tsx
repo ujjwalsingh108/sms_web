@@ -55,9 +55,16 @@ export default async function LibraryPage() {
     .eq("tenant_id", member.tenant_id)
     .eq("status", "overdue");
 
-  const totalBooks = books?.reduce((sum, b) => sum + b.total_copies, 0) || 0;
+  type Book = {
+    total_copies: number;
+    available_copies: number;
+  };
+
+  const totalBooks =
+    (books as Book[] | null)?.reduce((sum, b) => sum + b.total_copies, 0) || 0;
   const availableBooks =
-    books?.reduce((sum, b) => sum + b.available_copies, 0) || 0;
+    (books as Book[] | null)?.reduce((sum, b) => sum + b.available_copies, 0) ||
+    0;
 
   return (
     <div className="space-y-6">

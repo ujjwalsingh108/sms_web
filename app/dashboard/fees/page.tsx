@@ -45,13 +45,23 @@ export default async function FeesPage() {
     .order("created_at", { ascending: false })
     .limit(50);
 
+  type Payment = {
+    amount_paid: number;
+    status: string;
+  };
+
   // Calculate statistics
   const totalCollected =
-    payments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+    (payments as Payment[] | null)?.reduce(
+      (sum: number, p) => sum + Number(p.amount_paid),
+      0
+    ) || 0;
   const completedPayments =
-    payments?.filter((p) => p.status === "completed").length || 0;
+    (payments as Payment[] | null)?.filter((p) => p.status === "completed")
+      .length || 0;
   const pendingPayments =
-    payments?.filter((p) => p.status === "pending").length || 0;
+    (payments as Payment[] | null)?.filter((p) => p.status === "pending")
+      .length || 0;
 
   return (
     <div className="space-y-6">
