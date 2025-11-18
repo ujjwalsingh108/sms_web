@@ -41,18 +41,37 @@ export default function LoginPage() {
 
       if (data.user) {
         // Check if user has a member record
-        const { data: member } = await supabase
+        const { data: members, error: memberError } = await supabase
           .from("members")
-          .select("*, role:roles(*), tenant:tenants(*)")
+          .select(
+            `
+            *,
+            role:role_id(id, name, display_name),
+            tenant:tenant_id(id, name, email)
+          `
+          )
           .eq("user_id", data.user.id)
-          .eq("status", "approved")
-          .single();
+          .eq("status", "approved");
 
-        if (!member) {
-          toast.error("You do not have access to any organization");
+        if (memberError) {
+          console.error("Member query error:", memberError);
+          toast.error(
+            "Error checking organization access: " + memberError.message
+          );
           await supabase.auth.signOut();
           return;
         }
+
+        if (!members || members.length === 0) {
+          toast.error(
+            "You do not have access to any organization. Please contact your administrator."
+          );
+          await supabase.auth.signOut();
+          return;
+        }
+
+        // Use the first member record
+        const member = members[0];
 
         toast.success("Login successful!");
         router.push("/dashboard");
