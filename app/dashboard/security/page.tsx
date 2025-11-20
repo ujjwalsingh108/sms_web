@@ -81,24 +81,30 @@ export default async function SecurityPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Security Management
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-gray-600 mt-1">
             Manage incidents, gate passes, and visitor logs
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/dashboard/security/incidents/new">
-            <Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Link
+            href="/dashboard/security/incidents/new"
+            className="w-full sm:w-auto"
+          >
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Report Incident
             </Button>
           </Link>
-          <Link href="/dashboard/security/gate-passes/new">
-            <Button variant="outline">
+          <Link
+            href="/dashboard/security/gate-passes/new"
+            className="w-full sm:w-auto"
+          >
+            <Button variant="outline" className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Issue Gate Pass
             </Button>
@@ -110,12 +116,12 @@ export default async function SecurityPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Total Incidents
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-2xl md:text-3xl font-bold text-blue-600">
               {incidents?.length || 0}
             </p>
           </CardContent>
@@ -123,12 +129,12 @@ export default async function SecurityPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Critical Incidents
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-red-600">
+            <p className="text-2xl md:text-3xl font-bold text-red-600">
               {criticalIncidents}
             </p>
           </CardContent>
@@ -136,12 +142,12 @@ export default async function SecurityPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Active Gate Passes
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-2xl md:text-3xl font-bold text-green-600">
               {activeGatePasses}
             </p>
           </CardContent>
@@ -149,12 +155,12 @@ export default async function SecurityPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Today&apos;s Visitors
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-purple-600">
+            <p className="text-2xl md:text-3xl font-bold text-purple-600">
               {visitors?.filter(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (v: any) =>

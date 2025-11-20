@@ -65,24 +65,30 @@ export default async function InfirmaryPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Infirmary Management
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-gray-600 mt-1">
             Manage medical records and health checkups
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/dashboard/infirmary/records/new">
-            <Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Link
+            href="/dashboard/infirmary/records/new"
+            className="w-full sm:w-auto"
+          >
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Medical Record
             </Button>
           </Link>
-          <Link href="/dashboard/infirmary/checkups/new">
-            <Button variant="outline">
+          <Link
+            href="/dashboard/infirmary/checkups/new"
+            className="w-full sm:w-auto"
+          >
+            <Button variant="outline" className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Schedule Checkup
             </Button>
@@ -94,34 +100,38 @@ export default async function InfirmaryPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Total Medical Records
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-blue-600">{totalRecords}</p>
+            <p className="text-2xl md:text-3xl font-bold text-blue-600">
+              {totalRecords}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Recent Checkups
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-600">{totalCheckups}</p>
+            <p className="text-2xl md:text-3xl font-bold text-green-600">
+              {totalCheckups}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Students Visited Today
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-purple-600">
+            <p className="text-2xl md:text-3xl font-bold text-purple-600">
               {medicalRecords?.filter(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (r: any) =>
@@ -136,7 +146,9 @@ export default async function InfirmaryPage() {
       {/* Medical Records */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Medical Records</CardTitle>
+          <CardTitle className="text-lg md:text-xl">
+            Recent Medical Records
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
