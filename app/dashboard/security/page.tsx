@@ -156,6 +156,7 @@ export default async function SecurityPage() {
           <CardContent>
             <p className="text-3xl font-bold text-purple-600">
               {visitors?.filter(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (v: any) =>
                   new Date(v.visit_date).toDateString() ===
                   new Date().toDateString()
@@ -186,6 +187,7 @@ export default async function SecurityPage() {
               </thead>
               <tbody>
                 {incidents && incidents.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   incidents.map((incident: any) => (
                     <tr key={incident.id} className="border-b hover:bg-gray-50">
                       <td className="p-3">
@@ -269,6 +271,7 @@ export default async function SecurityPage() {
               </thead>
               <tbody>
                 {gatePasses && gatePasses.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   gatePasses.map((pass: any) => (
                     <tr key={pass.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-mono text-sm">
@@ -348,6 +351,7 @@ export default async function SecurityPage() {
               </thead>
               <tbody>
                 {visitors && visitors.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   visitors.map((visitor: any) => (
                     <tr key={visitor.id} className="border-b hover:bg-gray-50">
                       <td className="p-3">

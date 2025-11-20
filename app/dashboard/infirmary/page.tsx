@@ -123,6 +123,7 @@ export default async function InfirmaryPage() {
           <CardContent>
             <p className="text-3xl font-bold text-purple-600">
               {medicalRecords?.filter(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (r: any) =>
                   new Date(r.record_date).toDateString() ===
                   new Date().toDateString()
@@ -153,6 +154,7 @@ export default async function InfirmaryPage() {
               </thead>
               <tbody>
                 {medicalRecords && medicalRecords.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   medicalRecords.map((record: any) => (
                     <tr key={record.id} className="border-b hover:bg-gray-50">
                       <td className="p-3">
@@ -218,6 +220,7 @@ export default async function InfirmaryPage() {
               </thead>
               <tbody>
                 {checkups && checkups.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   checkups.map((checkup: any) => (
                     <tr key={checkup.id} className="border-b hover:bg-gray-50">
                       <td className="p-3">

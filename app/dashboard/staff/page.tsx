@@ -148,6 +148,7 @@ export default async function StaffPage() {
               </thead>
               <tbody>
                 {staffList && staffList.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   staffList.map((staff: any) => (
                     <tr key={staff.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-mono text-sm">

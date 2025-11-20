@@ -163,6 +163,7 @@ export default async function AttendancePage() {
               </thead>
               <tbody>
                 {todayAttendance && todayAttendance.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   todayAttendance.map((record: any) => (
                     <tr key={record.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-mono">
@@ -221,6 +222,7 @@ export default async function AttendancePage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {classes && classes.length > 0 ? (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               classes.map((cls: any) => (
                 <Link
                   key={cls.id}

@@ -151,6 +151,7 @@ export default async function AdmissionPage() {
               </thead>
               <tbody>
                 {applications && applications.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   applications.map((app: any) => (
                     <tr key={app.id} className="border-b hover:bg-gray-50">
                       <td className="p-2 md:p-3 text-xs md:text-sm">

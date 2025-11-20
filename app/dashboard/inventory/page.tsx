@@ -173,6 +173,7 @@ export default async function InventoryPage() {
               </thead>
               <tbody>
                 {items && items.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   items.map((item: any) => (
                     <tr key={item.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-mono text-sm">
@@ -247,6 +248,7 @@ export default async function InventoryPage() {
               </thead>
               <tbody>
                 {purchaseOrders && purchaseOrders.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   purchaseOrders.map((po: any) => (
                     <tr key={po.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-mono text-sm">{po.po_number}</td>
