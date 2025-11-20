@@ -92,19 +92,19 @@ export async function DashboardStats({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
       {stats.map((stat, index) => (
         <Card key={index}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               {stat.title}
             </CardTitle>
-            <div className={`p-2 rounded-full ${stat.bgColor}`}>
-              <stat.icon className={`h-5 w-5 ${stat.color}`} />
+            <div className={`p-1.5 md:p-2 rounded-full ${stat.bgColor}`}>
+              <stat.icon className={`h-4 w-4 md:h-5 md:w-5 ${stat.color}`} />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stat.value}</div>
+            <div className="text-xl md:text-2xl font-bold">{stat.value}</div>
           </CardContent>
         </Card>
       ))}
