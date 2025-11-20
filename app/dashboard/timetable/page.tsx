@@ -65,17 +65,17 @@ export default async function TimetablePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Timetable Management
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-gray-600 mt-1">
             Manage class schedules and periods
           </p>
         </div>
-        <Link href="/dashboard/timetable/new">
-          <Button>
+        <Link href="/dashboard/timetable/new" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Period
           </Button>
@@ -86,12 +86,12 @@ export default async function TimetablePage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Total Periods
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-2xl md:text-3xl font-bold text-blue-600">
               {timetables?.length || 0}
             </p>
           </CardContent>
@@ -99,12 +99,12 @@ export default async function TimetablePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Active Days
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-2xl md:text-3xl font-bold text-green-600">
               {uniqueDays.size}
             </p>
           </CardContent>
@@ -112,12 +112,12 @@ export default async function TimetablePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Total Classes
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-purple-600">
+            <p className="text-2xl md:text-3xl font-bold text-purple-600">
               {classes?.length || 0}
             </p>
           </CardContent>
@@ -127,17 +127,25 @@ export default async function TimetablePage() {
       {/* Timetable View */}
       <Card>
         <CardHeader>
-          <CardTitle>Class Schedules</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Class Schedules</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-3">Day</th>
-                  <th className="text-left p-3">Period</th>
-                  <th className="text-left p-3">Time</th>
-                  <th className="text-left p-3">Class</th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Day
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Period
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Time
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Class
+                  </th>
                   <th className="text-left p-3">Section</th>
                   <th className="text-left p-3">Subject</th>
                   <th className="text-left p-3">Teacher</th>

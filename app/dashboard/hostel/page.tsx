@@ -80,24 +80,27 @@ export default async function HostelPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Hostel Management
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-gray-600 mt-1">
             Manage hostels, rooms, and student allocations
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/dashboard/hostel/allocations/new">
-            <Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Link
+            href="/dashboard/hostel/allocations/new"
+            className="w-full sm:w-auto"
+          >
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Allocate Room
             </Button>
           </Link>
-          <Link href="/dashboard/hostel/rooms/new">
-            <Button variant="outline">
+          <Link href="/dashboard/hostel/rooms/new" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Room
             </Button>
@@ -109,12 +112,12 @@ export default async function HostelPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Total Hostels
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-2xl md:text-3xl font-bold text-blue-600">
               {hostels?.length || 0}
             </p>
           </CardContent>
@@ -122,12 +125,12 @@ export default async function HostelPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Total Rooms
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-purple-600">
+            <p className="text-2xl md:text-3xl font-bold text-purple-600">
               {rooms?.length || 0}
             </p>
           </CardContent>
@@ -135,12 +138,12 @@ export default async function HostelPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Occupied Rooms
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-orange-600">
+            <p className="text-2xl md:text-3xl font-bold text-orange-600">
               {occupiedRooms}
             </p>
           </CardContent>
@@ -148,12 +151,12 @@ export default async function HostelPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Available Rooms
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-2xl md:text-3xl font-bold text-green-600">
               {availableRooms}
             </p>
           </CardContent>

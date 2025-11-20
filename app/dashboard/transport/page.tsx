@@ -58,24 +58,30 @@ export default async function TransportPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Transport Management
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-gray-600 mt-1">
             Manage vehicles, routes, and transportation
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/dashboard/transport/vehicles/new">
-            <Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Link
+            href="/dashboard/transport/vehicles/new"
+            className="w-full sm:w-auto"
+          >
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Vehicle
             </Button>
           </Link>
-          <Link href="/dashboard/transport/routes/new">
-            <Button variant="outline">
+          <Link
+            href="/dashboard/transport/routes/new"
+            className="w-full sm:w-auto"
+          >
+            <Button variant="outline" className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Route
             </Button>
@@ -87,12 +93,12 @@ export default async function TransportPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Total Vehicles
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-2xl md:text-3xl font-bold text-blue-600">
               {vehicles?.length || 0}
             </p>
           </CardContent>
@@ -100,12 +106,12 @@ export default async function TransportPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Active Vehicles
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-2xl md:text-3xl font-bold text-green-600">
               {activeVehicles}
             </p>
           </CardContent>
@@ -113,12 +119,12 @@ export default async function TransportPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Total Routes
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-purple-600">
+            <p className="text-2xl md:text-3xl font-bold text-purple-600">
               {routes?.length || 0}
             </p>
           </CardContent>
@@ -128,20 +134,34 @@ export default async function TransportPage() {
       {/* Vehicles Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Vehicles</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Vehicles</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-3">Vehicle Number</th>
-                  <th className="text-left p-3">Type</th>
-                  <th className="text-left p-3">Model</th>
-                  <th className="text-left p-3">Capacity</th>
-                  <th className="text-left p-3">Driver</th>
-                  <th className="text-left p-3">Status</th>
-                  <th className="text-left p-3">Actions</th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Vehicle Number
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Type
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                    Model
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden sm:table-cell">
+                    Capacity
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden lg:table-cell">
+                    Driver
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Status
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -149,18 +169,24 @@ export default async function TransportPage() {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   vehicles.map((vehicle: any) => (
                     <tr key={vehicle.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-semibold">
+                      <td className="p-2 md:p-3 font-semibold text-xs md:text-sm">
                         {vehicle.vehicle_number}
                       </td>
-                      <td className="p-3">{vehicle.vehicle_type || "N/A"}</td>
-                      <td className="p-3">{vehicle.model || "N/A"}</td>
-                      <td className="p-3">{vehicle.capacity || "N/A"}</td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3 text-xs md:text-sm">
+                        {vehicle.vehicle_type || "N/A"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                        {vehicle.model || "N/A"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm hidden sm:table-cell">
+                        {vehicle.capacity || "N/A"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm hidden lg:table-cell">
                         {vehicle.driver_name || "Not Assigned"}
                       </td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3">
                         <span
-                          className={`px-2 py-1 rounded text-xs ${
+                          className={`px-1.5 md:px-2 py-1 rounded text-xs ${
                             vehicle.status === "active"
                               ? "bg-green-100 text-green-800"
                               : vehicle.status === "maintenance"
@@ -171,11 +197,15 @@ export default async function TransportPage() {
                           {vehicle.status}
                         </span>
                       </td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3">
                         <Link
                           href={`/dashboard/transport/vehicles/${vehicle.id}`}
                         >
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                          >
                             View
                           </Button>
                         </Link>
@@ -184,7 +214,10 @@ export default async function TransportPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center p-8 text-gray-500">
+                    <td
+                      colSpan={7}
+                      className="text-center p-8 text-gray-500 text-sm"
+                    >
                       No vehicles found
                     </td>
                   </tr>
@@ -198,21 +231,37 @@ export default async function TransportPage() {
       {/* Routes Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Routes</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Routes</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-3">Route Name</th>
-                  <th className="text-left p-3">Route Number</th>
-                  <th className="text-left p-3">Starting Point</th>
-                  <th className="text-left p-3">Ending Point</th>
-                  <th className="text-left p-3">Distance (km)</th>
-                  <th className="text-left p-3">Fare</th>
-                  <th className="text-left p-3">Status</th>
-                  <th className="text-left p-3">Actions</th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Route Name
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden sm:table-cell">
+                    Route Number
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                    Starting Point
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                    Ending Point
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden lg:table-cell">
+                    Distance (km)
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Fare
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Status
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -220,15 +269,27 @@ export default async function TransportPage() {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   routes.map((route: any) => (
                     <tr key={route.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-medium">{route.route_name}</td>
-                      <td className="p-3">{route.route_number || "N/A"}</td>
-                      <td className="p-3">{route.starting_point || "N/A"}</td>
-                      <td className="p-3">{route.ending_point || "N/A"}</td>
-                      <td className="p-3">{route.distance_km || "N/A"}</td>
-                      <td className="p-3">₹{route.fare || "0"}</td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3 font-medium text-xs md:text-sm">
+                        {route.route_name}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm hidden sm:table-cell">
+                        {route.route_number || "N/A"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                        {route.starting_point || "N/A"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                        {route.ending_point || "N/A"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm hidden lg:table-cell">
+                        {route.distance_km || "N/A"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm">
+                        ₹{route.fare || "0"}
+                      </td>
+                      <td className="p-2 md:p-3">
                         <span
-                          className={`px-2 py-1 rounded text-xs ${
+                          className={`px-1.5 md:px-2 py-1 rounded text-xs ${
                             route.status === "active"
                               ? "bg-green-100 text-green-800"
                               : "bg-gray-100 text-gray-800"
@@ -237,9 +298,13 @@ export default async function TransportPage() {
                           {route.status}
                         </span>
                       </td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3">
                         <Link href={`/dashboard/transport/routes/${route.id}`}>
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                          >
                             View
                           </Button>
                         </Link>
@@ -248,7 +313,10 @@ export default async function TransportPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="text-center p-8 text-gray-500">
+                    <td
+                      colSpan={8}
+                      className="text-center p-8 text-gray-500 text-sm"
+                    >
                       No routes found
                     </td>
                   </tr>

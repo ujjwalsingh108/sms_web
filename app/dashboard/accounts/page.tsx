@@ -72,24 +72,32 @@ export default async function AccountsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Accounts Management
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-gray-600 mt-1">
             Manage financial transactions and accounts
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/dashboard/accounts/transactions/new">
-            <Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Link
+            href="/dashboard/accounts/transactions/new"
+            className="w-full sm:w-auto"
+          >
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Transaction
             </Button>
           </Link>
-          <Link href="/dashboard/accounts/account-heads">
-            <Button variant="outline">Account Heads</Button>
+          <Link
+            href="/dashboard/accounts/account-heads"
+            className="w-full sm:w-auto"
+          >
+            <Button variant="outline" className="w-full sm:w-auto">
+              Account Heads
+            </Button>
           </Link>
         </div>
       </div>
@@ -98,12 +106,12 @@ export default async function AccountsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Total Income
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-2xl md:text-3xl font-bold text-green-600">
               ₹{totalIncome.toFixed(2)}
             </p>
           </CardContent>
@@ -111,12 +119,12 @@ export default async function AccountsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Total Expense
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-red-600">
+            <p className="text-2xl md:text-3xl font-bold text-red-600">
               ₹{totalExpense.toFixed(2)}
             </p>
           </CardContent>
@@ -124,13 +132,13 @@ export default async function AccountsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
               Net Balance
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p
-              className={`text-3xl font-bold ${
+              className={`text-2xl md:text-3xl font-bold ${
                 balance >= 0 ? "text-blue-600" : "text-red-600"
               }`}
             >
@@ -143,20 +151,36 @@ export default async function AccountsPage() {
       {/* Recent Transactions */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
+          <CardTitle className="text-lg md:text-xl">
+            Recent Transactions
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-3">Date</th>
-                  <th className="text-left p-3">Account Head</th>
-                  <th className="text-left p-3">Type</th>
-                  <th className="text-left p-3">Amount</th>
-                  <th className="text-left p-3">Payment Method</th>
-                  <th className="text-left p-3">Description</th>
-                  <th className="text-left p-3">Actions</th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Date
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Account Head
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Type
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Amount
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden sm:table-cell">
+                    Payment Method
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                    Description
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -164,15 +188,15 @@ export default async function AccountsPage() {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   transactions.map((txn: any) => (
                     <tr key={txn.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3">
+                      <td className="p-2 md:p-3 text-xs md:text-sm">
                         {new Date(txn.transaction_date).toLocaleDateString()}
                       </td>
-                      <td className="p-3 font-medium">
+                      <td className="p-2 md:p-3 font-medium text-xs md:text-sm">
                         {txn.account_head?.name || "N/A"}
                       </td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3">
                         <span
-                          className={`px-2 py-1 rounded text-xs ${
+                          className={`px-1.5 md:px-2 py-1 rounded text-xs ${
                             txn.transaction_type === "income"
                               ? "bg-green-100 text-green-800"
                               : "bg-red-100 text-red-800"
@@ -181,16 +205,24 @@ export default async function AccountsPage() {
                           {txn.transaction_type}
                         </span>
                       </td>
-                      <td className="p-3 font-semibold">₹{txn.amount}</td>
-                      <td className="p-3">{txn.payment_method || "N/A"}</td>
-                      <td className="p-3 text-sm text-gray-600">
+                      <td className="p-2 md:p-3 font-semibold text-xs md:text-sm">
+                        ₹{txn.amount}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm hidden sm:table-cell">
+                        {txn.payment_method || "N/A"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 hidden md:table-cell">
                         {txn.description || "-"}
                       </td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3">
                         <Link
                           href={`/dashboard/accounts/transactions/${txn.id}`}
                         >
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                          >
                             View
                           </Button>
                         </Link>
@@ -199,7 +231,10 @@ export default async function AccountsPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center p-8 text-gray-500">
+                    <td
+                      colSpan={7}
+                      className="text-center p-8 text-gray-500 text-sm"
+                    >
                       No transactions found
                     </td>
                   </tr>
@@ -213,10 +248,10 @@ export default async function AccountsPage() {
       {/* Account Heads */}
       <Card>
         <CardHeader>
-          <CardTitle>Account Heads</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Account Heads</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             {accountHeads && accountHeads.length > 0 ? (
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               accountHeads.map((head: any) => (
