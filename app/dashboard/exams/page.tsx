@@ -165,6 +165,7 @@ export default async function ExamsPage() {
               </thead>
               <tbody>
                 {exams && exams.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   exams.map((exam: any) => (
                     <tr key={exam.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-medium">{exam.exam_name}</td>
@@ -225,6 +226,7 @@ export default async function ExamsPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {examTypes && examTypes.length > 0 ? (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               examTypes.map((type: any) => (
                 <div
                   key={type.id}

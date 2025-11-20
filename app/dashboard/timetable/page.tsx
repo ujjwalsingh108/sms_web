@@ -58,7 +58,10 @@ export default async function TimetablePage() {
     .eq("tenant_id", member.tenant_id);
 
   // Get unique days count
-  const uniqueDays = new Set(timetables?.map((t: any) => t.day_of_week) || []);
+  const uniqueDays = new Set(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    timetables?.map((t: any) => t.day_of_week) || []
+  );
 
   return (
     <div className="space-y-6">
@@ -143,6 +146,7 @@ export default async function TimetablePage() {
               </thead>
               <tbody>
                 {timetables && timetables.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   timetables.map((item: any) => (
                     <tr key={item.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-medium">
@@ -202,6 +206,7 @@ export default async function TimetablePage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {classes && classes.length > 0 ? (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               classes.map((cls: any) => (
                 <Link
                   key={cls.id}

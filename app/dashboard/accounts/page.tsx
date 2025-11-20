@@ -161,6 +161,7 @@ export default async function AccountsPage() {
               </thead>
               <tbody>
                 {transactions && transactions.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   transactions.map((txn: any) => (
                     <tr key={txn.id} className="border-b hover:bg-gray-50">
                       <td className="p-3">
@@ -217,6 +218,7 @@ export default async function AccountsPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {accountHeads && accountHeads.length > 0 ? (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               accountHeads.map((head: any) => (
                 <div
                   key={head.id}

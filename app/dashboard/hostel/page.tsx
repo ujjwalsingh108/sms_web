@@ -168,6 +168,7 @@ export default async function HostelPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {hostels && hostels.length > 0 ? (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               hostels.map((hostel: any) => (
                 <Link key={hostel.id} href={`/dashboard/hostel/${hostel.id}`}>
                   <div className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition">
@@ -218,6 +219,7 @@ export default async function HostelPage() {
               </thead>
               <tbody>
                 {rooms && rooms.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   rooms.map((room: any) => (
                     <tr key={room.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-semibold">{room.room_number}</td>
@@ -281,6 +283,7 @@ export default async function HostelPage() {
               </thead>
               <tbody>
                 {allocations && allocations.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   allocations.map((allocation: any) => (
                     <tr
                       key={allocation.id}

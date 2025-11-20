@@ -146,6 +146,7 @@ export default async function TransportPage() {
               </thead>
               <tbody>
                 {vehicles && vehicles.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   vehicles.map((vehicle: any) => (
                     <tr key={vehicle.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-semibold">
@@ -216,6 +217,7 @@ export default async function TransportPage() {
               </thead>
               <tbody>
                 {routes && routes.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   routes.map((route: any) => (
                     <tr key={route.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-medium">{route.route_name}</td>

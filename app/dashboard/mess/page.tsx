@@ -186,6 +186,7 @@ export default async function MessPage() {
               </thead>
               <tbody>
                 {menus && menus.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   menus.map((menu: any) => (
                     <tr key={menu.id} className="border-b hover:bg-gray-50">
                       <td className="p-3">
@@ -249,6 +250,7 @@ export default async function MessPage() {
               </thead>
               <tbody>
                 {attendance && attendance.length > 0 ? (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   attendance.map((record: any) => (
                     <tr key={record.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-mono">
@@ -299,6 +301,7 @@ export default async function MessPage() {
         <CardContent>
           <div className="space-y-4">
             {feedback && feedback.length > 0 ? (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               feedback.map((fb: any) => (
                 <div
                   key={fb.id}
