@@ -18,11 +18,13 @@ export default async function MessPage() {
 
   const { data: members } = await supabase
     .from("members")
-    .select(`
+    .select(
+      `
       *,
       role:role_id(id, name, display_name),
       tenant:tenant_id(id, name, email)
-    `)
+    `
+    )
     .eq("user_id", user.id)
     .eq("status", "approved");
 
@@ -46,10 +48,12 @@ export default async function MessPage() {
   // Fetch mess attendance
   const { data: attendance } = await supabase
     .from("mess_attendance")
-    .select(`
+    .select(
+      `
       *,
       student:students(first_name, last_name, roll_number)
-    `)
+    `
+    )
     .eq("tenant_id", member.tenant_id)
     .eq("attendance_date", today)
     .limit(50);
@@ -57,10 +61,12 @@ export default async function MessPage() {
   // Fetch mess feedback
   const { data: feedback } = await supabase
     .from("mess_feedback")
-    .select(`
+    .select(
+      `
       *,
       student:students(first_name, last_name)
-    `)
+    `
+    )
     .eq("tenant_id", member.tenant_id)
     .order("feedback_date", { ascending: false })
     .limit(20);
@@ -70,8 +76,9 @@ export default async function MessPage() {
   };
 
   const breakfastCount =
-    (attendance as Attendance[] | null)?.filter((a) => a.meal_type === "breakfast")
-      .length || 0;
+    (attendance as Attendance[] | null)?.filter(
+      (a) => a.meal_type === "breakfast"
+    ).length || 0;
   const lunchCount =
     (attendance as Attendance[] | null)?.filter((a) => a.meal_type === "lunch")
       .length || 0;
@@ -80,23 +87,28 @@ export default async function MessPage() {
       .length || 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Mess Management</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Mess Management
+          </h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1">
             Manage mess menus, attendance, and feedback
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/dashboard/mess/menus/new">
-            <Button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Link href="/dashboard/mess/menus/new" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Menu
             </Button>
           </Link>
-          <Link href="/dashboard/mess/attendance/mark">
-            <Button variant="outline">
+          <Link
+            href="/dashboard/mess/attendance/mark"
+            className="w-full sm:w-auto"
+          >
+            <Button variant="outline" className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Mark Attendance
             </Button>
@@ -105,7 +117,7 @@ export default async function MessPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-600">
@@ -126,7 +138,9 @@ export default async function MessPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-orange-600">{breakfastCount}</p>
+            <p className="text-3xl font-bold text-orange-600">
+              {breakfastCount}
+            </p>
           </CardContent>
         </Card>
 
@@ -177,7 +191,9 @@ export default async function MessPage() {
                       <td className="p-3">
                         {new Date(menu.menu_date).toLocaleDateString()}
                       </td>
-                      <td className="p-3 capitalize">{menu.meal_type || "N/A"}</td>
+                      <td className="p-3 capitalize">
+                        {menu.meal_type || "N/A"}
+                      </td>
                       <td className="p-3 text-sm max-w-md truncate">
                         {menu.menu_items || "N/A"}
                       </td>
@@ -243,7 +259,9 @@ export default async function MessPage() {
                           ? `${record.student.first_name} ${record.student.last_name}`
                           : "N/A"}
                       </td>
-                      <td className="p-3 capitalize">{record.meal_type || "N/A"}</td>
+                      <td className="p-3 capitalize">
+                        {record.meal_type || "N/A"}
+                      </td>
                       <td className="p-3">
                         <span
                           className={`px-2 py-1 rounded text-xs ${
@@ -282,7 +300,10 @@ export default async function MessPage() {
           <div className="space-y-4">
             {feedback && feedback.length > 0 ? (
               feedback.map((fb: any) => (
-                <div key={fb.id} className="p-4 border rounded-lg hover:bg-gray-50">
+                <div
+                  key={fb.id}
+                  className="p-4 border rounded-lg hover:bg-gray-50"
+                >
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <p className="font-medium">
@@ -297,15 +318,21 @@ export default async function MessPage() {
                     <div className="text-right">
                       <p className="text-sm text-gray-600">
                         Rating:{" "}
-                        <span className="font-semibold">{fb.rating || "N/A"}/5</span>
+                        <span className="font-semibold">
+                          {fb.rating || "N/A"}/5
+                        </span>
                       </p>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-700">{fb.comments || "No comments"}</p>
+                  <p className="text-sm text-gray-700">
+                    {fb.comments || "No comments"}
+                  </p>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500 text-center py-4">No feedback found</p>
+              <p className="text-gray-500 text-center py-4">
+                No feedback found
+              </p>
             )}
           </div>
         </CardContent>

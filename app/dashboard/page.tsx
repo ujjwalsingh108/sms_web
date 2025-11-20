@@ -38,20 +38,22 @@ export default async function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          Dashboard
+        </h1>
+        <p className="text-sm md:text-base text-gray-600 mt-1">
           Welcome back, {user.user_metadata.full_name || user.email}
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-xs md:text-sm text-gray-500 mt-0.5">
           Role: {member.role.display_name} | Organization: {member.tenant.name}
         </p>
       </div>
 
       <DashboardStats tenantId={member.tenant_id} role={member.role.name} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 md:gap-6">
         <RecentActivity tenantId={member.tenant_id} />
       </div>
     </div>

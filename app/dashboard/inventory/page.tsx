@@ -18,11 +18,13 @@ export default async function InventoryPage() {
 
   const { data: members } = await supabase
     .from("members")
-    .select(`
+    .select(
+      `
       *,
       role:role_id(id, name, display_name),
       tenant:tenant_id(id, name, email)
-    `)
+    `
+    )
     .eq("user_id", user.id)
     .eq("status", "approved");
 
@@ -35,10 +37,12 @@ export default async function InventoryPage() {
   // Fetch inventory items
   const { data: items } = await supabase
     .from("inventory_items")
-    .select(`
+    .select(
+      `
       *,
       category:inventory_categories(name)
-    `)
+    `
+    )
     .eq("tenant_id", member.tenant_id)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -46,10 +50,12 @@ export default async function InventoryPage() {
   // Fetch purchase orders
   const { data: purchaseOrders } = await supabase
     .from("purchase_orders")
-    .select(`
+    .select(
+      `
       *,
       supplier:suppliers(name)
-    `)
+    `
+    )
     .eq("tenant_id", member.tenant_id)
     .order("created_at", { ascending: false })
     .limit(10);
@@ -61,33 +67,45 @@ export default async function InventoryPage() {
 
   const totalItems = items?.length || 0;
   const lowStockItems =
-    (items as Item[] | null)?.filter((item) => item.quantity <= item.reorder_level)
-      .length || 0;
+    (items as Item[] | null)?.filter(
+      (item) => item.quantity <= item.reorder_level
+    ).length || 0;
 
   type PurchaseOrder = {
     status: string;
   };
 
   const pendingOrders =
-    (purchaseOrders as PurchaseOrder[] | null)?.filter((po) => po.status === "pending")
-      .length || 0;
+    (purchaseOrders as PurchaseOrder[] | null)?.filter(
+      (po) => po.status === "pending"
+    ).length || 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Inventory Management</h1>
-          <p className="text-gray-600 mt-1">Manage items, stock, and purchases</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Inventory Management
+          </h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1">
+            Manage items, stock, and purchases
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/dashboard/inventory/items/new">
-            <Button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Link
+            href="/dashboard/inventory/items/new"
+            className="w-full sm:w-auto"
+          >
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Item
             </Button>
           </Link>
-          <Link href="/dashboard/inventory/purchase-orders/new">
-            <Button variant="outline">
+          <Link
+            href="/dashboard/inventory/purchase-orders/new"
+            className="w-full sm:w-auto"
+          >
+            <Button variant="outline" className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               New Purchase Order
             </Button>
@@ -96,7 +114,7 @@ export default async function InventoryPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-600">
@@ -126,7 +144,9 @@ export default async function InventoryPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-orange-600">{pendingOrders}</p>
+            <p className="text-3xl font-bold text-orange-600">
+              {pendingOrders}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -155,7 +175,9 @@ export default async function InventoryPage() {
                 {items && items.length > 0 ? (
                   items.map((item: any) => (
                     <tr key={item.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-mono text-sm">{item.item_code}</td>
+                      <td className="p-3 font-mono text-sm">
+                        {item.item_code}
+                      </td>
                       <td className="p-3 font-medium">{item.item_name}</td>
                       <td className="p-3">{item.category?.name || "N/A"}</td>
                       <td className="p-3">
@@ -234,10 +256,14 @@ export default async function InventoryPage() {
                       </td>
                       <td className="p-3">
                         {po.expected_delivery_date
-                          ? new Date(po.expected_delivery_date).toLocaleDateString()
+                          ? new Date(
+                              po.expected_delivery_date
+                            ).toLocaleDateString()
                           : "N/A"}
                       </td>
-                      <td className="p-3 font-semibold">₹{po.total_amount || "0"}</td>
+                      <td className="p-3 font-semibold">
+                        ₹{po.total_amount || "0"}
+                      </td>
                       <td className="p-3">
                         <span
                           className={`px-2 py-1 rounded text-xs ${
@@ -254,7 +280,9 @@ export default async function InventoryPage() {
                         </span>
                       </td>
                       <td className="p-3">
-                        <Link href={`/dashboard/inventory/purchase-orders/${po.id}`}>
+                        <Link
+                          href={`/dashboard/inventory/purchase-orders/${po.id}`}
+                        >
                           <Button variant="outline" size="sm">
                             View
                           </Button>

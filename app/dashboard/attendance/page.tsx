@@ -18,11 +18,13 @@ export default async function AttendancePage() {
 
   const { data: members } = await supabase
     .from("members")
-    .select(`
+    .select(
+      `
       *,
       role:role_id(id, name, display_name),
       tenant:tenant_id(id, name, email)
-    `)
+    `
+    )
     .eq("user_id", user.id)
     .eq("status", "approved");
 
@@ -38,12 +40,14 @@ export default async function AttendancePage() {
   // Fetch today's attendance
   const { data: todayAttendance } = await supabase
     .from("student_attendance")
-    .select(`
+    .select(
+      `
       *,
       student:students(first_name, last_name, roll_number),
       class:classes(name),
       section:sections(name)
-    `)
+    `
+    )
     .eq("tenant_id", member.tenant_id)
     .eq("attendance_date", today)
     .limit(50);
@@ -59,24 +63,30 @@ export default async function AttendancePage() {
   };
 
   const presentCount =
-    (todayAttendance as Attendance[] | null)?.filter((a) => a.status === "present")
-      .length || 0;
+    (todayAttendance as Attendance[] | null)?.filter(
+      (a) => a.status === "present"
+    ).length || 0;
   const absentCount =
-    (todayAttendance as Attendance[] | null)?.filter((a) => a.status === "absent")
-      .length || 0;
+    (todayAttendance as Attendance[] | null)?.filter(
+      (a) => a.status === "absent"
+    ).length || 0;
   const lateCount =
     (todayAttendance as Attendance[] | null)?.filter((a) => a.status === "late")
       .length || 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Attendance Management</h1>
-          <p className="text-gray-600 mt-1">Track student attendance and records</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Attendance Management
+          </h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1">
+            Track student attendance and records
+          </p>
         </div>
-        <Link href="/dashboard/attendance/mark">
-          <Button>
+        <Link href="/dashboard/attendance/mark" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Mark Attendance
           </Button>
@@ -84,7 +94,7 @@ export default async function AttendancePage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-600">
@@ -155,7 +165,9 @@ export default async function AttendancePage() {
                 {todayAttendance && todayAttendance.length > 0 ? (
                   todayAttendance.map((record: any) => (
                     <tr key={record.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-mono">{record.student?.roll_number}</td>
+                      <td className="p-3 font-mono">
+                        {record.student?.roll_number}
+                      </td>
                       <td className="p-3 font-medium">
                         {record.student?.first_name} {record.student?.last_name}
                       </td>

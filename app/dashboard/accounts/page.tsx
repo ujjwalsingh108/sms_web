@@ -95,7 +95,7 @@ export default async function AccountsPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-600">

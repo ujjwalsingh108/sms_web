@@ -18,11 +18,13 @@ export default async function StaffPage() {
 
   const { data: members } = await supabase
     .from("members")
-    .select(`
+    .select(
+      `
       *,
       role:role_id(id, name, display_name),
       tenant:tenant_id(id, name, email)
-    `)
+    `
+    )
     .eq("user_id", user.id)
     .eq("status", "approved");
 
@@ -45,19 +47,25 @@ export default async function StaffPage() {
   };
 
   const activeCount =
-    (staffList as Staff[] | null)?.filter((s) => s.status === "active").length || 0;
+    (staffList as Staff[] | null)?.filter((s) => s.status === "active")
+      .length || 0;
   const inactiveCount =
-    (staffList as Staff[] | null)?.filter((s) => s.status === "inactive").length || 0;
+    (staffList as Staff[] | null)?.filter((s) => s.status === "inactive")
+      .length || 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
-          <p className="text-gray-600 mt-1">Manage school staff and employees</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Staff Management
+          </h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1">
+            Manage school staff and employees
+          </p>
         </div>
-        <Link href="/dashboard/staff/new">
-          <Button>
+        <Link href="/dashboard/staff/new" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Staff
           </Button>
@@ -65,7 +73,7 @@ export default async function StaffPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-600">
@@ -105,28 +113,46 @@ export default async function StaffPage() {
       {/* Staff Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Staff Members</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Staff Members</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[640px]">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left p-3">Employee ID</th>
-                  <th className="text-left p-3">Name</th>
-                  <th className="text-left p-3">Designation</th>
-                  <th className="text-left p-3">Department</th>
-                  <th className="text-left p-3">Email</th>
-                  <th className="text-left p-3">Phone</th>
-                  <th className="text-left p-3">Status</th>
-                  <th className="text-left p-3">Actions</th>
+                <tr className="border-b bg-gray-50">
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Employee ID
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Name
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                    Designation
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden lg:table-cell">
+                    Department
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden sm:table-cell">
+                    Email
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden xl:table-cell">
+                    Phone
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Status
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {staffList && staffList.length > 0 ? (
                   staffList.map((staff: any) => (
                     <tr key={staff.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-mono text-sm">{staff.employee_id}</td>
+                      <td className="p-3 font-mono text-sm">
+                        {staff.employee_id}
+                      </td>
                       <td className="p-3 font-medium">
                         {staff.first_name} {staff.last_name}
                       </td>

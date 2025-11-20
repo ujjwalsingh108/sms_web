@@ -18,11 +18,13 @@ export default async function ExamsPage() {
 
   const { data: members } = await supabase
     .from("members")
-    .select(`
+    .select(
+      `
       *,
       role:role_id(id, name, display_name),
       tenant:tenant_id(id, name, email)
-    `)
+    `
+    )
     .eq("user_id", user.id)
     .eq("status", "approved");
 
@@ -35,11 +37,13 @@ export default async function ExamsPage() {
   // Fetch exams
   const { data: exams } = await supabase
     .from("exams")
-    .select(`
+    .select(
+      `
       *,
       exam_type:exam_types(name),
       academic_year:academic_years(year_name)
-    `)
+    `
+    )
     .eq("tenant_id", member.tenant_id)
     .order("created_at", { ascending: false })
     .limit(30);
@@ -55,28 +59,34 @@ export default async function ExamsPage() {
   };
 
   const upcomingCount =
-    (exams as Exam[] | null)?.filter((e) => e.status === "upcoming").length || 0;
+    (exams as Exam[] | null)?.filter((e) => e.status === "upcoming").length ||
+    0;
   const ongoingCount =
     (exams as Exam[] | null)?.filter((e) => e.status === "ongoing").length || 0;
   const completedCount =
-    (exams as Exam[] | null)?.filter((e) => e.status === "completed").length || 0;
+    (exams as Exam[] | null)?.filter((e) => e.status === "completed").length ||
+    0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Examination Management</h1>
-          <p className="text-gray-600 mt-1">Manage exams, schedules, and results</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Examination Management
+          </h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1">
+            Manage exams, schedules, and results
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/dashboard/exams/new">
-            <Button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Link href="/dashboard/exams/new" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Create Exam
             </Button>
           </Link>
-          <Link href="/dashboard/exams/types">
-            <Button variant="outline">
+          <Link href="/dashboard/exams/types" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto">
               Exam Types
             </Button>
           </Link>
@@ -84,7 +94,7 @@ export default async function ExamsPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-600">
@@ -105,7 +115,9 @@ export default async function ExamsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-orange-600">{upcomingCount}</p>
+            <p className="text-3xl font-bold text-orange-600">
+              {upcomingCount}
+            </p>
           </CardContent>
         </Card>
 
@@ -157,7 +169,9 @@ export default async function ExamsPage() {
                     <tr key={exam.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-medium">{exam.exam_name}</td>
                       <td className="p-3">{exam.exam_type?.name || "N/A"}</td>
-                      <td className="p-3">{exam.academic_year?.year_name || "N/A"}</td>
+                      <td className="p-3">
+                        {exam.academic_year?.year_name || "N/A"}
+                      </td>
                       <td className="p-3">
                         {exam.start_date
                           ? new Date(exam.start_date).toLocaleDateString()
@@ -218,7 +232,9 @@ export default async function ExamsPage() {
                 >
                   <h3 className="font-semibold">{type.name}</h3>
                   {type.description && (
-                    <p className="text-sm text-gray-600 mt-1">{type.description}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {type.description}
+                    </p>
                   )}
                 </div>
               ))

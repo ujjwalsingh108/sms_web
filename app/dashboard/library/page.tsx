@@ -77,8 +77,8 @@ export default async function LibraryPage() {
             Manage books and issue/return transactions
           </p>
         </div>
-        <Link href="/dashboard/library/add-book">
-          <Button>
+        <Link href="/dashboard/library/add-book" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Book
           </Button>

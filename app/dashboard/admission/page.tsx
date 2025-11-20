@@ -79,7 +79,7 @@ export default async function AdmissionPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-600">
@@ -117,35 +117,57 @@ export default async function AdmissionPage() {
       {/* Applications Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Applications</CardTitle>
+          <CardTitle className="text-lg md:text-xl">
+            Recent Applications
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[640px]">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left p-3">Application No</th>
-                  <th className="text-left p-3">Student Name</th>
-                  <th className="text-left p-3">Class</th>
-                  <th className="text-left p-3">Guardian</th>
-                  <th className="text-left p-3">Status</th>
-                  <th className="text-left p-3">Applied Date</th>
-                  <th className="text-left p-3">Actions</th>
+                <tr className="border-b bg-gray-50">
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Application No
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Student Name
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden sm:table-cell">
+                    Class
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                    Guardian
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Status
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden lg:table-cell">
+                    Applied Date
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {applications && applications.length > 0 ? (
                   applications.map((app: any) => (
                     <tr key={app.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3">{app.application_no}</td>
-                      <td className="p-3 font-medium">
+                      <td className="p-2 md:p-3 text-xs md:text-sm">
+                        {app.application_no}
+                      </td>
+                      <td className="p-2 md:p-3 font-medium text-xs md:text-sm">
                         {app.first_name} {app.last_name}
                       </td>
-                      <td className="p-3">{app.class?.name || "N/A"}</td>
-                      <td className="p-3">{app.guardian_name}</td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3 text-xs md:text-sm hidden sm:table-cell">
+                        {app.class?.name || "N/A"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                        {app.guardian_name}
+                      </td>
+                      <td className="p-2 md:p-3">
                         <span
-                          className={`px-2 py-1 rounded text-xs ${
+                          className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs whitespace-nowrap ${
                             app.status === "pending"
                               ? "bg-orange-100 text-orange-800"
                               : app.status === "approved"
@@ -156,10 +178,10 @@ export default async function AdmissionPage() {
                           {app.status}
                         </span>
                       </td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3 text-xs md:text-sm hidden lg:table-cell">
                         {new Date(app.applied_date).toLocaleDateString()}
                       </td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3">
                         <Link href={`/dashboard/admission/${app.id}`}>
                           <Button variant="outline" size="sm">
                             View

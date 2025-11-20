@@ -42,14 +42,18 @@ export default async function StudentsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Students</h1>
-          <p className="text-gray-600 mt-1">Manage student records</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Students
+          </h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1">
+            Manage student records
+          </p>
         </div>
-        <Link href="/dashboard/students/new">
-          <Button>
+        <Link href="/dashboard/students/new" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Student
           </Button>
