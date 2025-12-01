@@ -1,9 +1,10 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { NotificationsDrawer } from "@/components/admin/notifications-drawer";
 import type { User } from "@supabase/supabase-js";
 
 interface AdminHeaderProps {
@@ -44,10 +45,7 @@ export function AdminHeader({ title, description, user }: AdminHeaderProps) {
             </div>
 
             {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
-            </Button>
+            <NotificationsDrawer />
 
             {/* User Avatar */}
             <Avatar className="h-9 w-9">

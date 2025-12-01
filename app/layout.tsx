@@ -14,8 +14,34 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "School ERP - Management System",
-  description: "Comprehensive School Management System",
+  title: "Smart School ERP - Management System",
+  description:
+    "Comprehensive School Management System for modern educational institutions",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
+  openGraph: {
+    title: "Smart School ERP - Management System",
+    description:
+      "Comprehensive School Management System for modern educational institutions",
+    images: [
+      {
+        url: "/icon.svg",
+        width: 512,
+        height: 512,
+        alt: "Smart School ERP Logo",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Smart School ERP - Management System",
+    description:
+      "Comprehensive School Management System for modern educational institutions",
+    images: ["/icon.svg"],
+  },
 };
 
 export default function RootLayout({
