@@ -15,7 +15,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { validateSubdomain } from "@/lib/helpers/admin";
+import { validateSubdomain } from "@/lib/utils/validation";
 
 export function CreateSchoolForm() {
   const router = useRouter();
