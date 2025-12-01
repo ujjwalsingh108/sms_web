@@ -8,8 +8,28 @@ export async function middleware(request: NextRequest) {
   // Get hostname for subdomain routing
   const hostname = request.headers.get("host") || "";
 
-  // Handle localhost development - skip subdomain routing
+  // Handle localhost development
   if (hostname.includes("localhost") || hostname.includes("127.0.0.1")) {
+    // Allow testing subdomain routing on localhost via query params or paths
+    // Examples:
+    // - http://localhost:3000/admin → Admin portal
+    // - http://localhost:3000/dashboard → School portal (default)
+    // - http://localhost:3000/?subdomain=dps-ranchi → Test specific school
+
+    const subdomain = request.nextUrl.searchParams.get("subdomain");
+
+    if (subdomain) {
+      // Add subdomain header for testing
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set("x-school-subdomain", subdomain);
+
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      });
+    }
+
     return supabaseResponse;
   }
 
