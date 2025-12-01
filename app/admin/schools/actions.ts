@@ -49,6 +49,9 @@ export async function deleteSchool(
       },
     } as never);
 
+    // Note: Notifications are created automatically by database trigger
+    // See: database/notifications-schema.sql - trigger_notify_school_deleted
+
     revalidatePath("/admin/schools");
     return { success: true };
   } catch (error) {
@@ -184,6 +187,9 @@ export async function updateSchool(
         updated_at: new Date().toISOString(),
       },
     } as never);
+
+    // Note: Notifications are created automatically by database trigger
+    // See: database/notifications-schema.sql - trigger_notify_school_updated
 
     revalidatePath("/admin/schools");
     revalidatePath(`/admin/schools/${schoolId}/edit`);

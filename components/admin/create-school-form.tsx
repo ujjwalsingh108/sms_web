@@ -193,6 +193,9 @@ export function CreateSchoolForm() {
         },
       } as never);
 
+      // Note: Notifications are created automatically by database trigger
+      // See: database/notifications-schema.sql - trigger_notify_school_created
+
       // Success!
       router.push("/admin/schools");
       router.refresh();
