@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { AdminHeader } from "@/components/admin/admin-header";
+import { DeleteSchoolDialog } from "@/components/admin/delete-school-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, ExternalLink, Settings, Trash2 } from "lucide-react";
+import { Plus, ExternalLink, Settings } from "lucide-react";
 import Link from "next/link";
 
 export default async function SchoolsPage() {
@@ -130,22 +131,21 @@ export default async function SchoolsPage() {
                     </div>
 
                     <div className="flex sm:flex-col gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 sm:flex-none"
-                      >
-                        <Settings className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Manage</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 sm:flex-none text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Delete</span>
-                      </Button>
+                      <Link href={`/admin/schools/${school.id}/edit`}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 sm:flex-none w-full"
+                        >
+                          <Settings className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Manage</span>
+                        </Button>
+                      </Link>
+                      <DeleteSchoolDialog
+                        schoolId={school.id}
+                        schoolName={school.school_name}
+                        subdomain={school.subdomain}
+                      />
                     </div>
                   </div>
                 </CardContent>

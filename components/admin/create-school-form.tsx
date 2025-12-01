@@ -177,6 +177,22 @@ export function CreateSchoolForm() {
 
       if (instanceError) throw instanceError;
 
+      // 6. Log admin activity
+      await supabase.from("admin_activity_logs").insert({
+        admin_user_id: currentUser.id,
+        action: "CREATE_SCHOOL",
+        resource_type: "school_instance",
+        resource_id: typedTenantForInstance.id,
+        details: {
+          school_name: formData.school_name,
+          subdomain: formData.subdomain,
+          admin_email: formData.admin_email,
+          subscription_plan: formData.subscription_plan,
+          max_students: formData.max_students,
+          max_staff: formData.max_staff,
+        },
+      } as never);
+
       // Success!
       router.push("/admin/schools");
       router.refresh();
