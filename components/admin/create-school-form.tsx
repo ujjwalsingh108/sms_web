@@ -96,6 +96,15 @@ export function CreateSchoolForm() {
     try {
       const supabase = createClient();
 
+      // Get current user (superadmin)
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+
+      if (!currentUser) {
+        throw new Error("Not authenticated");
+      }
+
       // 1. Create tenant (school)
       const { data: tenant, error: tenantError } = await supabase
         .from("tenants")
@@ -163,6 +172,7 @@ export function CreateSchoolForm() {
           subscription_plan: formData.subscription_plan,
           max_students: formData.max_students,
           max_staff: formData.max_staff,
+          created_by: currentUser.id, // Add created_by field
         } as never);
 
       if (instanceError) throw instanceError;
