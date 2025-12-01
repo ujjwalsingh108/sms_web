@@ -187,7 +187,7 @@ export function NotificationsDrawer() {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md">
+      <SheetContent className="w-full sm:max-w-sm">
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
             <span>Notifications</span>
