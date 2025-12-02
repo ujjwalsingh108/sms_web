@@ -13,6 +13,7 @@ import {
   GraduationCap,
   BarChart3,
   Users,
+  UserCog,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,11 @@ const navigation = [
     name: "Schools",
     href: "/admin/schools",
     icon: Building2,
+  },
+  {
+    name: "Sales Executives",
+    href: "/admin/sales-executives",
+    icon: UserCog,
   },
   {
     name: "Analytics",
