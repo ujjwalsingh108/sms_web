@@ -42,7 +42,7 @@ const feeStructureSchema = z.object({
   due_day: z.string().optional(),
   academic_year_id: z.string().optional(),
   description: z.string().optional(),
-  status: z.enum(["active", "inactive"]).default("active"),
+  status: z.enum(["active", "inactive"]),
 });
 
 type FeeStructureFormData = z.infer<typeof feeStructureSchema>;

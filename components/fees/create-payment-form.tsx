@@ -46,7 +46,7 @@ const paymentSchema = z.object({
   ]),
   transaction_id: z.string().optional(),
   notes: z.string().optional(),
-  status: z.enum(["pending", "completed", "failed"]).default("completed"),
+  status: z.enum(["pending", "completed", "failed"]),
 });
 
 type PaymentFormData = z.infer<typeof paymentSchema>;
@@ -78,7 +78,7 @@ export default function CreatePaymentForm({
       setFeeSummary(result.data.summary);
       setSelectedStudent(result.data.student);
       if (result.data.feeStructure) {
-        form.setValue("fee_structure_id", result.data.feeStructure.id);
+        form.setValue("fee_structure_id", (result.data.feeStructure as any).id);
       }
     }
   };

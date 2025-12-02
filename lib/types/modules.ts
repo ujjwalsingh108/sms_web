@@ -36,23 +36,6 @@ export interface StudentWithDetails extends Student {
   guardians?: Guardian[];
 }
 
-export interface CreateFeePaymentData {
-  student_id: string;
-  fee_structure_id?: string;
-  amount_paid: number;
-  payment_date: string;
-  payment_method:
-    | "cash"
-    | "card"
-    | "upi"
-    | "cheque"
-    | "bank_transfer"
-    | "other";
-  transaction_id?: string;
-  notes?: string;
-  status: "pending" | "completed" | "failed";
-}
-
 export interface Guardian {
   id: string;
   tenant_id: string;

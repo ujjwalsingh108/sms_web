@@ -265,6 +265,7 @@ export async function deleteStudent(id: string) {
   // Soft delete
   const { error } = await supabase
     .from("students")
+    // @ts-expect-error - Supabase type inference issue
     .update({
       is_deleted: true,
       deleted_at: new Date().toISOString(),
@@ -304,6 +305,7 @@ export async function restoreStudent(id: string) {
 
   const { error } = await supabase
     .from("students")
+    // @ts-expect-error - Supabase type inference issue
     .update({
       is_deleted: false,
       deleted_at: null,
@@ -344,7 +346,6 @@ export async function addGuardian(studentId: string, guardianData: any) {
 
   const { data: guardian, error } = await supabase
     .from("guardians")
-    // @ts-expect-error - Supabase type inference issue with insert
     .insert({
       ...guardianData,
       tenant_id: (member as MemberWithTenant).tenant_id,

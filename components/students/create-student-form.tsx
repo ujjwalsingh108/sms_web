@@ -47,9 +47,7 @@ const studentSchema = z.object({
   class_id: z.string().optional(),
   section_id: z.string().optional(),
   admission_date: z.string().optional(),
-  status: z
-    .enum(["active", "inactive", "graduated", "transferred"])
-    .default("active"),
+  status: z.enum(["active", "inactive", "graduated", "transferred"]),
 });
 
 const guardianSchema = z.object({
@@ -59,7 +57,7 @@ const guardianSchema = z.object({
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   occupation: z.string().optional(),
   address: z.string().optional(),
-  is_primary: z.boolean().default(false),
+  is_primary: z.boolean(),
 });
 
 type StudentFormValues = z.infer<typeof studentSchema>;
@@ -130,7 +128,7 @@ export function CreateStudentForm({ classes }: CreateStudentFormProps) {
     try {
       const result = await createStudent({
         ...data,
-        guardians: guardians.length > 0 ? guardians : undefined,
+        guardians: guardians.length > 0 ? (guardians as any) : undefined,
       });
 
       if (result.success) {
