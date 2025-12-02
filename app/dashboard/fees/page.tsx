@@ -1,125 +1,128 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { FeesTable } from "@/components/fees/fees-table";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Plus,
+  DollarSign,
+  Users,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import Link from "next/link";
+import { getFeeStructures, getFeePayments } from "./actions";
+import FeesListClient from "@/components/fees/fees-list-client";
 
 export default async function FeesPage() {
-  const supabase = await createClient();
+  const [structuresResult, paymentsResult] = await Promise.all([
+    getFeeStructures(),
+    getFeePayments(),
+  ]);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const structures = structuresResult.success ? structuresResult.data : [];
+  const payments = paymentsResult.success ? paymentsResult.data : [];
 
-  if (!user) {
-    redirect("/login");
-  }
+  // Calculate stats
+  const totalStructures = structures?.length || 0;
+  const activeStructures =
+    structures?.filter((s: any) => s.status === "active").length || 0;
 
-  const { data: members } = await supabase
-    .from("members")
-    .select(
-      `
-      *,
-      role:role_id(id, name, display_name),
-      tenant:tenant_id(id, name, email)
-    `
-    )
-    .eq("user_id", user.id)
-    .eq("status", "approved");
-
-  const member = members?.[0] as { tenant_id: string } | undefined;
-
-  if (!member) {
-    redirect("/login");
-  }
-
-  // Fetch fee payments
-  const { data: payments } = await supabase
-    .from("fee_payments")
-    .select(
-      "*, student:students(first_name, last_name, admission_no), fee_structure:fee_structures(name)"
-    )
-    .eq("tenant_id", member.tenant_id)
-    .order("created_at", { ascending: false })
-    .limit(50);
-
-  type Payment = {
-    amount_paid: number;
-    status: string;
-  };
-
-  // Calculate statistics
   const totalCollected =
-    (payments as Payment[] | null)?.reduce(
-      (sum: number, p) => sum + Number(p.amount_paid),
-      0
-    ) || 0;
-  const completedPayments =
-    (payments as Payment[] | null)?.filter((p) => p.status === "completed")
-      .length || 0;
+    payments
+      ?.filter((p: any) => p.status === "completed")
+      .reduce((sum: number, p: any) => sum + Number(p.amount_paid), 0) || 0;
+
   const pendingPayments =
-    (payments as Payment[] | null)?.filter((p) => p.status === "pending")
-      .length || 0;
+    payments?.filter((p: any) => p.status === "pending").length || 0;
 
   return (
-    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            Fee Management
-          </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">
-            Manage fee collection and payments
+          <h1 className="text-3xl font-bold">Fee Management</h1>
+          <p className="text-muted-foreground">
+            Manage fee structures and student payments
           </p>
         </div>
-        <Link href="/dashboard/fees/collect" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            Collect Fee
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link href="/dashboard/fees/structures/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Fee Structure
+            </Link>
           </Button>
-        </Link>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/fees/payments/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Record Payment
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Fee Structures
+            </CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalStructures}</div>
+            <p className="text-xs text-muted-foreground">
+              {activeStructures} active
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
               Total Collected
             </CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              ₹{totalCollected.toLocaleString("en-IN")}
+            <div className="text-2xl font-bold">
+              ₹{totalCollected.toLocaleString()}
             </div>
+            <p className="text-xs text-muted-foreground">
+              {payments?.filter((p: any) => p.status === "completed").length ||
+                0}{" "}
+              transactions
+            </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Completed Payments
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{completedPayments}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
               Pending Payments
             </CardTitle>
+            <AlertCircle className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {pendingPayments}
+            <div className="text-2xl font-bold">{pendingPayments}</div>
+            <p className="text-xs text-muted-foreground">Awaiting completion</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Recent Payments
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {payments?.slice(0, 30).length || 0}
             </div>
+            <p className="text-xs text-muted-foreground">Last 30 days</p>
           </CardContent>
         </Card>
       </div>
 
-      <FeesTable payments={payments || []} />
+      <FeesListClient structures={structures || []} payments={payments || []} />
     </div>
   );
 }
