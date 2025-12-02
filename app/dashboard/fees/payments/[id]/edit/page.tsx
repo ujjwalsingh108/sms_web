@@ -37,7 +37,7 @@ export default async function EditPaymentPage({ params }: PageProps) {
       .from("fee_payments")
       .select("*")
       .eq("id", id)
-      .eq("tenant_id", member.tenant_id)
+      .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
       .eq("is_deleted", false)
       .single(),
     getStudentsForFees(),
@@ -64,7 +64,7 @@ export default async function EditPaymentPage({ params }: PageProps) {
         </div>
       </div>
 
-      <EditPaymentForm payment={payment} students={students} />
+      <EditPaymentForm payment={payment} students={students || []} />
     </div>
   );
 }

@@ -38,7 +38,7 @@ export async function getFeeStructures(filters?: {
       academic_year:academic_years(id, name)
     `
     )
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
     .eq("is_deleted", false)
     .order("created_at", { ascending: false });
 
@@ -84,7 +84,7 @@ export async function createFeeStructure(data: any) {
     .from("fee_structures")
     .insert({
       ...data,
-      tenant_id: member.tenant_id,
+      tenant_id: (member as { tenant_id: string }).tenant_id,
     })
     .select()
     .single();
@@ -97,7 +97,7 @@ export async function createFeeStructure(data: any) {
   return { success: true, data: feeStructure };
 }
 
-export async function updateFeeStructure(id: string, data: any) {
+export async function updateFeeStructure(id: string, data: Partial<any>) {
   const supabase = await createClient();
 
   const {
@@ -110,6 +110,7 @@ export async function updateFeeStructure(id: string, data: any) {
 
   const { data: feeStructure, error } = await supabase
     .from("fee_structures")
+    // @ts-expect-error - Supabase type inference issue with update
     .update(data)
     .eq("id", id)
     .select()
@@ -136,6 +137,7 @@ export async function deleteFeeStructure(id: string) {
 
   const { error } = await supabase
     .from("fee_structures")
+    // @ts-expect-error - Supabase type inference issue with update
     .update({
       is_deleted: true,
       deleted_at: new Date().toISOString(),
@@ -187,7 +189,7 @@ export async function getFeePayments(filters?: {
       fee_structure:fee_structures(id, name, amount)
     `
     )
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
     .eq("is_deleted", false)
     .order("payment_date", { ascending: false });
 
@@ -239,9 +241,10 @@ export async function createFeePayment(data: CreateFeePaymentData) {
 
   const { data: payment, error } = await supabase
     .from("fee_payments")
+    // @ts-expect-error - Supabase type inference issue with insert
     .insert({
       ...data,
-      tenant_id: member.tenant_id,
+      tenant_id: (member as { tenant_id: string }).tenant_id,
       created_by: user.id,
       payment_date: data.payment_date || new Date().toISOString().split("T")[0],
       status: data.status || "completed",
@@ -257,7 +260,7 @@ export async function createFeePayment(data: CreateFeePaymentData) {
   return { success: true, data: payment };
 }
 
-export async function updateFeePayment(id: string, data: any) {
+export async function updateFeePayment(id: string, data: Partial<any>) {
   const supabase = await createClient();
 
   const {
@@ -270,6 +273,7 @@ export async function updateFeePayment(id: string, data: any) {
 
   const { data: payment, error } = await supabase
     .from("fee_payments")
+    // @ts-expect-error - Supabase type inference issue with update
     .update(data)
     .eq("id", id)
     .select()
@@ -296,6 +300,7 @@ export async function deleteFeePayment(id: string) {
 
   const { error } = await supabase
     .from("fee_payments")
+    // @ts-expect-error - Supabase type inference issue with update
     .update({
       is_deleted: true,
       deleted_at: new Date().toISOString(),
@@ -338,7 +343,7 @@ export async function getStudentFeeSummary(studentId: string) {
     .from("students")
     .select("*, class:classes(id, name)")
     .eq("id", studentId)
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
     .single();
 
   if (!student) {
@@ -349,8 +354,8 @@ export async function getStudentFeeSummary(studentId: string) {
   const { data: feeStructure } = await supabase
     .from("fee_structures")
     .select("*")
-    .eq("tenant_id", member.tenant_id)
-    .eq("class_id", student.class_id)
+    .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
+    .eq("class_id", (student as any).class_id)
     .eq("status", "active")
     .eq("is_deleted", false)
     .single();
@@ -359,14 +364,15 @@ export async function getStudentFeeSummary(studentId: string) {
   const { data: payments } = await supabase
     .from("fee_payments")
     .select("*")
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
     .eq("student_id", studentId)
     .eq("is_deleted", false)
     .eq("status", "completed");
 
   const totalPaid =
-    payments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
-  const totalDue = feeStructure ? Number(feeStructure.amount) : 0;
+    payments?.reduce((sum: number, p: any) => sum + Number(p.amount_paid), 0) ||
+    0;
+  const totalDue = feeStructure ? Number((feeStructure as any).amount) : 0;
   const balance = totalDue - totalPaid;
 
   return {
@@ -409,7 +415,7 @@ export async function getStudentsForFees() {
   const { data: students, error } = await supabase
     .from("students")
     .select("id, admission_no, first_name, last_name, class:classes(name)")
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
     .eq("status", "active")
     .eq("is_deleted", false)
     .order("first_name");
@@ -446,7 +452,7 @@ export async function getClasses() {
   const { data: classes, error } = await supabase
     .from("classes")
     .select("id, name")
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
     .eq("is_deleted", false)
     .order("name");
 

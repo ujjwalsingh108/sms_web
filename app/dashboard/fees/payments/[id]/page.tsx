@@ -38,7 +38,7 @@ export default async function FeePaymentDetailPage({ params }: PageProps) {
     `
     )
     .eq("id", id)
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
     .eq("is_deleted", false)
     .single();
 

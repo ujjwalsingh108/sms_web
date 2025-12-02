@@ -37,7 +37,7 @@ export default async function EditFeeStructurePage({ params }: PageProps) {
       .from("fee_structures")
       .select("*")
       .eq("id", id)
-      .eq("tenant_id", member.tenant_id)
+      .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
       .eq("is_deleted", false)
       .single(),
     getClasses(),
@@ -64,7 +64,10 @@ export default async function EditFeeStructurePage({ params }: PageProps) {
         </div>
       </div>
 
-      <EditFeeStructureForm feeStructure={feeStructure} classes={classes} />
+      <EditFeeStructureForm
+        feeStructure={feeStructure}
+        classes={classes || []}
+      />
     </div>
   );
 }

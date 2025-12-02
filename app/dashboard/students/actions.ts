@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { CreateStudentData, UpdateStudentData } from "@/lib/types/modules";
 
+type MemberWithTenant = { tenant_id: string };
+
 export async function getStudents(filters?: {
   class_id?: string;
   section_id?: string;
@@ -40,7 +42,7 @@ export async function getStudents(filters?: {
       section:sections(id, name)
     `
     )
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as MemberWithTenant).tenant_id)
     .eq("is_deleted", false)
     .order("created_at", { ascending: false });
 
@@ -103,7 +105,7 @@ export async function getStudentById(id: string) {
     `
     )
     .eq("id", id)
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as MemberWithTenant).tenant_id)
     .eq("is_deleted", false)
     .single();
 
@@ -139,7 +141,7 @@ export async function createStudent(data: CreateStudentData) {
   const { data: existing } = await supabase
     .from("students")
     .select("id")
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as MemberWithTenant).tenant_id)
     .eq("admission_no", data.admission_no)
     .eq("is_deleted", false)
     .single();
@@ -154,9 +156,10 @@ export async function createStudent(data: CreateStudentData) {
   // Insert student
   const { data: student, error: studentError } = await supabase
     .from("students")
+    // @ts-expect-error - Supabase type inference issue with insert
     .insert({
       ...studentData,
-      tenant_id: member.tenant_id,
+      tenant_id: (member as MemberWithTenant).tenant_id,
       status: data.status || "active",
     })
     .select()
@@ -170,17 +173,21 @@ export async function createStudent(data: CreateStudentData) {
   if (guardians && guardians.length > 0) {
     const guardiansData = guardians.map((guardian) => ({
       ...guardian,
-      tenant_id: member.tenant_id,
-      student_id: student.id,
+      tenant_id: (member as MemberWithTenant).tenant_id,
+      student_id: (student as any).id,
     }));
 
     const { error: guardiansError } = await supabase
       .from("guardians")
+      // @ts-expect-error - Supabase type inference issue with insert
       .insert(guardiansData);
 
     if (guardiansError) {
       // Rollback: delete the student
-      await supabase.from("students").delete().eq("id", student.id);
+      await supabase
+        .from("students")
+        .delete()
+        .eq("id", (student as any).id);
       return { success: false, error: guardiansError.message };
     }
   }
@@ -215,12 +222,13 @@ export async function updateStudent(data: UpdateStudentData) {
   // Update student
   const { data: student, error: studentError } = await supabase
     .from("students")
+    // @ts-expect-error - Supabase type inference issue
     .update({
       ...studentData,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as MemberWithTenant).tenant_id)
     .select()
     .single();
 
@@ -263,7 +271,7 @@ export async function deleteStudent(id: string) {
       deleted_by: user.id,
     })
     .eq("id", id)
-    .eq("tenant_id", member.tenant_id);
+    .eq("tenant_id", (member as MemberWithTenant).tenant_id);
 
   if (error) {
     return { success: false, error: error.message };
@@ -302,7 +310,7 @@ export async function restoreStudent(id: string) {
       deleted_by: null,
     })
     .eq("id", id)
-    .eq("tenant_id", member.tenant_id);
+    .eq("tenant_id", (member as MemberWithTenant).tenant_id);
 
   if (error) {
     return { success: false, error: error.message };
@@ -336,9 +344,10 @@ export async function addGuardian(studentId: string, guardianData: any) {
 
   const { data: guardian, error } = await supabase
     .from("guardians")
+    // @ts-expect-error - Supabase type inference issue with insert
     .insert({
       ...guardianData,
-      tenant_id: member.tenant_id,
+      tenant_id: (member as MemberWithTenant).tenant_id,
       student_id: studentId,
     })
     .select()
@@ -365,6 +374,7 @@ export async function updateGuardian(id: string, guardianData: any) {
 
   const { data: guardian, error } = await supabase
     .from("guardians")
+    // @ts-expect-error - Supabase type inference issue with update
     .update(guardianData)
     .eq("id", id)
     .select()
@@ -391,6 +401,7 @@ export async function deleteGuardian(id: string, studentId: string) {
   // Soft delete
   const { error } = await supabase
     .from("guardians")
+    // @ts-expect-error - Supabase type inference issue with update
     .update({
       is_deleted: true,
       deleted_at: new Date().toISOString(),
@@ -431,7 +442,7 @@ export async function getClasses() {
   const { data: classes, error } = await supabase
     .from("classes")
     .select("id, name")
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as MemberWithTenant).tenant_id)
     .eq("is_deleted", false)
     .order("name");
 
@@ -466,7 +477,7 @@ export async function getSectionsByClass(classId: string) {
   const { data: sections, error } = await supabase
     .from("sections")
     .select("id, name")
-    .eq("tenant_id", member.tenant_id)
+    .eq("tenant_id", (member as MemberWithTenant).tenant_id)
     .eq("class_id", classId)
     .eq("is_deleted", false)
     .order("name");

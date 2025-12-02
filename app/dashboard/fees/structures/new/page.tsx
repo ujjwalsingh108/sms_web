@@ -22,7 +22,7 @@ export default async function NewFeeStructurePage() {
         </div>
       </div>
 
-      <CreateFeeStructureForm classes={classes} />
+      <CreateFeeStructureForm classes={classes || []} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { getStudentsForFees, getClasses } from "../actions";
+import { getStudentsForFees, getClasses } from "../../actions";
 import CreatePaymentForm from "@/components/fees/create-payment-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -27,7 +27,7 @@ export default async function NewPaymentPage() {
         </div>
       </div>
 
-      <CreatePaymentForm students={students} />
+      <CreatePaymentForm students={students || []} />
     </div>
   );
 }

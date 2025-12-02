@@ -41,6 +41,8 @@ export default async function StudentDetailPage({
     redirect("/dashboard/students");
   }
 
+  const student = (result as any).data;
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <div className="mb-6">
@@ -52,7 +54,7 @@ export default async function StudentDetailPage({
         </Link>
       </div>
 
-      <StudentDetailView student={result.data} />
+      <StudentDetailView student={student} />
     </div>
   );
 }

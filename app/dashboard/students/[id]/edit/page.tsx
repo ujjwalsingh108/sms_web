@@ -15,7 +15,7 @@ export default async function EditStudentPage({
   params,
 }: EditStudentPageProps) {
   const { id } = await params;
-  
+
   const supabase = await createClient();
 
   const {
@@ -45,6 +45,7 @@ export default async function EditStudentPage({
     redirect("/dashboard/students");
   }
 
+  const student = (studentResult as any).data;
   const classes = classesResult.success ? classesResult.data : [];
 
   return (
@@ -63,7 +64,7 @@ export default async function EditStudentPage({
           <CardTitle className="text-xl sm:text-2xl">Edit Student</CardTitle>
         </CardHeader>
         <CardContent>
-          <EditStudentForm student={studentResult.data} classes={classes || []} />
+          <EditStudentForm student={student} classes={classes || []} />
         </CardContent>
       </Card>
     </div>

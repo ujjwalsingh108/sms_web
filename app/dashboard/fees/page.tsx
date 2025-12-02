@@ -21,18 +21,17 @@ export default async function FeesPage() {
   const payments = paymentsResult.success ? paymentsResult.data : [];
 
   // Calculate stats
-  const totalStructures = structures.length;
-  const activeStructures = structures.filter(
-    (s: any) => s.status === "active"
-  ).length;
+  const totalStructures = structures?.length || 0;
+  const activeStructures =
+    structures?.filter((s: any) => s.status === "active").length || 0;
 
-  const totalCollected = payments
-    .filter((p: any) => p.status === "completed")
-    .reduce((sum: number, p: any) => sum + Number(p.amount_paid), 0);
+  const totalCollected =
+    payments
+      ?.filter((p: any) => p.status === "completed")
+      .reduce((sum: number, p: any) => sum + Number(p.amount_paid), 0) || 0;
 
-  const pendingPayments = payments.filter(
-    (p: any) => p.status === "pending"
-  ).length;
+  const pendingPayments =
+    payments?.filter((p: any) => p.status === "pending").length || 0;
 
   return (
     <div className="space-y-6">
@@ -87,7 +86,8 @@ export default async function FeesPage() {
               ₹{totalCollected.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              {payments.filter((p: any) => p.status === "completed").length}{" "}
+              {payments?.filter((p: any) => p.status === "completed").length ||
+                0}{" "}
               transactions
             </p>
           </CardContent>
@@ -115,14 +115,14 @@ export default async function FeesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {payments.slice(0, 30).length}
+              {payments?.slice(0, 30).length || 0}
             </div>
             <p className="text-xs text-muted-foreground">Last 30 days</p>
           </CardContent>
         </Card>
       </div>
 
-      <FeesListClient structures={structures} payments={payments} />
+      <FeesListClient structures={structures || []} payments={payments || []} />
     </div>
   );
 }
