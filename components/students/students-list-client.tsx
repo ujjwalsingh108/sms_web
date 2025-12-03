@@ -125,22 +125,10 @@ export function StudentsListClient({
     <>
       <Card>
         <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-lg sm:text-xl">
-                Students List
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
-                View and manage all students
-              </CardDescription>
-            </div>
-            <Link href="/dashboard/students/new" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Student
-              </Button>
-            </Link>
-          </div>
+          {/* <CardTitle className="text-lg sm:text-xl">Students List</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
+            View and manage all students
+          </CardDescription> */}
         </CardHeader>
         <CardContent>
           {/* Filters */}

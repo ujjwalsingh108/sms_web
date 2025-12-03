@@ -2,8 +2,10 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { StudentsListClient } from "@/components/students/students-list-client";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { getStudents, getClasses } from "./actions";
-import { Users, UserCheck, UserX, GraduationCap } from "lucide-react";
+import { Users, UserCheck, UserX, GraduationCap, Plus } from "lucide-react";
+import Link from "next/link";
 
 export default async function StudentsPage() {
   const supabase = await createClient();
@@ -46,6 +48,24 @@ export default async function StudentsPage() {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            Student Management
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage student admissions and records
+          </p>
+        </div>
+        <Link href="/dashboard/students/new">
+          <Button className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            New Student
+          </Button>
+        </Link>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <Card className="p-4 sm:p-6">
