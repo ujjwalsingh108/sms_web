@@ -13,9 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import Link from "next/link";
 import StaffFilters from "@/components/staff/staff-filters";
 import StaffTable from "@/components/staff/staff-table";
 
@@ -64,24 +61,6 @@ export default function StaffListClient({ filters }: StaffListClientProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Staff Management
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Manage your school staff members
-          </p>
-        </div>
-        <Link href="/dashboard/staff/new" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Staff
-          </Button>
-        </Link>
-      </div>
-
       <Card>
         <CardHeader>
           <CardTitle className="text-lg sm:text-xl">Staff List</CardTitle>

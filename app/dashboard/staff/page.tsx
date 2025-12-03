@@ -1,8 +1,11 @@
+import Link from "next/link";
 import { Suspense } from "react";
+import { Plus } from "lucide-react";
 import { getStaffStats } from "./actions";
-import StaffListClient from "@/components/staff/staff-list-client";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, UserCheck, UserX, Clock } from "lucide-react";
+import StaffListClient from "@/components/staff/staff-list-client";
 
 export default async function StaffPage({
   searchParams,
@@ -23,6 +26,24 @@ export default async function StaffPage({
 
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Staff Management
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Manage your school staff members
+          </p>
+        </div>
+        <Link href="/dashboard/staff/new" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Staff
+          </Button>
+        </Link>
+      </div>
+
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
