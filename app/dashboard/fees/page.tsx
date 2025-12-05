@@ -35,14 +35,14 @@ export default async function FeesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Fee Management</h1>
           <p className="text-muted-foreground">
             Manage fee structures and student payments
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Button asChild>
             <Link href="/dashboard/fees/structures/new">
               <Plus className="mr-2 h-4 w-4" />

@@ -45,7 +45,86 @@ export function RouteTable({ routes }: RouteTableProps) {
 
   return (
     <>
-      <div className="border rounded-lg overflow-hidden">
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {routes.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            No routes found
+          </div>
+        ) : (
+          routes.map((route) => (
+            <div
+              key={route.id}
+              className="border rounded-lg p-4 space-y-3 bg-card hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="font-semibold text-base">{route.route_name}</p>
+                  <p className="text-sm text-muted-foreground font-mono">
+                    {route.route_number || "N/A"}
+                  </p>
+                </div>
+                <Badge className={getStatusColor(route.status)}>
+                  {route.status}
+                </Badge>
+              </div>
+
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">From:</span>
+                  <span className="font-medium">
+                    {route.starting_point || "N/A"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">To:</span>
+                  <span className="font-medium">
+                    {route.ending_point || "N/A"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Distance:</span>
+                  <span className="ml-1 font-medium">
+                    {route.distance_km ? `${route.distance_km} km` : "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Fare:</span>
+                  <span className="ml-1 font-medium">₹{route.fare || "0"}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t">
+                <Button size="sm" variant="outline" className="flex-1" asChild>
+                  <Link href={`/dashboard/transport/routes/${route.id}`}>
+                    <Eye className="h-3.5 w-3.5 mr-1" />
+                    View
+                  </Link>
+                </Button>
+                <Button size="sm" variant="outline" className="flex-1" asChild>
+                  <Link href={`/dashboard/transport/routes/${route.id}/edit`}>
+                    <Pencil className="h-3.5 w-3.5 mr-1" />
+                    Edit
+                  </Link>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setDeleteId(route.id)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-muted/50">
@@ -53,16 +132,16 @@ export function RouteTable({ routes }: RouteTableProps) {
                 <th className="px-4 py-3 text-left text-sm font-medium">
                   Route Name
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium hidden sm:table-cell">
+                <th className="px-4 py-3 text-left text-sm font-medium">
                   Route Number
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium hidden md:table-cell">
+                <th className="px-4 py-3 text-left text-sm font-medium">
                   Starting Point
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium hidden lg:table-cell">
+                <th className="px-4 py-3 text-left text-sm font-medium">
                   Ending Point
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium hidden xl:table-cell">
+                <th className="px-4 py-3 text-left text-sm font-medium hidden lg:table-cell">
                   Distance
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium">
@@ -92,16 +171,16 @@ export function RouteTable({ routes }: RouteTableProps) {
                     <td className="px-4 py-3 font-medium text-sm">
                       {route.route_name}
                     </td>
-                    <td className="px-4 py-3 text-sm font-mono hidden sm:table-cell">
+                    <td className="px-4 py-3 text-sm font-mono">
                       {route.route_number || "N/A"}
                     </td>
-                    <td className="px-4 py-3 text-sm hidden md:table-cell">
+                    <td className="px-4 py-3 text-sm">
                       {route.starting_point || "N/A"}
                     </td>
-                    <td className="px-4 py-3 text-sm hidden lg:table-cell">
+                    <td className="px-4 py-3 text-sm">
                       {route.ending_point || "N/A"}
                     </td>
-                    <td className="px-4 py-3 text-sm hidden xl:table-cell">
+                    <td className="px-4 py-3 text-sm hidden lg:table-cell">
                       {route.distance_km ? `${route.distance_km} km` : "N/A"}
                     </td>
                     <td className="px-4 py-3 text-sm">₹{route.fare || "0"}</td>
