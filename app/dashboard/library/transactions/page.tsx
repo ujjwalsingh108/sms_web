@@ -4,6 +4,8 @@ import Link from "next/link";
 import { getLibraryTransactions } from "../actions";
 import TransactionsListClient from "@/components/library/transactions-list-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function LibraryTransactionsPage() {
   const transactionsResult = await getLibraryTransactions();
   const transactions = transactionsResult.success

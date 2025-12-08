@@ -4,6 +4,8 @@ import Link from "next/link";
 import { getLibraryBooks } from "../actions";
 import BooksListClient from "@/components/library/books-list-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function LibraryBooksPage() {
   const booksResult = await getLibraryBooks();
   const books = booksResult.success ? booksResult.data : [];

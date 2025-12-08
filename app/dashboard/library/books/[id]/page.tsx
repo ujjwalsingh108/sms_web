@@ -7,6 +7,8 @@ import Link from "next/link";
 import { getLibraryBookById } from "../../actions";
 import DeleteBookButton from "@/components/library/delete-book-button";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{ id: string }>;
 };

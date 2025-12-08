@@ -1,6 +1,8 @@
 import IssueBookForm from "@/components/library/issue-book-form";
 import { getLibraryBooks, getStudents, getStaff } from "../../actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function IssueBookPage() {
   const [booksResult, studentsResult, staffResult] = await Promise.all([
     getLibraryBooks(),

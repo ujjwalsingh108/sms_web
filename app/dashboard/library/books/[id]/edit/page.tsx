@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { getLibraryBookById } from "../../../actions";
 import BookForm from "@/components/library/book-form";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{ id: string }>;
 };

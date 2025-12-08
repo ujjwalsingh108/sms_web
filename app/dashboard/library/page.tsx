@@ -10,6 +10,8 @@ import {
 import Link from "next/link";
 import { getLibraryStats } from "./actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function LibraryPage() {
   const statsResult = await getLibraryStats();
   const stats = statsResult.success ? statsResult.data : null;
