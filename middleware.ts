@@ -67,6 +67,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Block access to non-admin routes from admin subdomain
+    // Only allow /admin, /auth, /sales, /login, and system routes
     if (
       !request.nextUrl.pathname.startsWith("/admin") &&
       !request.nextUrl.pathname.startsWith("/auth") &&
