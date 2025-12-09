@@ -142,11 +142,16 @@ export function Sidebar() {
 
   return (
     <div className="hidden md:flex md:w-64 md:flex-col">
-      <div className="flex flex-col grow bg-white border-r border-gray-200 pt-5 overflow-y-auto">
-        <div className="flex items-center shrink-0 px-4">
-          <h1 className="text-2xl font-bold text-blue-600">School ERP</h1>
+      <div className="flex flex-col grow bg-gradient-to-b from-slate-50 to-white border-r border-gray-200 pt-5 overflow-y-auto shadow-lg">
+        <div className="flex items-center shrink-0 px-4 pb-4 border-b border-gray-200">
+          <div className="w-full">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent drop-shadow-sm">
+              Smart School ERP
+            </h1>
+            <p className="text-xs text-gray-500 mt-1">Management System</p>
+          </div>
         </div>
-        <ScrollArea className="grow mt-5">
+        <ScrollArea className="grow mt-3">
           <nav className="flex-1 px-2 pb-4 space-y-1">
             {filteredNavigation.map((item) => {
               const isActive = pathname === item.href;
@@ -155,18 +160,18 @@ export function Sidebar() {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                    "group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
                     isActive
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md hover:shadow-lg transform scale-[1.02]"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700 hover:shadow-sm hover:scale-[1.01]"
                   )}
                 >
                   <item.icon
                     className={cn(
-                      "mr-3 h-5 w-5 shrink-0",
+                      "mr-3 h-5 w-5 shrink-0 transition-transform duration-200",
                       isActive
-                        ? "text-blue-700"
-                        : "text-gray-400 group-hover:text-gray-500"
+                        ? "text-white"
+                        : "text-gray-500 group-hover:text-blue-600 group-hover:scale-110"
                     )}
                   />
                   {item.name}
