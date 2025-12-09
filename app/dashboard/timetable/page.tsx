@@ -1,67 +1,15 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Calendar, Clock, Plus, Users, BookOpen } from "lucide-react";
 import Link from "next/link";
+import { getClasses } from "./actions";
+import TimetableSelector from "@/components/timetable/timetable-selector";
+
+export const dynamic = "force-dynamic";
 
 export default async function TimetablePage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: members } = await supabase
-    .from("members")
-    .select(
-      `
-      *,
-      role:role_id(id, name, display_name),
-      tenant:tenant_id(id, name, email)
-    `
-    )
-    .eq("user_id", user.id)
-    .eq("status", "approved");
-
-  const member = members?.[0] as { tenant_id: string } | undefined;
-
-  if (!member) {
-    redirect("/login");
-  }
-
-  // Fetch timetables
-  const { data: timetables } = await supabase
-    .from("timetables")
-    .select(
-      `
-      *,
-      class:classes(name),
-      section:sections(name),
-      subject:subjects(name),
-      teacher:staff(first_name, last_name)
-    `
-    )
-    .eq("tenant_id", member.tenant_id)
-    .order("day_of_week", { ascending: true })
-    .order("start_time", { ascending: true })
-    .limit(50);
-
-  // Fetch classes for quick access
-  const { data: classes } = await supabase
-    .from("classes")
-    .select("*")
-    .eq("tenant_id", member.tenant_id);
-
-  // Get unique days count
-  const uniqueDays = new Set(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    timetables?.map((t: any) => t.day_of_week) || []
-  );
+  const classesResult = await getClasses();
+  const classes = classesResult.success ? classesResult.data : [];
 
   return (
     <div className="space-y-6">
@@ -82,160 +30,117 @@ export default async function TimetablePage() {
         </Link>
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
-              Total Periods
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Classes</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-blue-600">
-              {timetables?.length || 0}
+            <div className="text-2xl font-bold">{classes?.length || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              With configured timetables
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
-              Active Days
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Working Days</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-green-600">
-              {uniqueDays.size}
-            </p>
+            <div className="text-2xl font-bold">6</div>
+            <p className="text-xs text-muted-foreground">Monday to Saturday</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
-              Total Classes
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Periods/Day</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-purple-600">
-              {classes?.length || 0}
-            </p>
+            <div className="text-2xl font-bold">8</div>
+            <p className="text-xs text-muted-foreground">Standard periods</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Subjects</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">-</div>
+            <p className="text-xs text-muted-foreground">Across all classes</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Timetable View */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg md:text-xl">Class Schedules</CardTitle>
+          <CardTitle>View Timetable</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px]">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
-                    Day
-                  </th>
-                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
-                    Period
-                  </th>
-                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
-                    Time
-                  </th>
-                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
-                    Class
-                  </th>
-                  <th className="text-left p-3">Section</th>
-                  <th className="text-left p-3">Subject</th>
-                  <th className="text-left p-3">Teacher</th>
-                  <th className="text-left p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {timetables && timetables.length > 0 ? (
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  timetables.map((item: any) => (
-                    <tr key={item.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-medium">
-                        {item.day_of_week === 1
-                          ? "Monday"
-                          : item.day_of_week === 2
-                          ? "Tuesday"
-                          : item.day_of_week === 3
-                          ? "Wednesday"
-                          : item.day_of_week === 4
-                          ? "Thursday"
-                          : item.day_of_week === 5
-                          ? "Friday"
-                          : item.day_of_week === 6
-                          ? "Saturday"
-                          : "Sunday"}
-                      </td>
-                      <td className="p-3">{item.period_number || "N/A"}</td>
-                      <td className="p-3 text-sm">
-                        {item.start_time} - {item.end_time}
-                      </td>
-                      <td className="p-3">{item.class?.name || "N/A"}</td>
-                      <td className="p-3">{item.section?.name || "N/A"}</td>
-                      <td className="p-3">{item.subject?.name || "N/A"}</td>
-                      <td className="p-3">
-                        {item.teacher
-                          ? `${item.teacher.first_name} ${item.teacher.last_name}`
-                          : "Not Assigned"}
-                      </td>
-                      <td className="p-3">
-                        <Link href={`/dashboard/timetable/${item.id}`}>
-                          <Button variant="outline" size="sm">
-                            Edit
-                          </Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={8} className="text-center p-8 text-gray-500">
-                      No timetable entries found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <TimetableSelector classes={classes || []} />
         </CardContent>
       </Card>
 
-      {/* Quick Actions by Class */}
-      <Card>
-        <CardHeader>
-          <CardTitle>View Timetable by Class</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {classes && classes.length > 0 ? (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              classes.map((cls: any) => (
-                <Link
-                  key={cls.id}
-                  href={`/dashboard/timetable/view?class=${cls.id}`}
-                >
-                  <div className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition">
-                    <h3 className="font-semibold text-lg">{cls.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      View full timetable
-                    </p>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <p className="text-gray-500 col-span-3 text-center py-4">
-                No classes found
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Link href="/dashboard/timetable/create" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <Plus className="h-4 w-4 mr-2" />
+                Create New Timetable
+              </Button>
+            </Link>
+            <Link href="/dashboard/timetable/bulk" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <Calendar className="h-4 w-4 mr-2" />
+                Bulk Upload
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg">Guidelines</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>
+                  Ensure no teacher is assigned to multiple classes in the same
+                  period
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>
+                  Verify period timings don&apos;t overlap for the same class
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>Plan breaks and lunch periods appropriately</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>
+                  Assign rooms to avoid conflicts in lab and special classrooms
+                </span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
