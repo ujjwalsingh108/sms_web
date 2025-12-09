@@ -13,21 +13,13 @@ export default async function TimetablePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            Timetable Management
-          </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">
-            Manage class schedules and periods
-          </p>
-        </div>
-        <Link href="/dashboard/timetable/new" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Period
-          </Button>
-        </Link>
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          Timetable Management
+        </h1>
+        <p className="text-sm md:text-base text-gray-600 mt-1">
+          Manage class schedules and periods
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
