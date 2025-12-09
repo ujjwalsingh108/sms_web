@@ -64,13 +64,13 @@ export default async function InfirmaryPage() {
   const totalCheckups = checkups?.length || 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-red-600 to-pink-600 dark:from-red-400 dark:to-pink-400 bg-clip-text text-transparent">
             Infirmary Management
           </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
             Manage medical records and health checkups
           </p>
         </div>
@@ -79,7 +79,7 @@ export default async function InfirmaryPage() {
             href="/dashboard/infirmary/records/new"
             className="w-full sm:w-auto"
           >
-            <Button className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-pink-500 text-white hover:opacity-90 shadow-lg">
               <Plus className="h-4 w-4 mr-2" />
               Add Medical Record
             </Button>
@@ -88,7 +88,7 @@ export default async function InfirmaryPage() {
             href="/dashboard/infirmary/checkups/new"
             className="w-full sm:w-auto"
           >
-            <Button variant="outline" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:opacity-90 shadow-lg">
               <Plus className="h-4 w-4 mr-2" />
               Schedule Checkup
             </Button>
@@ -97,36 +97,36 @@ export default async function InfirmaryPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
-        <Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 md:gap-6">
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
               Total Medical Records
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-blue-600">
+            <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-red-600 to-pink-600 dark:from-red-400 dark:to-pink-400 bg-clip-text text-transparent">
               {totalRecords}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
               Recent Checkups
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-green-600">
+            <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
               {totalCheckups}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
               Students Visited Today
             </CardTitle>
           </CardHeader>

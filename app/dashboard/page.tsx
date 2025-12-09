@@ -38,17 +38,25 @@ export default async function DashboardPage() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-          Dashboard
-        </h1>
-        <p className="text-sm md:text-base text-gray-600 mt-1">
-          Welcome back, {user.user_metadata.full_name || user.email}
-        </p>
-        <p className="text-xs md:text-sm text-gray-500 mt-0.5">
-          Role: {member.role.display_name} | Organization: {member.tenant.name}
-        </p>
+    <div className="space-y-6 p-6">
+      <div className="relative overflow-hidden rounded-2xl p-6 md:p-8 glass-effect shadow-xl">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-500/5 dark:via-purple-500/5 dark:to-pink-500/5"></div>
+        <div className="relative">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+            Dashboard
+          </h1>
+          <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 mt-2 font-medium">
+            Welcome back, {user.user_metadata.full_name || user.email} 👋
+          </p>
+          <div className="flex flex-wrap gap-3 mt-3">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md">
+              {member.role.display_name}
+            </span>
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md">
+              {member.tenant.name}
+            </span>
+          </div>
+        </div>
       </div>
 
       <DashboardStats tenantId={member.tenant_id} role={member.role.name} />

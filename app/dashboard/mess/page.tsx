@@ -87,19 +87,19 @@ export default async function MessPage() {
       .length || 0;
 
   return (
-    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
             Mess Management
           </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
             Manage mess menus, attendance, and feedback
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Link href="/dashboard/mess/menus/new" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-500 text-white hover:opacity-90 shadow-lg">
               <Plus className="h-4 w-4 mr-2" />
               Add Menu
             </Button>
@@ -108,7 +108,7 @@ export default async function MessPage() {
             href="/dashboard/mess/attendance/mark"
             className="w-full sm:w-auto"
           >
-            <Button variant="outline" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:opacity-90 shadow-lg">
               <Plus className="h-4 w-4 mr-2" />
               Mark Attendance
             </Button>
@@ -117,15 +117,15 @@ export default async function MessPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-        <Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 md:gap-6">
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Today&apos;s Total
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
               {attendance?.length || 0}
             </p>
           </CardContent>

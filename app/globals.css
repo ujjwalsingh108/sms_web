@@ -117,6 +117,45 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 text-foreground min-h-screen;
   }
+}
+
+@layer utilities {
+  .card-gradient {
+    @apply bg-gradient-to-br from-white to-slate-50 dark:from-gray-800 dark:to-gray-900;
+  }
+  
+  .gradient-border {
+    @apply relative before:absolute before:inset-0 before:rounded-lg before:p-[1px] before:bg-gradient-to-r before:from-blue-500 before:to-purple-500 before:-z-10;
+  }
+  
+  .glass-effect {
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/20;
+  }
+  
+  .stat-card-hover {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/20;
+  }
+  
+  .primary-gradient {
+    @apply bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500;
+  }
+  
+  .success-gradient {
+    @apply bg-gradient-to-r from-green-500 to-emerald-500;
+  }
+  
+  .warning-gradient {
+    @apply bg-gradient-to-r from-yellow-500 to-orange-500;
+  }
+  
+  .danger-gradient {
+    @apply bg-gradient-to-r from-red-500 to-rose-500;
+  }
+}
+
+@keyframes gradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
