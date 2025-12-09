@@ -47,19 +47,19 @@ export default async function StudentsPage() {
     students?.filter((s: any) => s.status === "graduated").length || 0;
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-4 sm:space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
             Student Management
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
             Manage student admissions and records
           </p>
         </div>
         <Link href="/dashboard/students/new">
-          <Button className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto primary-gradient text-white hover:opacity-90 shadow-lg hover:shadow-xl">
             <Plus className="h-4 w-4 mr-2" />
             New Student
           </Button>
@@ -67,59 +67,65 @@ export default async function StudentsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4 sm:p-6">
+      <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
+        <Card className="p-4 sm:p-6 stat-card-hover glass-effect border-0 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="p-2 sm:p-3 bg-blue-100 rounded-lg">
-              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+            <div className="p-3 rounded-xl primary-gradient">
+              <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Total Students
               </p>
-              <p className="text-xl sm:text-2xl font-bold">{totalStudents}</p>
+              <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                {totalStudents}
+              </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 sm:p-6">
+        <Card className="p-4 sm:p-6 stat-card-hover glass-effect border-0 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="p-2 sm:p-3 bg-green-100 rounded-lg">
-              <UserCheck className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+            <div className="p-3 rounded-xl success-gradient">
+              <UserCheck className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Active</p>
-              <p className="text-xl sm:text-2xl font-bold">{activeStudents}</p>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                Active
+              </p>
+              <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                {activeStudents}
+              </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 sm:p-6">
+        <Card className="p-4 sm:p-6 stat-card-hover glass-effect border-0 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="p-2 sm:p-3 bg-red-100 rounded-lg">
-              <UserX className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+            <div className="p-3 rounded-xl danger-gradient">
+              <UserX className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Inactive
               </p>
-              <p className="text-xl sm:text-2xl font-bold">
+              <p className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">
                 {inactiveStudents}
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 sm:p-6">
+        <Card className="p-4 sm:p-6 stat-card-hover glass-effect border-0 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="p-2 sm:p-3 bg-purple-100 rounded-lg">
-              <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+            <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500">
+              <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Graduated
               </p>
-              <p className="text-xl sm:text-2xl font-bold">
+              <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
                 {graduatedStudents}
               </p>
             </div>
@@ -128,10 +134,12 @@ export default async function StudentsPage() {
       </div>
 
       {/* Students List */}
-      <StudentsListClient
-        initialStudents={students || []}
-        classes={classes || []}
-      />
+      <div className="glass-effect border-0 shadow-lg rounded-xl">
+        <StudentsListClient
+          initialStudents={students || []}
+          classes={classes || []}
+        />
+      </div>
     </div>
   );
 }

@@ -79,13 +79,13 @@ export default async function HostelPage() {
     0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">
             Hostel Management
           </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
             Manage hostels, rooms, and student allocations
           </p>
         </div>
@@ -94,13 +94,13 @@ export default async function HostelPage() {
             href="/dashboard/hostel/allocations/new"
             className="w-full sm:w-auto"
           >
-            <Button className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:opacity-90 shadow-lg">
               <Plus className="h-4 w-4 mr-2" />
               Allocate Room
             </Button>
           </Link>
           <Link href="/dashboard/hostel/rooms/new" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-blue-500 text-white hover:opacity-90 shadow-lg">
               <Plus className="h-4 w-4 mr-2" />
               Add Room
             </Button>
@@ -109,54 +109,54 @@ export default async function HostelPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-        <Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 md:gap-6">
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
               Total Hostels
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-blue-600">
+            <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">
               {hostels?.length || 0}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
               Total Rooms
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-purple-600">
+            <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
               {rooms?.length || 0}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
               Occupied Rooms
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-orange-600">
+            <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-orange-600 to-yellow-600 dark:from-orange-400 dark:to-yellow-400 bg-clip-text text-transparent">
               {occupiedRooms}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
               Available Rooms
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-green-600">
+            <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
               {availableRooms}
             </p>
           </CardContent>

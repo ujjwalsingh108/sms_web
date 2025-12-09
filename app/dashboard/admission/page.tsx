@@ -60,18 +60,18 @@ export default async function AdmissionPage() {
     ).length || 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
             Admission Management
           </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
             Manage student admission applications
           </p>
         </div>
         <Link href="/dashboard/admission/new" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:opacity-90 shadow-lg">
             <Plus className="h-4 w-4 mr-2" />
             New Application
           </Button>
@@ -79,41 +79,41 @@ export default async function AdmissionPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
-        <Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 md:gap-6">
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
               Pending Applications
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-orange-600">
+            <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-orange-600 to-yellow-600 dark:from-orange-400 dark:to-yellow-400 bg-clip-text text-transparent">
               {pendingCount}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
               Approved Applications
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-green-600">
+            <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
               {approvedCount}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
+            <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
               Rejected Applications
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-red-600">
+            <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-red-600 to-rose-600 dark:from-red-400 dark:to-rose-400 bg-clip-text text-transparent">
               {rejectedCount}
             </p>
           </CardContent>
@@ -121,7 +121,7 @@ export default async function AdmissionPage() {
       </div>
 
       {/* Applications Table */}
-      <Card>
+      <Card className="glass-effect border-0 shadow-lg">
         <CardHeader>
           <CardTitle className="text-lg md:text-xl">
             Recent Applications

@@ -111,15 +111,15 @@ export default async function AttendancePage({
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
             Attendance Management
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
             Mark and manage student attendance
           </p>
         </div>
         <Link href="/dashboard/attendance/mark">
-          <Button className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto primary-gradient text-white hover:opacity-90 shadow-lg">
             <Calendar className="h-4 w-4 mr-2" />
             Mark Attendance
           </Button>
@@ -128,28 +128,40 @@ export default async function AttendancePage({
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Card>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 sm:gap-6">
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Total
+              </CardTitle>
+              <div className="p-2 rounded-lg primary-gradient">
+                <Users className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <p className="text-xs text-muted-foreground">Students marked</p>
+              <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                {stats.total}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Students marked
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Present</CardTitle>
-              <UserCheck className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Present
+              </CardTitle>
+              <div className="p-2 rounded-lg success-gradient">
+                <UserCheck className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
                 {stats.present}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {stats.total > 0
                   ? `${((stats.present / stats.total) * 100).toFixed(1)}%`
                   : "0%"}
@@ -157,16 +169,20 @@ export default async function AttendancePage({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Absent</CardTitle>
-              <UserX className="h-4 w-4 text-red-600" />
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Absent
+              </CardTitle>
+              <div className="p-2 rounded-lg danger-gradient">
+                <UserX className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-3xl font-bold bg-gradient-to-r from-red-600 to-rose-600 dark:from-red-400 dark:to-rose-400 bg-clip-text text-transparent">
                 {stats.absent}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {stats.total > 0
                   ? `${((stats.absent / stats.total) * 100).toFixed(1)}%`
                   : "0%"}
@@ -174,28 +190,36 @@ export default async function AttendancePage({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Half Day</CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Half Day
+              </CardTitle>
+              <div className="p-2 rounded-lg warning-gradient">
+                <Clock className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-yellow-600 dark:from-orange-400 dark:to-yellow-400 bg-clip-text text-transparent">
                 {stats.halfDay}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Partial attendance
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Late</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Late
+              </CardTitle>
+              <div className="p-2 rounded-lg bg-gradient-to-r from-yellow-500 to-amber-500">
+                <Clock className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
+              <div className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-yellow-400 dark:to-amber-400 bg-clip-text text-transparent">
                 {stats.late}
               </div>
               <p className="text-xs text-muted-foreground">Arrived late</p>

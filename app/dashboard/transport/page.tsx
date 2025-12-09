@@ -12,10 +12,10 @@ export default async function TransportPage() {
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
             Transport Management
           </h1>
-          <p className="text-sm md:text-base text-muted-foreground">
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
             Manage vehicles, routes, and student transport
           </p>
         </div>
@@ -23,58 +23,72 @@ export default async function TransportPage() {
 
       {/* Stats Cards */}
       <Suspense fallback={<div>Loading stats...</div>}>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Total Vehicles
               </CardTitle>
-              <Bus className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500">
+                <Bus className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalVehicles}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
+                {stats.totalVehicles}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {stats.activeVehicles} active
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Total Routes
               </CardTitle>
-              <Route className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500">
+                <Route className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalRoutes}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                {stats.totalRoutes}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {stats.activeRoutes} active
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Students Using Transport
               </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg success-gradient">
+                <Users className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalStudents}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                {stats.totalStudents}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Active assignments
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Quick Actions
               </CardTitle>
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500">
+                <MapPin className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-2">

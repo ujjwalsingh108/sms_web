@@ -21,60 +21,94 @@ export default async function ExamsPage() {
   const recentExams = examsResult.success ? examsResult.data?.slice(0, 5) : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Examinations</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
+            Examinations
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             Manage exams, schedules, and results
           </p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Total Exams</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Total Exams
+            </CardTitle>
+            <div className="p-2 rounded-lg primary-gradient">
+              <FileText className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.total || 0}</div>
-            <p className="text-xs text-muted-foreground">All exam records</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+              {stats?.total || 0}
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              All exam records
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Scheduled
+            </CardTitle>
+            <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500">
+              <Calendar className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.scheduled || 0}</div>
-            <p className="text-xs text-muted-foreground">Upcoming exams</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+              {stats?.scheduled || 0}
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Upcoming exams
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Ongoing</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Ongoing
+            </CardTitle>
+            <div className="p-2 rounded-lg warning-gradient">
+              <Clock className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.ongoing || 0}</div>
-            <p className="text-xs text-muted-foreground">In progress</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 dark:from-yellow-400 dark:to-orange-400 bg-clip-text text-transparent">
+              {stats?.ongoing || 0}
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              In progress
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Completed
+            </CardTitle>
+            <div className="p-2 rounded-lg success-gradient">
+              <ClipboardCheck className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.completed || 0}</div>
-            <p className="text-xs text-muted-foreground">Finished exams</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+              {stats?.completed || 0}
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Finished exams
+            </p>
           </CardContent>
         </Card>
       </div>
