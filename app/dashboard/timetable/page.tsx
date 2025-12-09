@@ -12,65 +12,95 @@ export default async function TimetablePage() {
   const classes = classesResult.success ? classesResult.data : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">
           Timetable Management
         </h1>
-        <p className="text-sm md:text-base text-gray-600 mt-1">
+        <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
           Manage class schedules and periods
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-4">
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Classes</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Total Classes
+            </CardTitle>
+            <div className="p-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500">
+              <Users className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{classes?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">
+              {classes?.length || 0}
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               With configured timetables
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Working Days</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Working Days
+            </CardTitle>
+            <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500">
+              <Calendar className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">6</div>
-            <p className="text-xs text-muted-foreground">Monday to Saturday</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+              6
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Monday to Saturday
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Periods/Day</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Periods/Day
+            </CardTitle>
+            <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500">
+              <Clock className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">Standard periods</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+              8
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Standard periods
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stat-card-hover glass-effect border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Subjects</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Subjects
+            </CardTitle>
+            <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500">
+              <BookOpen className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">Across all classes</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
+              -
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Across all classes
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
+      <Card className="glass-effect border-0 shadow-lg">
         <CardHeader>
           <CardTitle>View Timetable</CardTitle>
         </CardHeader>
@@ -80,19 +110,19 @@ export default async function TimetablePage() {
       </Card>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="glass-effect border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="text-lg">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <Link href="/dashboard/timetable/create" className="block">
-              <Button variant="outline" className="w-full justify-start">
+              <Button className="w-full justify-start bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:opacity-90 shadow-md">
                 <Plus className="h-4 w-4 mr-2" />
                 Create New Timetable
               </Button>
             </Link>
             <Link href="/dashboard/timetable/bulk" className="block">
-              <Button variant="outline" className="w-full justify-start">
+              <Button className="w-full justify-start bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:opacity-90 shadow-md">
                 <Calendar className="h-4 w-4 mr-2" />
                 Bulk Upload
               </Button>
@@ -100,7 +130,7 @@ export default async function TimetablePage() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2">
+        <Card className="md:col-span-2 glass-effect border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="text-lg">Guidelines</CardTitle>
           </CardHeader>
