@@ -1,309 +1,258 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import {
+  Package,
+  AlertTriangle,
+  FolderOpen,
+  DollarSign,
+  Users,
+  ShoppingCart,
+  Plus,
+} from "lucide-react";
 import Link from "next/link";
+import { getInventoryStats, getItems } from "./actions";
+
+export const dynamic = "force-dynamic";
 
 export default async function InventoryPage() {
-  const supabase = await createClient();
+  const statsResult = await getInventoryStats();
+  const itemsResult = await getItems();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const stats = statsResult.success ? statsResult.data : null;
+  const items = itemsResult.success && itemsResult.data ? itemsResult.data : [];
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: members } = await supabase
-    .from("members")
-    .select(
-      `
-      *,
-      role:role_id(id, name, display_name),
-      tenant:tenant_id(id, name, email)
-    `
-    )
-    .eq("user_id", user.id)
-    .eq("status", "approved");
-
-  const member = members?.[0] as { tenant_id: string } | undefined;
-
-  if (!member) {
-    redirect("/login");
-  }
-
-  // Fetch inventory items
-  const { data: items } = await supabase
-    .from("inventory_items")
-    .select(
-      `
-      *,
-      category:inventory_categories(name)
-    `
-    )
-    .eq("tenant_id", member.tenant_id)
-    .order("created_at", { ascending: false })
-    .limit(50);
-
-  // Fetch purchase orders
-  const { data: purchaseOrders } = await supabase
-    .from("purchase_orders")
-    .select(
-      `
-      *,
-      supplier:suppliers(name)
-    `
-    )
-    .eq("tenant_id", member.tenant_id)
-    .order("created_at", { ascending: false })
-    .limit(10);
-
-  type Item = {
-    quantity: number;
-    reorder_level: number;
-  };
-
-  const totalItems = items?.length || 0;
-  const lowStockItems =
-    (items as Item[] | null)?.filter(
-      (item) => item.quantity <= item.reorder_level
-    ).length || 0;
-
-  type PurchaseOrder = {
-    status: string;
-  };
-
-  const pendingOrders =
-    (purchaseOrders as PurchaseOrder[] | null)?.filter(
-      (po) => po.status === "pending"
-    ).length || 0;
+  // Low stock items
+  const lowStockItems = items.filter(
+    (item) => item.quantity <= item.minimum_quantity
+  );
 
   return (
-    <div className="space-y-4 md:space-y-6 p-4 md:p-0">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Inventory Management
           </h1>
           <p className="text-sm md:text-base text-gray-600 mt-1">
-            Manage items, stock, and purchases
+            Manage items, categories, suppliers, and purchase orders
           </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Link
-            href="/dashboard/inventory/items/new"
-            className="w-full sm:w-auto"
-          >
-            <Button className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Item
-            </Button>
-          </Link>
-          <Link
-            href="/dashboard/inventory/purchase-orders/new"
-            className="w-full sm:w-auto"
-          >
-            <Button variant="outline" className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              New Purchase Order
-            </Button>
-          </Link>
         </div>
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Total Items
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Items</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-blue-600">{totalItems}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Low Stock Items
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-red-600">{lowStockItems}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Pending Orders
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-orange-600">
-              {pendingOrders}
+            <div className="text-2xl font-bold">{stats?.totalItems || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Across all categories
             </p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">
+              {stats?.lowStockItems || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Items need restocking
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Categories</CardTitle>
+            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.totalCategories || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">Item categories</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ₹{stats?.totalValue.toFixed(2) || "0.00"}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Current inventory value
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Active Suppliers
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.activeSuppliers || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">Available suppliers</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Pending Orders
+            </CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.pendingOrders || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">Awaiting delivery</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Inventory Items */}
+      {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Inventory Items</CardTitle>
+          <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-3">Item Code</th>
-                  <th className="text-left p-3">Item Name</th>
-                  <th className="text-left p-3">Category</th>
-                  <th className="text-left p-3">Quantity</th>
-                  <th className="text-left p-3">Unit</th>
-                  <th className="text-left p-3">Reorder Level</th>
-                  <th className="text-left p-3">Status</th>
-                  <th className="text-left p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items && items.length > 0 ? (
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  items.map((item: any) => (
-                    <tr key={item.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-mono text-sm">
-                        {item.item_code}
-                      </td>
-                      <td className="p-3 font-medium">{item.item_name}</td>
-                      <td className="p-3">{item.category?.name || "N/A"}</td>
-                      <td className="p-3">
-                        <span
-                          className={`font-semibold ${
-                            item.quantity <= item.reorder_level
-                              ? "text-red-600"
-                              : "text-green-600"
-                          }`}
-                        >
-                          {item.quantity}
-                        </span>
-                      </td>
-                      <td className="p-3">{item.unit || "N/A"}</td>
-                      <td className="p-3">{item.reorder_level || "N/A"}</td>
-                      <td className="p-3">
-                        {item.quantity <= item.reorder_level ? (
-                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">
-                            Low Stock
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
-                            In Stock
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        <Link href={`/dashboard/inventory/items/${item.id}`}>
-                          <Button variant="outline" size="sm">
-                            View
-                          </Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={8} className="text-center p-8 text-gray-500">
-                      No inventory items found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Link href="/dashboard/inventory/items/new">
+              <Button className="w-full" variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Item
+              </Button>
+            </Link>
+            <Link href="/dashboard/inventory/categories">
+              <Button className="w-full" variant="outline">
+                <FolderOpen className="h-4 w-4 mr-2" />
+                Manage Categories
+              </Button>
+            </Link>
+            <Link href="/dashboard/inventory/suppliers">
+              <Button className="w-full" variant="outline">
+                <Users className="h-4 w-4 mr-2" />
+                Manage Suppliers
+              </Button>
+            </Link>
+            <Link href="/dashboard/inventory/purchase-orders/new">
+              <Button className="w-full" variant="outline">
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                New Purchase Order
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
 
-      {/* Recent Purchase Orders */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Purchase Orders</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-3">PO Number</th>
-                  <th className="text-left p-3">Supplier</th>
-                  <th className="text-left p-3">Order Date</th>
-                  <th className="text-left p-3">Expected Date</th>
-                  <th className="text-left p-3">Total Amount</th>
-                  <th className="text-left p-3">Status</th>
-                  <th className="text-left p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {purchaseOrders && purchaseOrders.length > 0 ? (
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  purchaseOrders.map((po: any) => (
-                    <tr key={po.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-mono text-sm">{po.po_number}</td>
-                      <td className="p-3">{po.supplier?.name || "N/A"}</td>
-                      <td className="p-3">
-                        {new Date(po.order_date).toLocaleDateString()}
-                      </td>
-                      <td className="p-3">
-                        {po.expected_delivery_date
-                          ? new Date(
-                              po.expected_delivery_date
-                            ).toLocaleDateString()
-                          : "N/A"}
-                      </td>
-                      <td className="p-3 font-semibold">
-                        ₹{po.total_amount || "0"}
-                      </td>
-                      <td className="p-3">
-                        <span
-                          className={`px-2 py-1 rounded text-xs ${
-                            po.status === "pending"
-                              ? "bg-orange-100 text-orange-800"
-                              : po.status === "approved"
-                              ? "bg-blue-100 text-blue-800"
-                              : po.status === "completed"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {po.status}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <Link
-                          href={`/dashboard/inventory/purchase-orders/${po.id}`}
-                        >
-                          <Button variant="outline" size="sm">
-                            View
-                          </Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="text-center p-8 text-gray-500">
-                      No purchase orders found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Low Stock Alert */}
+      {lowStockItems.length > 0 && (
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Low Stock Alert
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground mb-3">
+                The following items are running low on stock:
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {lowStockItems.slice(0, 6).map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">
+                        {item.item_name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Stock: {item.quantity} / Min: {item.minimum_quantity}
+                      </p>
+                    </div>
+                    <Link href={`/dashboard/inventory/items/${item.id}/edit`}>
+                      <Button size="sm" variant="ghost">
+                        Update
+                      </Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+              {lowStockItems.length > 6 && (
+                <Link href="/dashboard/inventory/items">
+                  <Button variant="link" className="mt-2">
+                    View all {lowStockItems.length} low stock items →
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Main Navigation */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Link href="/dashboard/inventory/items">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Inventory Items
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                View and manage all inventory items, track stock levels, and
+                update quantities
+              </p>
+              <Button variant="link" className="mt-3 p-0">
+                Manage Items →
+              </Button>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/inventory/purchase-orders">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                Purchase Orders
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Create and track purchase orders, manage suppliers, and monitor
+                deliveries
+              </p>
+              <Button variant="link" className="mt-3 p-0">
+                View Orders →
+              </Button>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
     </div>
   );
 }
