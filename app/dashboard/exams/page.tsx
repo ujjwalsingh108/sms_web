@@ -115,15 +115,15 @@ export default async function ExamsPage() {
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="hover:bg-muted/50 transition-colors">
+        <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <List className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <List className="h-5 w-5 text-blue-500 dark:text-blue-400" />
               Exam Types
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Manage different types of examinations
             </p>
             <div className="flex gap-2">
@@ -133,7 +133,7 @@ export default async function ExamsPage() {
                 </Button>
               </Link>
               <Link href="/dashboard/exams/types/new">
-                <Button size="icon">
+                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
                   <Plus className="h-4 w-4" />
                 </Button>
               </Link>
@@ -141,15 +141,15 @@ export default async function ExamsPage() {
           </CardContent>
         </Card>
 
-        <Card className="hover:bg-muted/50 transition-colors">
+        <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <FileText className="h-5 w-5 text-green-500 dark:text-green-400" />
               Exams
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Create and manage exam sessions
             </p>
             <div className="flex gap-2">
@@ -159,7 +159,7 @@ export default async function ExamsPage() {
                 </Button>
               </Link>
               <Link href="/dashboard/exams/list/new">
-                <Button size="icon">
+                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
                   <Plus className="h-4 w-4" />
                 </Button>
               </Link>
@@ -167,15 +167,15 @@ export default async function ExamsPage() {
           </CardContent>
         </Card>
 
-        <Card className="hover:bg-muted/50 transition-colors">
+        <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <ClipboardCheck className="h-5 w-5 text-purple-500 dark:text-purple-400" />
               Results
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Enter and view examination results
             </p>
             <Link href="/dashboard/exams/results" className="block">
