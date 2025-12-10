@@ -43,21 +43,27 @@ export default async function AdmissionPage() {
     .limit(50);
 
   type Application = {
+    id: string;
+    application_no: string;
+    first_name: string;
+    last_name: string;
     status: string;
+    guardian_name: string;
+    applied_date: string;
+    class: { name: string } | null;
   };
 
-  const pendingCount =
-    (applications as Application[] | null)?.filter(
-      (a) => a.status === "pending"
-    ).length || 0;
-  const approvedCount =
-    (applications as Application[] | null)?.filter(
-      (a) => a.status === "approved"
-    ).length || 0;
-  const rejectedCount =
-    (applications as Application[] | null)?.filter(
-      (a) => a.status === "rejected"
-    ).length || 0;
+  const typedApplications = (applications as Application[] | null) || [];
+
+  const pendingCount = typedApplications.filter(
+    (a) => a.status === "pending"
+  ).length;
+  const approvedCount = typedApplications.filter(
+    (a) => a.status === "approved"
+  ).length;
+  const rejectedCount = typedApplications.filter(
+    (a) => a.status === "rejected"
+  ).length;
 
   return (
     <div className="space-y-6 p-6">
@@ -131,66 +137,79 @@ export default async function AdmissionPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px]">
               <thead>
-                <tr className="border-b bg-gray-50">
-                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Application No
                   </th>
-                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Student Name
                   </th>
-                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden sm:table-cell">
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden sm:table-cell">
                     Class
                   </th>
-                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden md:table-cell">
                     Guardian
                   </th>
-                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Status
                   </th>
-                  <th className="text-left p-2 md:p-3 text-xs md:text-sm hidden lg:table-cell">
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden lg:table-cell">
                     Applied Date
                   </th>
-                  <th className="text-left p-2 md:p-3 text-xs md:text-sm">
+                  <th className="text-center p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {applications && applications.length > 0 ? (
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  applications.map((app: any) => (
-                    <tr key={app.id} className="border-b hover:bg-gray-50">
-                      <td className="p-2 md:p-3 text-xs md:text-sm">
+                {typedApplications.length > 0 ? (
+                  typedApplications.map((app) => (
+                    <tr
+                      key={app.id}
+                      className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <td className="p-2 md:p-3 text-xs md:text-sm font-medium text-gray-900 dark:text-gray-100">
                         {app.application_no}
                       </td>
-                      <td className="p-2 md:p-3 font-medium text-xs md:text-sm">
+                      <td className="p-2 md:p-3 font-semibold text-xs md:text-sm text-gray-900 dark:text-gray-100">
                         {app.first_name} {app.last_name}
                       </td>
-                      <td className="p-2 md:p-3 text-xs md:text-sm hidden sm:table-cell">
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden sm:table-cell">
                         {app.class?.name || "N/A"}
                       </td>
-                      <td className="p-2 md:p-3 text-xs md:text-sm hidden md:table-cell">
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden md:table-cell">
                         {app.guardian_name}
                       </td>
                       <td className="p-2 md:p-3">
                         <span
-                          className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs whitespace-nowrap ${
+                          className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-semibold whitespace-nowrap ${
                             app.status === "pending"
-                              ? "bg-orange-100 text-orange-800"
+                              ? "bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-700 dark:from-orange-900/30 dark:to-yellow-900/30 dark:text-orange-400"
                               : app.status === "approved"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
+                              ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 dark:from-green-900/30 dark:to-emerald-900/30 dark:text-green-400"
+                              : "bg-gradient-to-r from-red-100 to-rose-100 text-red-700 dark:from-red-900/30 dark:to-rose-900/30 dark:text-red-400"
                           }`}
                         >
                           {app.status}
                         </span>
                       </td>
-                      <td className="p-2 md:p-3 text-xs md:text-sm hidden lg:table-cell">
-                        {new Date(app.applied_date).toLocaleDateString()}
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden lg:table-cell">
+                        {new Date(app.applied_date).toLocaleDateString(
+                          "en-IN",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )}
                       </td>
                       <td className="p-2 md:p-3">
                         <Link href={`/dashboard/admission/${app.id}`}>
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          >
                             View
                           </Button>
                         </Link>
@@ -199,8 +218,12 @@ export default async function AdmissionPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center p-8 text-gray-500">
-                      No applications found
+                    <td
+                      colSpan={7}
+                      className="text-center p-8 text-gray-500 dark:text-gray-400 text-sm"
+                    >
+                      No applications found. Click "New Application" to create
+                      one.
                     </td>
                   </tr>
                 )}
