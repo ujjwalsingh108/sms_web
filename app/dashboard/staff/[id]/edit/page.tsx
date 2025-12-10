@@ -28,37 +28,30 @@ export default async function EditStaffPage({
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8">
-      <div className="flex items-center gap-4">
-        <Link href={`/dashboard/staff/${id}`}>
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Edit Staff
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Update staff member information
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center gap-4">
+          <Link href={`/dashboard/staff/${id}`}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-white/50 dark:hover:bg-gray-800/50"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Edit Staff
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              Update the details for {staff.first_name} {staff.last_name}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg sm:text-xl">
-            Staff Information
-          </CardTitle>
-          <CardDescription className="text-xs sm:text-sm">
-            Update the details for {staff.first_name} {staff.last_name}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <StaffForm staff={staff} mode="edit" />
-        </CardContent>
-      </Card>
+        <StaffForm staff={staff} mode="edit" />
+      </div>
     </div>
   );
 }
