@@ -150,12 +150,16 @@ export default function ResultEntryForm({
   };
 
   const getGradeColor = (grade: string) => {
-    if (!grade) return "bg-gray-100 text-gray-700";
-    if (grade.startsWith("A")) return "bg-green-100 text-green-700";
-    if (grade.startsWith("B")) return "bg-blue-100 text-blue-700";
-    if (grade === "C") return "bg-yellow-100 text-yellow-700";
-    if (grade === "D") return "bg-orange-100 text-orange-700";
-    return "bg-red-100 text-red-700";
+    if (!grade) return "bg-gradient-to-r from-gray-400 to-gray-500 text-white";
+    if (grade.startsWith("A"))
+      return "bg-gradient-to-r from-green-500 to-green-600 text-white";
+    if (grade.startsWith("B"))
+      return "bg-gradient-to-r from-blue-500 to-blue-600 text-white";
+    if (grade === "C")
+      return "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white";
+    if (grade === "D")
+      return "bg-gradient-to-r from-orange-500 to-orange-600 text-white";
+    return "bg-gradient-to-r from-red-500 to-red-600 text-white";
   };
 
   const filledCount = Array.from(results.values()).filter(
@@ -174,10 +178,12 @@ export default function ResultEntryForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card>
+      <Card className="glass-effect border-0 shadow-xl">
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <CardTitle>Enter Student Marks</CardTitle>
+            <CardTitle className="text-lg md:text-xl">
+              Enter Student Marks
+            </CardTitle>
             <div className="flex items-center gap-4">
               <div className="text-sm text-muted-foreground">
                 {filledCount} / {students.length} completed
@@ -185,6 +191,7 @@ export default function ResultEntryForm({
               <Button
                 type="submit"
                 disabled={isSubmitting || filledCount === 0}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
               >
                 <Save className="h-4 w-4 mr-2" />
                 {isSubmitting ? "Saving..." : "Save Results"}
@@ -202,7 +209,10 @@ export default function ResultEntryForm({
               );
 
               return (
-                <Card key={student.id} className="p-4">
+                <Card
+                  key={student.id}
+                  className="p-4 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
+                >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div>

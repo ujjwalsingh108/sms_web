@@ -23,7 +23,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Save, Users } from "lucide-react";
+import { Loader2, Save, Users, Calendar, ClipboardList } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   markBulkAttendance,
@@ -230,115 +230,121 @@ export default function MarkAttendanceForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Selection Criteria */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="text-sm font-medium mb-2 block">
-            Date <span className="text-red-500">*</span>
-          </label>
-          <Input
-            type="date"
-            value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            required
-          />
-        </div>
+      <Card className="glass-effect border-0 shadow-xl">
+        <CardContent className="pt-6">
+          {/* Selection Criteria */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Date <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="date"
+                value={formData.date}
+                onChange={(e) =>
+                  setFormData({ ...formData, date: e.target.value })
+                }
+                required
+              />
+            </div>
 
-        <div>
-          <label className="text-sm font-medium mb-2 block">
-            Class <span className="text-red-500">*</span>
-          </label>
-          <Select
-            value={formData.class_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, class_id: value, section_id: "" })
-            }
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select class" />
-            </SelectTrigger>
-            <SelectContent>
-              {classes.map((cls) => (
-                <SelectItem key={cls.id} value={cls.id}>
-                  {cls.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Class <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={formData.class_id}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, class_id: value, section_id: "" })
+                }
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select class" />
+                </SelectTrigger>
+                <SelectContent>
+                  {classes.map((cls) => (
+                    <SelectItem key={cls.id} value={cls.id}>
+                      {cls.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div>
-          <label className="text-sm font-medium mb-2 block">Section</label>
-          <Select
-            value={formData.section_id || "all"}
-            onValueChange={(value) =>
-              setFormData({
-                ...formData,
-                section_id: value === "all" ? "" : value,
-              })
-            }
-            disabled={!formData.class_id}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All sections" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All sections</SelectItem>
-              {sections.map((section) => (
-                <SelectItem key={section.id} value={section.id}>
-                  {section.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Section</label>
+              <Select
+                value={formData.section_id || "all"}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    section_id: value === "all" ? "" : value,
+                  })
+                }
+                disabled={!formData.class_id}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All sections" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All sections</SelectItem>
+                  {sections.map((section) => (
+                    <SelectItem key={section.id} value={section.id}>
+                      {section.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <Card>
+          <Card className="glass-effect border-0 shadow-xl">
             <CardContent className="pt-6">
               <div className="text-2xl font-bold">{stats.total_students}</div>
               <p className="text-xs text-muted-foreground">Total Students</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="glass-effect border-0 shadow-xl">
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 {stats.present}
               </div>
               <p className="text-xs text-muted-foreground">Present</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="glass-effect border-0 shadow-xl">
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
                 {stats.absent}
               </div>
               <p className="text-xs text-muted-foreground">Absent</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="glass-effect border-0 shadow-xl">
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent">
                 {stats.half_day}
               </div>
               <p className="text-xs text-muted-foreground">Half Day</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="glass-effect border-0 shadow-xl">
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-yellow-600">
+              <div className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-amber-600 bg-clip-text text-transparent">
                 {stats.late}
               </div>
               <p className="text-xs text-muted-foreground">Late</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="glass-effect border-0 shadow-xl">
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-gray-600">
+              <div className="text-2xl font-bold bg-gradient-to-r from-gray-600 to-gray-700 bg-clip-text text-transparent">
                 {stats.not_marked}
               </div>
               <p className="text-xs text-muted-foreground">Not Marked</p>
@@ -478,7 +484,11 @@ export default function MarkAttendanceForm({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={loading || attendanceData.size === 0}>
+          <Button
+            type="submit"
+            disabled={loading || attendanceData.size === 0}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+          >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
