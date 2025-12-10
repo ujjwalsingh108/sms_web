@@ -40,7 +40,7 @@ export default async function InfirmaryPage() {
     .select(
       `
       *,
-      student:students(first_name, last_name, roll_number)
+      student:student_id(id, first_name, last_name, admission_no)
     `
     )
     .eq("tenant_id", member.tenant_id)
@@ -53,15 +53,50 @@ export default async function InfirmaryPage() {
     .select(
       `
       *,
-      student:students(first_name, last_name, roll_number)
+      student:student_id(id, first_name, last_name, admission_no)
     `
     )
     .eq("tenant_id", member.tenant_id)
     .order("checkup_date", { ascending: false })
     .limit(20);
 
-  const totalRecords = medicalRecords?.length || 0;
-  const totalCheckups = checkups?.length || 0;
+  type Student = {
+    id: string;
+    first_name: string;
+    last_name: string;
+    admission_no: string;
+  };
+
+  type MedicalRecord = {
+    id: string;
+    record_date: string;
+    symptoms: string | null;
+    diagnosis: string | null;
+    treatment: string | null;
+    prescription: string | null;
+    doctor_name: string | null;
+    student: Student | null;
+  };
+
+  type MedicalCheckup = {
+    id: string;
+    checkup_date: string;
+    height: number | null;
+    weight: number | null;
+    blood_pressure: string | null;
+    temperature: number | null;
+    vision_test: string | null;
+    student: Student | null;
+  };
+
+  const typedMedicalRecords = (medicalRecords as MedicalRecord[] | null) || [];
+  const typedCheckups = (checkups as MedicalCheckup[] | null) || [];
+
+  const totalRecords = typedMedicalRecords.length;
+  const totalCheckups = typedCheckups.length;
+  const todayVisits = typedMedicalRecords.filter(
+    (r) => new Date(r.record_date).toDateString() === new Date().toDateString()
+  ).length;
 
   return (
     <div className="space-y-6 p-6">
@@ -131,20 +166,15 @@ export default async function InfirmaryPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl md:text-3xl font-bold text-purple-600">
-              {medicalRecords?.filter(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (r: any) =>
-                  new Date(r.record_date).toDateString() ===
-                  new Date().toDateString()
-              ).length || 0}
+            <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">
+              {todayVisits}
             </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Medical Records */}
-      <Card>
+      <Card className="glass-effect border-0 shadow-lg">
         <CardHeader>
           <CardTitle className="text-lg md:text-xl">
             Recent Medical Records
@@ -152,46 +182,69 @@ export default async function InfirmaryPage() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[640px]">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left p-3">Date</th>
-                  <th className="text-left p-3">Student</th>
-                  <th className="text-left p-3">Complaint</th>
-                  <th className="text-left p-3">Diagnosis</th>
-                  <th className="text-left p-3">Treatment</th>
-                  <th className="text-left p-3">Doctor</th>
-                  <th className="text-left p-3">Actions</th>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Date
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Student
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden md:table-cell">
+                    Symptoms
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Diagnosis
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden sm:table-cell">
+                    Doctor
+                  </th>
+                  <th className="text-center p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {medicalRecords && medicalRecords.length > 0 ? (
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  medicalRecords.map((record: any) => (
-                    <tr key={record.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3">
-                        {new Date(record.record_date).toLocaleDateString()}
+                {typedMedicalRecords.length > 0 ? (
+                  typedMedicalRecords.map((record) => (
+                    <tr
+                      key={record.id}
+                      className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-700 dark:text-gray-300">
+                        {new Date(record.record_date).toLocaleDateString(
+                          "en-IN",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )}
                       </td>
-                      <td className="p-3 font-medium">
+                      <td className="p-2 md:p-3 font-medium text-xs md:text-sm text-gray-900 dark:text-gray-100">
                         {record.student
                           ? `${record.student.first_name} ${record.student.last_name}`
                           : "N/A"}
                       </td>
-                      <td className="p-3 text-sm">
-                        {record.complaint || "N/A"}
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden md:table-cell truncate max-w-xs">
+                        {record.symptoms || "-"}
                       </td>
-                      <td className="p-3 text-sm">
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 truncate max-w-xs">
                         {record.diagnosis || "N/A"}
                       </td>
-                      <td className="p-3 text-sm">
-                        {record.treatment || "N/A"}
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden sm:table-cell">
+                        {record.doctor_name || "N/A"}
                       </td>
-                      <td className="p-3">{record.doctor_name || "N/A"}</td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3 text-center">
                         <Link
                           href={`/dashboard/infirmary/records/${record.id}`}
                         >
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          >
                             View
                           </Button>
                         </Link>
@@ -200,8 +253,12 @@ export default async function InfirmaryPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center p-8 text-gray-500">
-                      No medical records found
+                    <td
+                      colSpan={6}
+                      className="text-center p-8 text-gray-500 dark:text-gray-400 text-sm"
+                    >
+                      No medical records found. Click "Add Medical Record" to
+                      create one.
                     </td>
                   </tr>
                 )}
@@ -212,46 +269,83 @@ export default async function InfirmaryPage() {
       </Card>
 
       {/* Health Checkups */}
-      <Card>
+      <Card className="glass-effect border-0 shadow-lg">
         <CardHeader>
-          <CardTitle>Recent Health Checkups</CardTitle>
+          <CardTitle className="text-lg md:text-xl">
+            Recent Health Checkups
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[640px]">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left p-3">Date</th>
-                  <th className="text-left p-3">Student</th>
-                  <th className="text-left p-3">Height (cm)</th>
-                  <th className="text-left p-3">Weight (kg)</th>
-                  <th className="text-left p-3">Blood Group</th>
-                  <th className="text-left p-3">Vision</th>
-                  <th className="text-left p-3">Actions</th>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Date
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Student
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden md:table-cell">
+                    Height (cm)
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden md:table-cell">
+                    Weight (kg)
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden sm:table-cell">
+                    BP
+                  </th>
+                  <th className="text-left p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden sm:table-cell">
+                    Vision
+                  </th>
+                  <th className="text-center p-2 md:p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {checkups && checkups.length > 0 ? (
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  checkups.map((checkup: any) => (
-                    <tr key={checkup.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3">
-                        {new Date(checkup.checkup_date).toLocaleDateString()}
+                {typedCheckups.length > 0 ? (
+                  typedCheckups.map((checkup) => (
+                    <tr
+                      key={checkup.id}
+                      className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-700 dark:text-gray-300">
+                        {new Date(checkup.checkup_date).toLocaleDateString(
+                          "en-IN",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )}
                       </td>
-                      <td className="p-3 font-medium">
+                      <td className="p-2 md:p-3 font-medium text-xs md:text-sm text-gray-900 dark:text-gray-100">
                         {checkup.student
                           ? `${checkup.student.first_name} ${checkup.student.last_name}`
                           : "N/A"}
                       </td>
-                      <td className="p-3">{checkup.height || "N/A"}</td>
-                      <td className="p-3">{checkup.weight || "N/A"}</td>
-                      <td className="p-3">{checkup.blood_group || "N/A"}</td>
-                      <td className="p-3">{checkup.vision || "N/A"}</td>
-                      <td className="p-3">
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden md:table-cell">
+                        {checkup.height || "-"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden md:table-cell">
+                        {checkup.weight || "-"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden sm:table-cell">
+                        {checkup.blood_pressure || "-"}
+                      </td>
+                      <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden sm:table-cell">
+                        {checkup.vision_test || "-"}
+                      </td>
+                      <td className="p-2 md:p-3 text-center">
                         <Link
                           href={`/dashboard/infirmary/checkups/${checkup.id}`}
                         >
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          >
                             View
                           </Button>
                         </Link>
@@ -260,8 +354,12 @@ export default async function InfirmaryPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center p-8 text-gray-500">
-                      No checkup records found
+                    <td
+                      colSpan={7}
+                      className="text-center p-8 text-gray-500 dark:text-gray-400 text-sm"
+                    >
+                      No checkup records found. Click "Schedule Checkup" to
+                      create one.
                     </td>
                   </tr>
                 )}
