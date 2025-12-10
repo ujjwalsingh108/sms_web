@@ -44,17 +44,30 @@ export default async function StudentDetailPage({
   const student = (result as any).data;
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-      <div className="mb-6">
-        <Link href="/dashboard/students">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Students
-          </Button>
-        </Link>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/students">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-white/50 dark:hover:bg-gray-800/50"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Student Details
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              View and manage student information
+            </p>
+          </div>
+        </div>
 
-      <StudentDetailView student={student} />
+        <StudentDetailView student={student} />
+      </div>
     </div>
   );
 }
