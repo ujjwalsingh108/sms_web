@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { createTimetable } from "@/app/dashboard/timetable/actions";
 import { toast } from "sonner";
+import { Save } from "lucide-react";
 
 type Class = {
   id: string;
@@ -87,7 +88,7 @@ export default function TimetableCreateForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="class_id">
             Class <span className="text-destructive">*</span>
@@ -222,16 +223,22 @@ export default function TimetableCreateForm({
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
           disabled={isSubmitting}
+          className="w-full sm:w-auto"
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full sm:w-auto bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white shadow-lg"
+        >
+          <Save className="h-4 w-4 mr-2" />
           {isSubmitting ? "Creating..." : "Create Timetable Entry"}
         </Button>
       </div>
