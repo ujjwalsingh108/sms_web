@@ -11,6 +11,7 @@ import type {
   InventoryItem,
   InventoryCategory,
 } from "@/app/dashboard/inventory/actions";
+import { Save } from "lucide-react";
 
 interface ItemFormProps {
   item?: InventoryItem;
@@ -238,13 +239,6 @@ export default function ItemForm({ item, categories }: ItemFormProps) {
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <Button
-          type="submit"
-          disabled={loading}
-          className="flex-1 sm:flex-none"
-        >
-          {loading ? "Saving..." : item ? "Update Item" : "Create Item"}
-        </Button>
-        <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
@@ -252,6 +246,14 @@ export default function ItemForm({ item, categories }: ItemFormProps) {
           className="flex-1 sm:flex-none"
         >
           Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="flex-1 sm:flex-none bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          {loading ? "Saving..." : item ? "Update Item" : "Create Item"}
         </Button>
       </div>
     </form>

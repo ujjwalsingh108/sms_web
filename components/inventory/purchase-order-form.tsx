@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Package } from "lucide-react";
+import { Plus, Trash2, Package, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createPurchaseOrder } from "@/app/dashboard/inventory/actions";
 import type {
@@ -393,13 +393,6 @@ export default function PurchaseOrderForm({
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
         <Button
-          type="submit"
-          disabled={loading}
-          className="flex-1 sm:flex-none"
-        >
-          {loading ? "Creating..." : "Create Purchase Order"}
-        </Button>
-        <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
@@ -407,6 +400,14 @@ export default function PurchaseOrderForm({
           className="flex-1 sm:flex-none"
         >
           Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="flex-1 sm:flex-none bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          {loading ? "Creating..." : "Create Purchase Order"}
         </Button>
       </div>
     </form>

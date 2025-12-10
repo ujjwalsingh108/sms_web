@@ -11,6 +11,7 @@ import {
   updateCategory,
 } from "@/app/dashboard/inventory/actions";
 import type { InventoryCategory } from "@/app/dashboard/inventory/actions";
+import { Save } from "lucide-react";
 
 interface CategoryFormProps {
   category?: InventoryCategory;
@@ -81,17 +82,6 @@ export default function CategoryForm({ category }: CategoryFormProps) {
 
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <Button
-          type="submit"
-          disabled={loading}
-          className="flex-1 sm:flex-none"
-        >
-          {loading
-            ? "Saving..."
-            : category
-            ? "Update Category"
-            : "Create Category"}
-        </Button>
-        <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
@@ -99,6 +89,18 @@ export default function CategoryForm({ category }: CategoryFormProps) {
           className="flex-1 sm:flex-none"
         >
           Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="flex-1 sm:flex-none bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          {loading
+            ? "Saving..."
+            : category
+            ? "Update Category"
+            : "Create Category"}
         </Button>
       </div>
     </form>
