@@ -24,82 +24,82 @@ export default async function StaffAttendancePage({
   const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
   return (
-    <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Staff Attendance
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Mark and manage staff attendance records
           </p>
         </div>
+
+        {/* Stats Grid */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card className="glass-effect border-0 shadow-xl">
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-blue-600">
+                <Calendar className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Total Days
+                </p>
+                <h3 className="text-2xl font-bold">{lastDay.getDate()}</h3>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-effect border-0 shadow-xl">
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-r from-green-500 to-emerald-600">
+                <UserCheck className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Present
+                </p>
+                <h3 className="text-2xl font-bold">0</h3>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-effect border-0 shadow-xl">
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-r from-red-500 to-rose-600">
+                <UserX className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Absent
+                </p>
+                <h3 className="text-2xl font-bold">0</h3>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-effect border-0 shadow-xl">
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-yellow-600">
+                <Clock className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  On Leave
+                </p>
+                <h3 className="text-2xl font-bold">0</h3>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Attendance Records */}
+        <Suspense fallback={<div>Loading attendance records...</div>}>
+          <StaffAttendanceClient filters={filters} />
+        </Suspense>
       </div>
-
-      {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900">
-              <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Total Days
-              </p>
-              <h3 className="text-2xl font-bold">{lastDay.getDate()}</h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900">
-              <UserCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Present
-              </p>
-              <h3 className="text-2xl font-bold">0</h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900">
-              <UserX className="h-6 w-6 text-red-600 dark:text-red-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Absent
-              </p>
-              <h3 className="text-2xl font-bold">0</h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900">
-              <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                On Leave
-              </p>
-              <h3 className="text-2xl font-bold">0</h3>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Attendance Records */}
-      <Suspense fallback={<div>Loading attendance records...</div>}>
-        <StaffAttendanceClient filters={filters} />
-      </Suspense>
     </div>
   );
 }
