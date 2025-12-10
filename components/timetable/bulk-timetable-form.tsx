@@ -15,7 +15,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { bulkCreateTimetable } from "@/app/dashboard/timetable/actions";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Save } from "lucide-react";
 
 type Class = {
   id: string;
@@ -171,7 +171,7 @@ export default function BulkTimetableForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="class_id">
             Class <span className="text-destructive">*</span>
@@ -218,11 +218,16 @@ export default function BulkTimetableForm({
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <h3 className="text-lg md:text-xl font-semibold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
             Timetable Entries ({entries.length})
           </h3>
-          <Button type="button" onClick={addEntry} size="sm">
+          <Button
+            type="button"
+            onClick={addEntry}
+            size="sm"
+            className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white w-full sm:w-auto"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Entry
           </Button>
@@ -230,23 +235,28 @@ export default function BulkTimetableForm({
 
         <div className="space-y-4">
           {entries.map((entry, index) => (
-            <Card key={entry.id} className="p-4">
+            <Card
+              key={entry.id}
+              className="p-4 md:p-6 glass-effect border-0 shadow-lg"
+            >
               <div className="flex items-start justify-between mb-4">
-                <h4 className="font-medium">Entry {index + 1}</h4>
+                <h4 className="font-medium text-base md:text-lg">
+                  Entry {index + 1}
+                </h4>
                 {entries.length > 1 && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => removeEntry(entry.id)}
-                    className="text-destructive"
+                    className="text-destructive hover:bg-red-50 dark:hover:bg-red-950"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
               </div>
 
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
                 <div className="space-y-2">
                   <Label>Day</Label>
                   <Select
@@ -361,16 +371,22 @@ export default function BulkTimetableForm({
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
           disabled={isSubmitting}
+          className="w-full sm:w-auto"
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting || !classId}>
+        <Button
+          type="submit"
+          disabled={isSubmitting || !classId}
+          className="w-full sm:w-auto bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white shadow-lg"
+        >
+          <Save className="h-4 w-4 mr-2" />
           {isSubmitting ? "Creating..." : `Create ${entries.length} Entries`}
         </Button>
       </div>

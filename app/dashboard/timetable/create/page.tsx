@@ -29,34 +29,43 @@ export default async function CreateTimetablePage() {
     : [];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/timetable">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold">Create Timetable</h1>
-          <p className="text-muted-foreground">
-            Set up a new class timetable schedule
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/timetable">
+            <Button
+              variant="ghost"
+              className="h-9 w-9 p-0 hover:bg-white/50 dark:hover:bg-gray-800/50"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+              Create Timetable
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Set up a new class timetable schedule
+            </p>
+          </div>
         </div>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Timetable Configuration</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TimetableCreateForm
-            classes={classes || []}
-            subjects={subjects || []}
-            teachers={teachers || []}
-            academicYears={academicYears || []}
-          />
-        </CardContent>
-      </Card>
+        <Card className="glass-effect border-0 shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-lg md:text-xl">
+              Timetable Configuration
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TimetableCreateForm
+              classes={classes || []}
+              subjects={subjects || []}
+              teachers={teachers || []}
+              academicYears={academicYears || []}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
   updateSupplier,
 } from "@/app/dashboard/inventory/actions";
 import type { Supplier } from "@/app/dashboard/inventory/actions";
+import { Save } from "lucide-react";
 
 interface SupplierFormProps {
   supplier?: Supplier;
@@ -147,17 +148,6 @@ export default function SupplierForm({ supplier }: SupplierFormProps) {
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <Button
-          type="submit"
-          disabled={loading}
-          className="flex-1 sm:flex-none"
-        >
-          {loading
-            ? "Saving..."
-            : supplier
-            ? "Update Supplier"
-            : "Create Supplier"}
-        </Button>
-        <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
@@ -165,6 +155,18 @@ export default function SupplierForm({ supplier }: SupplierFormProps) {
           className="flex-1 sm:flex-none"
         >
           Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="flex-1 sm:flex-none bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          {loading
+            ? "Saving..."
+            : supplier
+            ? "Update Supplier"
+            : "Create Supplier"}
         </Button>
       </div>
     </form>
