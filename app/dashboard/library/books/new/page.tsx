@@ -1,16 +1,35 @@
 import BookForm from "@/components/library/book-form";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function NewBookPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Add New Book</h1>
-        <p className="text-muted-foreground">
-          Add a new book to the library catalog
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            className="hover:bg-white/50 dark:hover:bg-gray-800/50"
+          >
+            <Link href="/dashboard/library/books">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Add New Book
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Add a new book to the library catalog
+            </p>
+          </div>
+        </div>
 
-      <BookForm />
+        <BookForm />
+      </div>
     </div>
   );
 }
