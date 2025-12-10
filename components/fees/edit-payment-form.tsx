@@ -26,7 +26,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { updateFeePayment } from "@/app/dashboard/fees/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Loader2, User, CreditCard, Save } from "lucide-react";
 
 const paymentSchema = z.object({
   student_id: z.string().min(1, "Student is required"),
@@ -100,9 +101,12 @@ export default function EditPaymentForm({
     <div className="max-w-4xl">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Card>
+          <Card className="glass-effect border-0 shadow-xl">
             <CardHeader>
-              <CardTitle>Student Information</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                <User className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+                Student Information
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
@@ -139,9 +143,12 @@ export default function EditPaymentForm({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-effect border-0 shadow-xl">
             <CardHeader>
-              <CardTitle>Payment Details</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                <CreditCard className="h-5 w-5 text-green-500 dark:text-green-400" />
+                Payment Details
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -271,19 +278,26 @@ export default function EditPaymentForm({
           </Card>
 
           <div className="flex gap-4">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all"
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
               Update Payment
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() =>
-                router.push(`/dashboard/fees/payments/${payment.id}`)
-              }
+            <Link
+              href={`/dashboard/fees/payments/${payment.id}`}
+              className="flex-1"
             >
-              Cancel
-            </Button>
+              <Button type="button" variant="outline" className="w-full">
+                Cancel
+              </Button>
+            </Link>
           </div>
         </form>
       </Form>
