@@ -14,8 +14,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import {
+  Loader2,
+  User,
+  GraduationCap,
+  Users,
+  FileText,
+  Save,
+  ArrowLeft,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 interface AdmissionFormProps {
   classes: { id: string; name: string }[];
@@ -158,15 +167,16 @@ export function AdmissionForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
 
       {/* Student Information */}
-      <Card>
+      <Card className="glass-effect border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="text-lg md:text-xl">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+            <User className="h-5 w-5 text-indigo-500" />
             Student Information
           </CardTitle>
         </CardHeader>
@@ -292,9 +302,10 @@ export function AdmissionForm({
       </Card>
 
       {/* Academic Information */}
-      <Card>
+      <Card className="glass-effect border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="text-lg md:text-xl">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+            <GraduationCap className="h-5 w-5 text-purple-500" />
             Academic Information
           </CardTitle>
         </CardHeader>
@@ -366,9 +377,10 @@ export function AdmissionForm({
       </Card>
 
       {/* Guardian Information */}
-      <Card>
+      <Card className="glass-effect border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="text-lg md:text-xl">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+            <Users className="h-5 w-5 text-blue-500" />
             Guardian Information
           </CardTitle>
         </CardHeader>
@@ -468,9 +480,10 @@ export function AdmissionForm({
       </Card>
 
       {/* Remarks */}
-      <Card>
+      <Card className="glass-effect border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="text-lg md:text-xl">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+            <FileText className="h-5 w-5 text-teal-500" />
             Additional Information
           </CardTitle>
         </CardHeader>
@@ -491,20 +504,34 @@ export function AdmissionForm({
       </Card>
 
       {/* Form Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-end">
+      <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
+          type="submit"
           disabled={loading}
-          className="w-full sm:w-auto"
+          className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all"
         >
-          Cancel
+          {loading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4 mr-2" />
+          )}
+          {loading
+            ? "Saving..."
+            : initialData
+            ? "Update Application"
+            : "Submit Application"}
         </Button>
-        <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {initialData ? "Update Application" : "Submit Application"}
-        </Button>
+        <Link href="/dashboard/admission" className="flex-1">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full hover:bg-gray-100 dark:hover:bg-gray-800"
+            disabled={loading}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Cancel
+          </Button>
+        </Link>
       </div>
     </form>
   );

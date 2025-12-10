@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AdmissionForm } from "@/components/admission/admission-form";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default async function NewAdmissionPage() {
   const supabase = await createClient();
@@ -46,21 +49,34 @@ export default async function NewAdmissionPage() {
     .order("start_date", { ascending: false });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-          New Admission Application
-        </h1>
-        <p className="text-sm md:text-base text-gray-600 mt-1">
-          Create a new student admission application
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-start gap-4">
+          <Link href="/dashboard/admission">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-white/50 dark:hover:bg-gray-800/50"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              New Admission Application
+            </h1>
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
+              Create a new student admission application
+            </p>
+          </div>
+        </div>
 
-      <AdmissionForm
-        classes={classes || []}
-        academicYears={academicYears || []}
-        tenantId={member.tenant_id}
-      />
+        <AdmissionForm
+          classes={classes || []}
+          academicYears={academicYears || []}
+          tenantId={member.tenant_id}
+        />
+      </div>
     </div>
   );
 }
