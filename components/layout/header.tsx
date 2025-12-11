@@ -195,14 +195,22 @@ export function Header() {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
-              <SheetHeader className="border-b p-4">
-                <SheetTitle className="text-left text-xl font-bold text-blue-600">
-                  School ERP
+            <SheetContent
+              side="left"
+              className="w-64 p-0 bg-gradient-to-b from-slate-50 to-white"
+            >
+              <SheetHeader className="border-b border-gray-200 p-6 shadow-sm bg-white/50 backdrop-blur-sm">
+                <SheetTitle className="text-left">
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent drop-shadow-sm">
+                    Smart School ERP
+                  </h1>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Management System
+                  </p>
                 </SheetTitle>
               </SheetHeader>
-              <ScrollArea className="h-[calc(100vh-80px)]">
-                <nav className="flex flex-col p-2 space-y-1">
+              <ScrollArea className="h-[calc(100vh-100px)]">
+                <nav className="flex flex-col p-3 space-y-1">
                   {filteredNavigation.map((item) => {
                     const isActive = pathname === item.href;
                     return (
@@ -211,18 +219,18 @@ export function Header() {
                         href={item.href}
                         onClick={() => setOpen(false)}
                         className={cn(
-                          "group flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors",
+                          "group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
                           isActive
-                            ? "bg-blue-100 text-blue-700"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md"
+                            : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700"
                         )}
                       >
                         <item.icon
                           className={cn(
-                            "mr-3 h-5 w-5 shrink-0",
+                            "mr-3 h-5 w-5 shrink-0 transition-transform duration-200",
                             isActive
-                              ? "text-blue-700"
-                              : "text-gray-400 group-hover:text-gray-500"
+                              ? "text-white"
+                              : "text-gray-500 group-hover:text-blue-600 group-hover:scale-110"
                           )}
                         />
                         {item.name}
@@ -235,8 +243,8 @@ export function Header() {
           </Sheet>
 
           {/* Logo for mobile */}
-          <h1 className="text-lg md:hidden font-bold text-blue-600">
-            School ERP
+          <h1 className="text-lg md:hidden font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            Smart School ERP
           </h1>
         </div>
 
