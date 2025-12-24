@@ -66,19 +66,21 @@ export async function createStaffMember(input: CreateStaffInput) {
     }
 
     // Get user's tenant
-    const { data: member } = await supabase
+    const { data: memberData, error: memberError } = await supabase
       .from("members")
       .select("tenant_id, role:role_id(name)")
       .eq("user_id", user.id)
       .eq("status", "approved")
       .single();
 
-    if (!member || !member.tenant_id) {
+    if (memberError || !memberData) {
       return { error: "No tenant found for user" };
     }
 
+    const tenantId = (memberData as any).tenant_id;
+    const roleName = (memberData as any).role?.name;
+
     // Verify user is admin
-    const roleName = (member.role as any)?.name;
     if (roleName !== "admin" && roleName !== "superadmin") {
       return { error: "Only admins can create staff members" };
     }
@@ -104,7 +106,7 @@ export async function createStaffMember(input: CreateStaffInput) {
     }
 
     // Get staff role
-    const { data: staffRole } = await supabase
+    const { data: staffRole } = await adminClient
       .from("roles")
       .select("id")
       .eq("name", "staff")
@@ -116,11 +118,11 @@ export async function createStaffMember(input: CreateStaffInput) {
       return { error: "Staff role not found in database" };
     }
 
-    // Create staff record
-    const { data: staff, error: staffError } = await supabase
+    // Create staff record using admin client to bypass RLS
+    const { data: staff, error: staffError } = await adminClient
       .from("staff")
       .insert({
-        tenant_id: member.tenant_id,
+        tenant_id: tenantId,
         user_id: authUser.user.id,
         employee_id: input.employeeId,
         first_name: input.firstName,
@@ -148,20 +150,23 @@ export async function createStaffMember(input: CreateStaffInput) {
       return { error: staffError.message };
     }
 
-    // Create member record
-    const { error: memberError } = await supabase.from("members").insert({
+    // Create member record using admin client
+    const { error: newMemberError } = await adminClient.from("members").insert({
       user_id: authUser.user.id,
-      tenant_id: member.tenant_id,
-      role_id: staffRole.id,
+      tenant_id: tenantId,
+      role_id: (staffRole as any).id,
       status: "approved",
     });
 
-    if (memberError) {
-      console.error("Member creation error:", memberError);
+    if (newMemberError) {
+      console.error("Member creation error:", newMemberError);
       // Clean up staff and auth user
-      await supabase.from("staff").delete().eq("id", staff.id);
+      await supabase
+        .from("staff")
+        .delete()
+        .eq("id", (staff as any).id);
       await adminClient.auth.admin.deleteUser(authUser.user.id);
-      return { error: memberError.message };
+      return { error: newMemberError.message };
     }
 
     return {
@@ -214,19 +219,21 @@ export async function createStudent(input: CreateStudentInput) {
     }
 
     // Get user's tenant
-    const { data: member } = await supabase
+    const { data: memberData, error: memberError } = await supabase
       .from("members")
       .select("tenant_id, role:role_id(name)")
       .eq("user_id", user.id)
       .eq("status", "approved")
       .single();
 
-    if (!member || !member.tenant_id) {
+    if (memberError || !memberData) {
       return { error: "No tenant found for user" };
     }
 
+    const tenantId = (memberData as any).tenant_id;
+    const roleName = (memberData as any).role?.name;
+
     // Verify user is admin
-    const roleName = (member.role as any)?.name;
     if (roleName !== "admin" && roleName !== "superadmin") {
       return { error: "Only admins can create students" };
     }
@@ -259,11 +266,11 @@ export async function createStudent(input: CreateStudentInput) {
       authUserId = authUser.user.id;
     }
 
-    // Create student record
-    const { data: student, error: studentError } = await supabase
+    // Create student record using admin client to bypass RLS
+    const { data: student, error: studentError } = await adminClient
       .from("students")
       .insert({
-        tenant_id: member.tenant_id,
+        tenant_id: tenantId,
         user_id: authUserId,
         admission_no: input.admissionNo,
         first_name: input.firstName,
@@ -293,26 +300,31 @@ export async function createStudent(input: CreateStudentInput) {
 
     // Create member record if login access was created
     if (authUserId) {
-      const { data: studentRole } = await supabase
+      const { data: studentRole } = await adminClient
         .from("roles")
         .select("id")
         .eq("name", "student")
         .single();
 
       if (studentRole) {
-        const { error: memberError } = await supabase.from("members").insert({
-          user_id: authUserId,
-          tenant_id: member.tenant_id,
-          role_id: studentRole.id,
-          status: "approved",
-        });
+        const { error: newMemberError } = await adminClient
+          .from("members")
+          .insert({
+            user_id: authUserId,
+            tenant_id: tenantId,
+            role_id: (studentRole as any).id,
+            status: "approved",
+          });
 
-        if (memberError) {
-          console.error("Member creation error:", memberError);
+        if (newMemberError) {
+          console.error("Member creation error:", newMemberError);
           // Clean up student and auth user
-          await supabase.from("students").delete().eq("id", student.id);
+          await supabase
+            .from("students")
+            .delete()
+            .eq("id", (student as any).id);
           await adminClient.auth.admin.deleteUser(authUserId);
-          return { error: memberError.message };
+          return { error: newMemberError.message };
         }
       }
     }
@@ -365,19 +377,21 @@ export async function createGuardian(input: CreateGuardianInput) {
     }
 
     // Get user's tenant
-    const { data: member } = await supabase
+    const { data: memberData, error: memberError } = await supabase
       .from("members")
       .select("tenant_id, role:role_id(name)")
       .eq("user_id", user.id)
       .eq("status", "approved")
       .single();
 
-    if (!member || !member.tenant_id) {
+    if (memberError || !memberData) {
       return { error: "No tenant found for user" };
     }
 
+    const tenantId = (memberData as any).tenant_id;
+    const roleName = (memberData as any).role?.name;
+
     // Verify user is admin
-    const roleName = (member.role as any)?.name;
     if (roleName !== "admin" && roleName !== "superadmin") {
       return { error: "Only admins can create guardians" };
     }
@@ -410,11 +424,11 @@ export async function createGuardian(input: CreateGuardianInput) {
       authUserId = authUser.user.id;
     }
 
-    // Create guardian record
-    const { data: guardian, error: guardianError } = await supabase
+    // Create guardian record using admin client to bypass RLS
+    const { data: guardian, error: guardianError } = await adminClient
       .from("guardians")
       .insert({
-        tenant_id: member.tenant_id,
+        tenant_id: tenantId,
         student_id: input.studentId,
         user_id: authUserId,
         name: input.name,
@@ -439,26 +453,31 @@ export async function createGuardian(input: CreateGuardianInput) {
 
     // Create member record if login access was created
     if (authUserId) {
-      const { data: parentRole } = await supabase
+      const { data: parentRole } = await adminClient
         .from("roles")
         .select("id")
         .eq("name", "parent")
         .single();
 
       if (parentRole) {
-        const { error: memberError } = await supabase.from("members").insert({
-          user_id: authUserId,
-          tenant_id: member.tenant_id,
-          role_id: parentRole.id,
-          status: "approved",
-        });
+        const { error: newMemberError } = await adminClient
+          .from("members")
+          .insert({
+            user_id: authUserId,
+            tenant_id: tenantId,
+            role_id: (parentRole as any).id,
+            status: "approved",
+          });
 
-        if (memberError) {
-          console.error("Member creation error:", memberError);
+        if (newMemberError) {
+          console.error("Member creation error:", newMemberError);
           // Clean up guardian and auth user
-          await supabase.from("guardians").delete().eq("id", guardian.id);
+          await supabase
+            .from("guardians")
+            .delete()
+            .eq("id", (guardian as any).id);
           await adminClient.auth.admin.deleteUser(authUserId);
-          return { error: memberError.message };
+          return { error: newMemberError.message };
         }
       }
     }
@@ -496,21 +515,23 @@ export async function getStaffMembers() {
       return { error: "Unauthorized" };
     }
 
-    const { data: member } = await supabase
+    const { data: memberData } = await supabase
       .from("members")
       .select("tenant_id")
       .eq("user_id", user.id)
       .eq("status", "approved")
       .single();
 
-    if (!member) {
+    if (!memberData) {
       return { error: "No tenant found" };
     }
+
+    const tenantId = (memberData as any).tenant_id;
 
     const { data, error } = await supabase
       .from("staff")
       .select("*")
-      .eq("tenant_id", member.tenant_id)
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -534,16 +555,18 @@ export async function getStudents() {
       return { error: "Unauthorized" };
     }
 
-    const { data: member } = await supabase
+    const { data: memberData } = await supabase
       .from("members")
       .select("tenant_id")
       .eq("user_id", user.id)
       .eq("status", "approved")
       .single();
 
-    if (!member) {
+    if (!memberData) {
       return { error: "No tenant found" };
     }
+
+    const tenantId = (memberData as any).tenant_id;
 
     const { data, error } = await supabase
       .from("students")
@@ -554,7 +577,7 @@ export async function getStudents() {
         section:section_id(id, name)
       `
       )
-      .eq("tenant_id", member.tenant_id)
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 
     if (error) {
