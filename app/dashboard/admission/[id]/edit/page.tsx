@@ -47,8 +47,8 @@ export default async function EditAdmissionPage({ params }: PageProps) {
     .select(
       `
       *,
-      class:applied_class_id(id, name),
-      academic_year:academic_year_id(id, name)
+      class:classes!admission_applications_class_id_fkey(id, name),
+      academic_year:academic_years!admission_applications_academic_year_id_fkey(id, name)
     `
     )
     .eq("id", id)

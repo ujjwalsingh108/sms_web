@@ -35,12 +35,16 @@ export default async function AdmissionPage() {
   }
 
   // Fetch admission applications
-  const { data: applications } = await supabase
+  const { data: applications, error: fetchError } = await supabase
     .from("admission_applications")
-    .select("*, class:classes(name)")
+    .select("*, class:classes!admission_applications_class_id_fkey(name)")
     .eq("tenant_id", member.tenant_id)
     .order("created_at", { ascending: false })
     .limit(50);
+
+  if (fetchError) {
+    console.error("Error fetching applications:", fetchError);
+  }
 
   type Application = {
     id: string;
