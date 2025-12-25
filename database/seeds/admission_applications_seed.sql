@@ -26,7 +26,7 @@ INSERT INTO admission_applications (
   guardian_email, 
   guardian_relation, 
   guardian_occupation, 
-  applied_class_id, 
+  class_id, 
   academic_year_id, 
   status, 
   applied_date, 
