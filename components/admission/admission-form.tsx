@@ -47,7 +47,7 @@ interface AdmissionFormProps {
     guardian_email: string;
     guardian_relation: string;
     guardian_occupation: string;
-    applied_class_id: string;
+    class_id: string;
     academic_year_id: string;
     status: string;
     applied_date: string;
@@ -88,7 +88,7 @@ export function AdmissionForm({
     guardian_email: initialData?.guardian_email || "",
     guardian_relation: initialData?.guardian_relation || "",
     guardian_occupation: initialData?.guardian_occupation || "",
-    applied_class_id: initialData?.applied_class_id || "",
+    class_id: initialData?.class_id || "",
     academic_year_id:
       initialData?.academic_year_id ||
       academicYears.find((ay) => ay.is_current)?.id ||
@@ -125,7 +125,7 @@ export function AdmissionForm({
         guardian_email: formData.guardian_email || null,
         guardian_relation: formData.guardian_relation || null,
         guardian_occupation: formData.guardian_occupation || null,
-        applied_class_id: formData.applied_class_id || null,
+        class_id: formData.class_id || null,
         academic_year_id: formData.academic_year_id || null,
         status: formData.status,
         applied_date: formData.applied_date || null,
@@ -311,11 +311,11 @@ export function AdmissionForm({
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="applied_class_id">Applying for Class *</Label>
+            <Label htmlFor="class_id">Applying for Class *</Label>
             <Select
-              value={formData.applied_class_id}
+              value={formData.class_id}
               onValueChange={(value) =>
-                setFormData({ ...formData, applied_class_id: value })
+                setFormData({ ...formData, class_id: value })
               }
             >
               <SelectTrigger>

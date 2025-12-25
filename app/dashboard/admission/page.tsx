@@ -37,7 +37,7 @@ export default async function AdmissionPage() {
   // Fetch admission applications
   const { data: applications } = await supabase
     .from("admission_applications")
-    .select("*, class:applied_class_id(name)")
+    .select("*, class:class_id(name)")
     .eq("tenant_id", member.tenant_id)
     .order("created_at", { ascending: false })
     .limit(50);
