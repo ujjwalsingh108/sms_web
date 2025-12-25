@@ -20,6 +20,7 @@ import {
   UtensilsCrossed,
   UserCog,
   FileText,
+  Layers,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -38,6 +39,12 @@ const navigation = [
       "student",
       "driver",
     ],
+  },
+  {
+    name: "Academic",
+    href: "/dashboard/academic",
+    icon: Layers,
+    roles: ["superadmin", "admin"],
   },
   {
     name: "Admission",
