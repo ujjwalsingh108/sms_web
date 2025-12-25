@@ -1,20 +1,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, Users, Grid3x3, Layers } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, BookOpen, Users, Grid3x3, Layers, Calendar } from "lucide-react";
 import Link from "next/link";
-import { getClasses, getAcademicStats } from "./actions";
+import { getClasses, getAcademicStats, getAcademicYears } from "./actions";
 import { ClassesTable } from "@/components/academic/classes-table";
+import { AcademicYearsTable } from "@/components/academic/academic-years-table";
 
 export const dynamic = "force-dynamic";
 
 export default async function AcademicPage() {
-  const [classesResult, statsResult] = await Promise.all([
+  const [classesResult, statsResult, yearsResult] = await Promise.all([
     getClasses(),
     getAcademicStats(),
+    getAcademicYears(),
   ]);
 
   const classes = classesResult.success ? classesResult.data : [];
   const stats = statsResult.success ? statsResult.data : null;
+  const academicYears = yearsResult.success ? yearsResult.data : [];
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
@@ -120,14 +124,72 @@ export default async function AcademicPage() {
           </Card>
         </div>
 
-        <Card className="glass-effect border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-xl">Classes & Sections</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ClassesTable classes={classes || []} />
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="classes" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 lg:w-auto">
+            <TabsTrigger value="classes" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Classes & Sections
+            </TabsTrigger>
+            <TabsTrigger value="years" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Academic Years
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="classes" className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-semibold">Classes & Sections</h2>
+                <p className="text-sm text-muted-foreground">
+                  Manage your school's class and section structure
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Link href="/dashboard/academic/sections/new">
+                  <Button className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white shadow-lg">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Section
+                  </Button>
+                </Link>
+                <Link href="/dashboard/academic/classes/new">
+                  <Button className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Class
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <Card className="glass-effect border-0 shadow-xl">
+              <CardContent className="pt-6">
+                <ClassesTable classes={classes || []} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="years" className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-semibold">Academic Years</h2>
+                <p className="text-sm text-muted-foreground">
+                  Manage academic year periods and set current year
+                </p>
+              </div>
+              <Link href="/dashboard/academic/years/new">
+                <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Academic Year
+                </Button>
+              </Link>
+            </div>
+
+            <Card className="glass-effect border-0 shadow-xl">
+              <CardContent className="pt-6">
+                <AcademicYearsTable academicYears={academicYears || []} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

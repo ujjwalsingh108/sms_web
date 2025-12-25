@@ -47,6 +47,168 @@ export type ClassWithSections = Class & {
   sections?: Section[];
 };
 
+export type AcademicYear = {
+  id: string;
+  tenant_id: string;
+  name: string;
+  start_date: string;
+  end_date: string;
+  is_current: boolean;
+  created_at: string;
+};
+
+// =====================================================
+// ACADEMIC YEAR CRUD OPERATIONS
+// =====================================================
+
+export async function getAcademicYears() {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const { data: member } = await supabase
+      .from("members")
+      .select("tenant_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!member) {
+      return { success: false, error: "No organization found" };
+    }
+
+    const { data, error } = await supabase
+      .from("academic_years")
+      .select("*")
+      .eq("tenant_id", (member as any).tenant_id)
+      .order("start_date", { ascending: false });
+
+    if (error) throw error;
+
+    return { success: true, data: data as AcademicYear[] };
+  } catch (error) {
+    console.error("Error fetching academic years:", error);
+    return { success: false, error: "Failed to fetch academic years" };
+  }
+}
+
+export async function getAcademicYearById(id: string) {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from("academic_years")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+
+    return { success: true, data: data as AcademicYear };
+  } catch (error) {
+    console.error("Error fetching academic year:", error);
+    return { success: false, error: "Failed to fetch academic year" };
+  }
+}
+
+export async function createAcademicYear(formData: {
+  name: string;
+  start_date: string;
+  end_date: string;
+  is_current: boolean;
+  tenant_id: string;
+}) {
+  try {
+    const adminClient = getAdminClient();
+
+    // If setting this as current, unset all other current years for this tenant
+    if (formData.is_current) {
+      await adminClient
+        .from("academic_years")
+        .update({ is_current: false })
+        .eq("tenant_id", formData.tenant_id);
+    }
+
+    const { data, error } = await adminClient
+      .from("academic_years")
+      .insert([formData])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    revalidatePath("/dashboard/academic");
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error creating academic year:", error);
+    return { success: false, error: "Failed to create academic year" };
+  }
+}
+
+export async function updateAcademicYear(
+  id: string,
+  formData: {
+    name: string;
+    start_date: string;
+    end_date: string;
+    is_current: boolean;
+    tenant_id: string;
+  }
+) {
+  try {
+    const adminClient = getAdminClient();
+
+    // If setting this as current, unset all other current years for this tenant
+    if (formData.is_current) {
+      await adminClient
+        .from("academic_years")
+        .update({ is_current: false })
+        .eq("tenant_id", formData.tenant_id)
+        .neq("id", id);
+    }
+
+    const { data, error } = await adminClient
+      .from("academic_years")
+      .update(formData)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    revalidatePath("/dashboard/academic");
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error updating academic year:", error);
+    return { success: false, error: "Failed to update academic year" };
+  }
+}
+
+export async function deleteAcademicYear(id: string) {
+  try {
+    const adminClient = getAdminClient();
+
+    const { error } = await adminClient
+      .from("academic_years")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+
+    revalidatePath("/dashboard/academic");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting academic year:", error);
+    return { success: false, error: "Failed to delete academic year" };
+  }
+}
+
 // =====================================================
 // CLASS CRUD OPERATIONS
 // =====================================================
