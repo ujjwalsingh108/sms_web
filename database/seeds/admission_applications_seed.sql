@@ -98,7 +98,7 @@ VALUES
     'rohan.kumar@example.com',
     '+91-9876543214',
     '789 Park Street, Kolkata, 700016',
-    'St. Mary''s School',
+    'St. Mary's School',
     'Grade 1',
     'Suresh Kumar',
     '+91-9876543215',
