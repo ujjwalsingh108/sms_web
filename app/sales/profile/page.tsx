@@ -37,19 +37,25 @@ export default async function SalesProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-100">
       {/* Header */}
-      <header className="bg-white border-b">
+      <header className="bg-white/80 backdrop-blur-md border-b border-purple-100 shadow-sm sticky top-0 z-10">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-4">
             <Link href="/sales/dashboard">
-              <Button variant="ghost" size="icon">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-purple-100 transition-colors rounded-full h-10 w-10"
+              >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold">My Profile</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                My Profile
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600 font-medium">
                 Update your personal information
               </p>
             </div>
@@ -57,18 +63,22 @@ export default async function SalesProfilePage() {
         </div>
       </header>
 
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-3xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>
-              Employee Code: {salesExec.employee_code}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SalesProfileEditForm salesExecutive={salesExec} />
-          </CardContent>
-        </Card>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-0 shadow-2xl rounded-2xl bg-white/80 backdrop-blur-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
+                Profile Information
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base font-medium text-gray-600">
+                Employee Code: {salesExec.employee_code}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SalesProfileEditForm salesExecutive={salesExec} />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
