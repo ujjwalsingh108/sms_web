@@ -91,10 +91,15 @@ export function SalesProfileEditForm({ salesExecutive }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
+      <div className="space-y-5">
+        <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name *</Label>
+            <Label
+              htmlFor="fullName"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Full Name *
+            </Label>
             <Input
               id="fullName"
               required
@@ -102,23 +107,34 @@ export function SalesProfileEditForm({ salesExecutive }: Props) {
               onChange={(e) =>
                 setFormData({ ...formData, fullName: e.target.value })
               }
+              className="h-11 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label
+              htmlFor="email"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
               disabled
               value={salesExecutive.email}
-              className="bg-muted"
+              className="h-11 bg-gray-100 border-gray-300 text-gray-600"
             />
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone *</Label>
+            <Label
+              htmlFor="phone"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Phone *
+            </Label>
             <Input
               id="phone"
               type="tel"
@@ -127,10 +143,16 @@ export function SalesProfileEditForm({ salesExecutive }: Props) {
               onChange={(e) =>
                 setFormData({ ...formData, phone: e.target.value })
               }
+              className="h-11 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="alternatePhone">Alternate Phone</Label>
+            <Label
+              htmlFor="alternatePhone"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Alternate Phone
+            </Label>
             <Input
               id="alternatePhone"
               type="tel"
@@ -138,12 +160,18 @@ export function SalesProfileEditForm({ salesExecutive }: Props) {
               onChange={(e) =>
                 setFormData({ ...formData, alternatePhone: e.target.value })
               }
+              className="h-11 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="addressLine1">Address Line 1 *</Label>
+          <Label
+            htmlFor="addressLine1"
+            className="text-sm font-semibold text-gray-700"
+          >
+            Address Line 1 *
+          </Label>
           <Input
             id="addressLine1"
             required
@@ -151,23 +179,35 @@ export function SalesProfileEditForm({ salesExecutive }: Props) {
             onChange={(e) =>
               setFormData({ ...formData, addressLine1: e.target.value })
             }
+            className="h-11 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="addressLine2">Address Line 2</Label>
+          <Label
+            htmlFor="addressLine2"
+            className="text-sm font-semibold text-gray-700"
+          >
+            Address Line 2
+          </Label>
           <Input
             id="addressLine2"
             value={formData.addressLine2}
             onChange={(e) =>
               setFormData({ ...formData, addressLine2: e.target.value })
             }
+            className="h-11 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
           />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:gap-5 md:grid-cols-3">
           <div className="space-y-2">
-            <Label htmlFor="city">City *</Label>
+            <Label
+              htmlFor="city"
+              className="text-sm font-semibold text-gray-700"
+            >
+              City *
+            </Label>
             <Input
               id="city"
               required
@@ -175,17 +215,23 @@ export function SalesProfileEditForm({ salesExecutive }: Props) {
               onChange={(e) =>
                 setFormData({ ...formData, city: e.target.value })
               }
+              className="h-11 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="state">State *</Label>
+            <Label
+              htmlFor="state"
+              className="text-sm font-semibold text-gray-700"
+            >
+              State *
+            </Label>
             <Select
               value={formData.state}
               onValueChange={(value) =>
                 setFormData({ ...formData, state: value })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11 border-gray-300 focus:border-purple-500 focus:ring-purple-500">
                 <SelectValue placeholder="Select state" />
               </SelectTrigger>
               <SelectContent>
@@ -198,7 +244,12 @@ export function SalesProfileEditForm({ salesExecutive }: Props) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="postalCode">Postal Code *</Label>
+            <Label
+              htmlFor="postalCode"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Postal Code *
+            </Label>
             <Input
               id="postalCode"
               required
@@ -206,21 +257,26 @@ export function SalesProfileEditForm({ salesExecutive }: Props) {
               onChange={(e) =>
                 setFormData({ ...formData, postalCode: e.target.value })
               }
+              className="h-11 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
             />
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
           <div className="space-y-2">
-            <Label>Assigned Region</Label>
+            <Label className="text-sm font-semibold text-gray-700">
+              Assigned Region
+            </Label>
             <Input
               disabled
               value={salesExecutive.assigned_region || "Not assigned"}
-              className="bg-muted"
+              className="h-11 bg-gray-100 border-gray-300 text-gray-600"
             />
           </div>
           <div className="space-y-2">
-            <Label>Commission Rate</Label>
+            <Label className="text-sm font-semibold text-gray-700">
+              Commission Rate
+            </Label>
             <Input
               disabled
               value={
@@ -230,22 +286,27 @@ export function SalesProfileEditForm({ salesExecutive }: Props) {
                       "en-IN"
                     )}`
               }
-              className="bg-muted"
+              className="h-11 bg-gray-100 border-gray-300 text-gray-600"
             />
           </div>
         </div>
       </div>
 
-      <div className="flex gap-2 justify-end">
+      <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
           disabled={loading}
+          className="h-11 px-6 border-gray-300 hover:bg-gray-50"
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="h-11 px-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+        >
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Update Profile
         </Button>
