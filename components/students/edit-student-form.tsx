@@ -15,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import {
   Select,
@@ -33,10 +34,17 @@ import {
   Phone as PhoneIcon,
   GraduationCap,
   Save,
+  Plus,
+  X,
+  Edit2,
+  Users as UsersIcon,
 } from "lucide-react";
 import {
   updateStudent,
   getSectionsByClass,
+  addGuardian,
+  updateGuardian,
+  deleteGuardian,
 } from "@/app/dashboard/students/actions";
 import type { StudentWithDetails, Class } from "@/lib/types/modules";
 
@@ -56,7 +64,18 @@ const studentSchema = z.object({
   status: z.enum(["active", "inactive", "graduated", "transferred"]),
 });
 
+const guardianSchema = z.object({
+  name: z.string().min(1, "Guardian name is required"),
+  relationship: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  occupation: z.string().optional(),
+  address: z.string().optional(),
+  is_primary: z.boolean(),
+});
+
 type StudentFormValues = z.infer<typeof studentSchema>;
+type GuardianFormValues = z.infer<typeof guardianSchema>;
 
 interface EditStudentFormProps {
   student: StudentWithDetails;
@@ -67,6 +86,9 @@ export function EditStudentForm({ student, classes }: EditStudentFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
+  const [guardians, setGuardians] = useState<any[]>(student.guardians || []);
+  const [showGuardianForm, setShowGuardianForm] = useState(false);
+  const [editingGuardian, setEditingGuardian] = useState<any>(null);
 
   const form = useForm<StudentFormValues>({
     resolver: zodResolver(studentSchema),
@@ -84,6 +106,14 @@ export function EditStudentForm({ student, classes }: EditStudentFormProps) {
       section_id: student.section_id || "",
       admission_date: student.admission_date || "",
       status: student.status,
+    },
+  });
+
+  const guardianForm = useForm<GuardianFormValues>({
+    resolver: zodResolver(guardianSchema),
+    defaultValues: {
+      name: "",
+      is_primary: false,
     },
   });
 
@@ -111,6 +141,79 @@ export function EditStudentForm({ student, classes }: EditStudentFormProps) {
       });
     }
   }, [student.class_id]);
+
+  const handleAddGuardian = async (data: GuardianFormValues) => {
+    try {
+      const result = await addGuardian(student.id, data);
+      if (result.success) {
+        setGuardians([...guardians, result.data]);
+        guardianForm.reset({ name: "", is_primary: false });
+        setShowGuardianForm(false);
+        toast.success("Guardian added successfully");
+      } else {
+        toast.error(result.error || "Failed to add guardian");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
+  };
+
+  const handleUpdateGuardian = async (data: GuardianFormValues) => {
+    if (!editingGuardian) return;
+
+    try {
+      const result = await updateGuardian(editingGuardian.id, data);
+      if (result.success) {
+        setGuardians(
+          guardians.map((g) => (g.id === editingGuardian.id ? result.data : g))
+        );
+        guardianForm.reset({ name: "", is_primary: false });
+        setEditingGuardian(null);
+        setShowGuardianForm(false);
+        toast.success("Guardian updated successfully");
+      } else {
+        toast.error(result.error || "Failed to update guardian");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
+  };
+
+  const handleDeleteGuardian = async (guardianId: string) => {
+    if (!confirm("Are you sure you want to remove this guardian?")) return;
+
+    try {
+      const result = await deleteGuardian(guardianId, student.id);
+      if (result.success) {
+        setGuardians(guardians.filter((g) => g.id !== guardianId));
+        toast.success("Guardian removed successfully");
+      } else {
+        toast.error(result.error || "Failed to remove guardian");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
+  };
+
+  const startEditGuardian = (guardian: any) => {
+    setEditingGuardian(guardian);
+    guardianForm.reset({
+      name: guardian.name,
+      relationship: guardian.relationship || "",
+      phone: guardian.phone || "",
+      email: guardian.email || "",
+      occupation: guardian.occupation || "",
+      address: guardian.address || "",
+      is_primary: guardian.is_primary,
+    });
+    setShowGuardianForm(true);
+  };
+
+  const cancelGuardianForm = () => {
+    setShowGuardianForm(false);
+    setEditingGuardian(null);
+    guardianForm.reset({ name: "", is_primary: false });
+  };
 
   const onSubmit = async (data: StudentFormValues) => {
     setLoading(true);
@@ -406,6 +509,244 @@ export function EditStudentForm({ student, classes }: EditStudentFormProps) {
                 )}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Guardians Section */}
+        <Card className="glass-effect border-0 shadow-xl">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                <UsersIcon className="h-5 w-5 text-indigo-500" />
+                Guardians
+              </CardTitle>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setEditingGuardian(null);
+                  guardianForm.reset({ name: "", is_primary: false });
+                  setShowGuardianForm(!showGuardianForm);
+                }}
+                className="hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Guardian
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Display Existing Guardians */}
+            {guardians.length > 0 && (
+              <div className="space-y-2">
+                {guardians.map((guardian) => (
+                  <Card
+                    key={guardian.id}
+                    className="glass-effect border-0 shadow-md"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium">{guardian.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {guardian.relationship || "Guardian"}
+                            {guardian.is_primary && " (Primary)"}
+                          </p>
+                          {guardian.phone && (
+                            <p className="text-sm">{guardian.phone}</p>
+                          )}
+                          {guardian.email && (
+                            <p className="text-sm text-muted-foreground">
+                              {guardian.email}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => startEditGuardian(guardian)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteGuardian(guardian.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Guardian Form */}
+            {showGuardianForm && (
+              <Card className="glass-effect border-0 shadow-md bg-gray-50/50 dark:bg-gray-800/50">
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    {editingGuardian ? "Edit Guardian" : "Add Guardian"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Form {...guardianForm}>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (editingGuardian) {
+                          guardianForm.handleSubmit(handleUpdateGuardian)(e);
+                        } else {
+                          guardianForm.handleSubmit(handleAddGuardian)(e);
+                        }
+                      }}
+                      className="space-y-4"
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                          control={guardianForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Name *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Guardian name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={guardianForm.control}
+                          name="relationship"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Relationship</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Father/Mother" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                          control={guardianForm.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="+91 98765 43210"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={guardianForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="email"
+                                  placeholder="guardian@example.com"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={guardianForm.control}
+                        name="occupation"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Occupation</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Engineer" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={guardianForm.control}
+                        name="address"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Address</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Enter address"
+                                className="resize-none"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={guardianForm.control}
+                        name="is_primary"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={field.onChange}
+                                className="mt-1"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Primary Guardian</FormLabel>
+                              <FormDescription>
+                                Mark as primary contact for this student
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="flex gap-2">
+                        <Button type="submit" size="sm">
+                          {editingGuardian ? "Update Guardian" : "Add Guardian"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={cancelGuardianForm}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            )}
           </CardContent>
         </Card>
 
