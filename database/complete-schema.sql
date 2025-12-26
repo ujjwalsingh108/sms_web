@@ -853,6 +853,118 @@ CREATE TABLE public.mess_feedback (
   CONSTRAINT mess_feedback_rating_check CHECK (rating >= 1 AND rating <= 5)
 ) TABLESPACE pg_default;
 
+
+-- =====================================================
+-- NESCOMM ADMIN PORTAL - ADDITIONAL SCHEMA
+-- =====================================================
+
+-- Table to track school instances with subdomains
+CREATE TABLE IF NOT EXISTS public.school_instances (
+  id UUID NOT NULL DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL,
+  subdomain TEXT NOT NULL,
+  school_name TEXT NOT NULL,
+  admin_email TEXT NOT NULL,
+  admin_user_id UUID NULL,
+  status TEXT DEFAULT 'pending'::TEXT,
+  setup_completed BOOLEAN DEFAULT false,
+  subscription_plan TEXT DEFAULT 'trial'::TEXT,
+  subscription_start DATE NULL,
+  subscription_end DATE NULL,
+  max_students INTEGER DEFAULT 100,
+  max_staff INTEGER DEFAULT 20,
+  created_by UUID NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  CONSTRAINT school_instances_pkey PRIMARY KEY (id),
+  CONSTRAINT school_instances_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  CONSTRAINT school_instances_admin_user_id_fkey FOREIGN KEY (admin_user_id) REFERENCES auth.users(id) ON DELETE SET NULL,
+  CONSTRAINT school_instances_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
+  CONSTRAINT school_instances_subdomain_unique UNIQUE (subdomain),
+  CONSTRAINT school_instances_tenant_id_unique UNIQUE (tenant_id),
+  CONSTRAINT school_instances_status_check CHECK (status = ANY (ARRAY['pending'::TEXT, 'active'::TEXT, 'suspended'::TEXT, 'cancelled'::TEXT])),
+  CONSTRAINT school_instances_subscription_plan_check CHECK (subscription_plan = ANY (ARRAY['trial'::TEXT, 'basic'::TEXT, 'standard'::TEXT, 'premium'::TEXT]))
+) TABLESPACE pg_default;
+
+-- Table to track company admin activities
+CREATE TABLE IF NOT EXISTS public.admin_activity_logs (
+  id UUID NOT NULL DEFAULT gen_random_uuid(),
+  admin_user_id UUID NOT NULL,
+  action TEXT NOT NULL,
+  resource_type TEXT NULL,
+  resource_id UUID NULL,
+  details JSONB NULL,
+  ip_address TEXT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  CONSTRAINT admin_activity_logs_pkey PRIMARY KEY (id),
+  CONSTRAINT admin_activity_logs_admin_user_id_fkey FOREIGN KEY (admin_user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+) TABLESPACE pg_default;
+
+-- Note: Using existing 'superadmin' role for Nescomm employees
+-- Note: Using existing 'admin' role for school administrators
+-- These roles should already exist in your roles table
+
+-- Create Nescomm parent tenant if not exists
+INSERT INTO public.tenants (name, email)
+VALUES ('Nescomm', 'admin@smartschoolerp.xyz')
+ON CONFLICT (email) DO NOTHING;
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_school_instances_subdomain ON public.school_instances(subdomain);
+CREATE INDEX IF NOT EXISTS idx_school_instances_tenant_id ON public.school_instances(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_school_instances_status ON public.school_instances(status);
+CREATE INDEX IF NOT EXISTS idx_school_instances_created_by ON public.school_instances(created_by);
+CREATE INDEX IF NOT EXISTS idx_admin_activity_logs_admin_user_id ON public.admin_activity_logs(admin_user_id);
+CREATE INDEX IF NOT EXISTS idx_admin_activity_logs_created_at ON public.admin_activity_logs(created_at);
+
+-- RLS Policies for school_instances
+ALTER TABLE public.school_instances ENABLE ROW LEVEL SECURITY;
+
+-- Superadmins can see all school instances
+CREATE POLICY "Superadmins can view all schools"
+  ON public.school_instances FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.members m
+      INNER JOIN public.roles r ON m.role_id = r.id
+      WHERE m.user_id = auth.uid()
+      AND r.name = 'superadmin'
+    )
+  );
+
+-- Superadmins can create school instances
+CREATE POLICY "Superadmins can create schools"
+  ON public.school_instances FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.members m
+      INNER JOIN public.roles r ON m.role_id = r.id
+      WHERE m.user_id = auth.uid()
+      AND r.name = 'superadmin'
+    )
+  );
+
+-- Superadmins can update school instances
+CREATE POLICY "Superadmins can update schools"
+  ON public.school_instances FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.members m
+      INNER JOIN public.roles r ON m.role_id = r.id
+      WHERE m.user_id = auth.uid()
+      AND r.name = 'superadmin'
+    )
+  );
+
+-- Comments
+COMMENT ON TABLE public.school_instances IS 'Tracks school instances created by superadmins. Each school gets its own subdomain (e.g., dps-ranchi.smartschoolerp.xyz).';
+COMMENT ON TABLE public.admin_activity_logs IS 'Audit log for superadmin activities';
+COMMENT ON COLUMN public.school_instances.subdomain IS 'Unique subdomain for the school (e.g., dps-ranchi). Full URL: {subdomain}.smartschoolerp.xyz';
+
+
 -- =====================================================
 -- INDEXES FOR PERFORMANCE
 -- =====================================================
@@ -914,3 +1026,1891 @@ COMMENT ON TABLE public.exams IS 'Examination schedules and configurations';
 COMMENT ON TABLE public.timetables IS 'Class timetable/schedule management';
 COMMENT ON TABLE public.hostels IS 'Hostel facility management';
 COMMENT ON TABLE public.mess_menus IS 'Mess/cafeteria menu planning';
+
+-- =====================================================
+-- FIX AUTO-CREATE USER TRIGGER FUNCTION
+-- =====================================================
+
+-- Drop and recreate the function with proper logic
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  new_tenant_id uuid;
+  user_role_name text;
+  role_id uuid;
+BEGIN
+  -- Get the role from user metadata (set during signup)
+  user_role_name := COALESCE(NEW.raw_user_meta_data->>'role', 'admin');
+
+  -- Get the role ID
+  SELECT id INTO role_id
+  FROM public.roles
+  WHERE name = user_role_name
+  LIMIT 1;
+
+  -- If role doesn't exist, use admin as default
+  IF role_id IS NULL THEN
+    SELECT id INTO role_id
+    FROM public.roles
+    WHERE name = 'admin'
+    LIMIT 1;
+  END IF;
+
+  -- ONLY auto-create tenant for superadmins (Nescomm employees)
+  -- For school admins, the tenant is already created by the create school form
+  IF user_role_name = 'superadmin' THEN
+    -- Create a default tenant for the superadmin
+    INSERT INTO public.tenants (name, email, created_by)
+    VALUES (
+      COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email) || '''s Organization',
+      NEW.email,
+      NEW.id
+    )
+    RETURNING id INTO new_tenant_id;
+
+    -- Create member record for superadmin
+    INSERT INTO public.members (user_id, tenant_id, role_id, status)
+    VALUES (
+      NEW.id,
+      new_tenant_id,
+      role_id,
+      'approved'  -- Superadmins are auto-approved
+    );
+  END IF;
+  
+  -- For non-superadmin users (school admins, teachers, etc.),
+  -- the member record will be created by the application logic
+  -- So we just return without creating anything
+
+  RETURN NEW;
+END;
+$$;
+
+-- Ensure the trigger is properly attached
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_new_user();
+
+COMMENT ON FUNCTION public.handle_new_user() IS 
+'Auto-creates tenant and member for superadmin users only. School admins are handled by application logic.';
+
+-- =====================================================
+-- FIX MEMBERS TABLE RLS POLICIES - NO RECURSION
+-- =====================================================
+
+-- Drop all existing policies
+DROP POLICY IF EXISTS "Admins can insert members" ON public.members;
+DROP POLICY IF EXISTS "Admins can update members" ON public.members;
+DROP POLICY IF EXISTS "Users can view members in their tenant" ON public.members;
+DROP POLICY IF EXISTS "Admins can delete members" ON public.members;
+DROP POLICY IF EXISTS "Superadmins can insert members" ON public.members;
+DROP POLICY IF EXISTS "Superadmins can view all members" ON public.members;
+DROP POLICY IF EXISTS "Superadmins can update members" ON public.members;
+DROP POLICY IF EXISTS "Superadmins can delete members" ON public.members;
+DROP POLICY IF EXISTS "Users can view their own member record" ON public.members;
+DROP POLICY IF EXISTS "Admins can insert members to their tenant" ON public.members;
+DROP POLICY IF EXISTS "Admins can update members in their tenant" ON public.members;
+DROP POLICY IF EXISTS "Admins can delete members in their tenant" ON public.members;
+DROP POLICY IF EXISTS "Allow initial member creation" ON public.members;
+
+-- Temporarily disable RLS to allow setup
+ALTER TABLE public.members DISABLE ROW LEVEL SECURITY;
+
+-- Create a helper function that won't cause recursion
+CREATE OR REPLACE FUNCTION public.get_user_role()
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  SELECT r.name
+  FROM public.members m
+  INNER JOIN public.roles r ON m.role_id = r.id
+  WHERE m.user_id = auth.uid()
+  AND m.status = 'approved'
+  LIMIT 1;
+$$;
+
+-- Create a helper function to get user's tenant
+CREATE OR REPLACE FUNCTION public.get_user_tenant()
+RETURNS UUID
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  SELECT tenant_id
+  FROM public.members
+  WHERE user_id = auth.uid()
+  AND status = 'approved'
+  LIMIT 1;
+$$;
+
+-- Re-enable RLS
+ALTER TABLE public.members ENABLE ROW LEVEL SECURITY;
+
+-- Policy 1: Users can view their own member record
+CREATE POLICY "Users can view their own member record"
+  ON public.members FOR SELECT
+  TO authenticated
+  USING (user_id = auth.uid());
+
+-- Policy 2: Users can view members in same tenant (using helper function - no recursion)
+CREATE POLICY "Users can view members in their tenant"
+  ON public.members FOR SELECT
+  TO authenticated
+  USING (
+    tenant_id = get_user_tenant()
+    OR get_user_role() = 'superadmin'
+  );
+
+-- Policy 3: Allow users to insert their first member record (account creation)
+CREATE POLICY "Allow initial member creation"
+  ON public.members FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    user_id = auth.uid()
+    AND NOT EXISTS (
+      SELECT 1 FROM public.members
+      WHERE user_id = auth.uid()
+    )
+  );
+
+-- Policy 4: Superadmins can insert any member
+CREATE POLICY "Superadmins can insert members"
+  ON public.members FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    get_user_role() = 'superadmin'
+  );
+
+-- Policy 5: Admins can insert members to their tenant
+CREATE POLICY "Admins can insert members to their tenant"
+  ON public.members FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    get_user_role() = 'admin'
+    AND tenant_id = get_user_tenant()
+  );
+
+-- Policy 6: Superadmins can update any member
+CREATE POLICY "Superadmins can update members"
+  ON public.members FOR UPDATE
+  TO authenticated
+  USING (get_user_role() = 'superadmin');
+
+-- Policy 7: Admins can update members in their tenant
+CREATE POLICY "Admins can update members in their tenant"
+  ON public.members FOR UPDATE
+  TO authenticated
+  USING (
+    get_user_role() = 'admin'
+    AND tenant_id = get_user_tenant()
+  );
+
+-- Policy 8: Superadmins can delete any member
+CREATE POLICY "Superadmins can delete members"
+  ON public.members FOR DELETE
+  TO authenticated
+  USING (get_user_role() = 'superadmin');
+
+-- Policy 9: Admins can delete members in their tenant
+CREATE POLICY "Admins can delete members in their tenant"
+  ON public.members FOR DELETE
+  TO authenticated
+  USING (
+    get_user_role() = 'admin'
+    AND tenant_id = get_user_tenant()
+  );
+
+-- Verify policies
+SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+FROM pg_policies
+WHERE tablename = 'members'
+ORDER BY policyname;
+
+COMMENT ON TABLE public.members IS 
+'Members table with RLS policies. Superadmins can manage all members. Admins can manage members in their tenant.';
+
+-- =====================================================
+-- TENANTS TABLE RLS POLICIES FIX
+-- =====================================================
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Superadmins can insert tenants" ON public.tenants;
+DROP POLICY IF EXISTS "Superadmins can view all tenants" ON public.tenants;
+DROP POLICY IF EXISTS "Superadmins can update tenants" ON public.tenants;
+DROP POLICY IF EXISTS "Members can view their tenant" ON public.tenants;
+
+-- Enable RLS (if not already enabled)
+ALTER TABLE public.tenants ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Superadmins can view all tenants
+CREATE POLICY "Superadmins can view all tenants"
+  ON public.tenants FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.members m
+      INNER JOIN public.roles r ON m.role_id = r.id
+      WHERE m.user_id = auth.uid()
+      AND r.name = 'superadmin'
+    )
+  );
+
+-- Policy: Superadmins can insert tenants
+CREATE POLICY "Superadmins can insert tenants"
+  ON public.tenants FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.members m
+      INNER JOIN public.roles r ON m.role_id = r.id
+      WHERE m.user_id = auth.uid()
+      AND r.name = 'superadmin'
+    )
+  );
+
+-- Policy: Superadmins can update tenants
+CREATE POLICY "Superadmins can update tenants"
+  ON public.tenants FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.members m
+      INNER JOIN public.roles r ON m.role_id = r.id
+      WHERE m.user_id = auth.uid()
+      AND r.name = 'superadmin'
+    )
+  );
+
+-- Policy: Members can view their own tenant
+CREATE POLICY "Members can view their tenant"
+  ON public.tenants FOR SELECT
+  TO authenticated
+  USING (
+    id IN (
+      SELECT tenant_id FROM public.members
+      WHERE user_id = auth.uid()
+    )
+  );
+
+-- Policy: Superadmins can delete tenants
+CREATE POLICY "Superadmins can delete tenants"
+  ON public.tenants FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.members m
+      INNER JOIN public.roles r ON m.role_id = r.id
+      WHERE m.user_id = auth.uid()
+      AND r.name = 'superadmin'
+    )
+  );
+
+-- Verify policies are active
+SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+FROM pg_policies
+WHERE tablename = 'tenants'
+ORDER BY policyname;
+
+-- Create notifications table
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('school_created', 'school_updated', 'school_deleted', 'activity', 'system', 'info')),
+  read BOOLEAN DEFAULT false,
+  action_url TEXT,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications(user_id, read) WHERE read = false;
+
+-- Enable RLS
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+-- Users can view their own notifications
+CREATE POLICY "Users can view own notifications"
+  ON notifications
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Superadmins can view all notifications
+CREATE POLICY "Superadmins can view all notifications"
+  ON notifications
+  FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM members m
+      JOIN roles r ON m.role_id = r.id
+      WHERE m.user_id = auth.uid()
+      AND r.name = 'superadmin'
+    )
+  );
+
+-- Users can update their own notifications (mark as read)
+CREATE POLICY "Users can update own notifications"
+  ON notifications
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- System can insert notifications
+CREATE POLICY "System can insert notifications"
+  ON notifications
+  FOR INSERT
+  WITH CHECK (true);
+
+-- Users can delete their own notifications
+CREATE POLICY "Users can delete own notifications"
+  ON notifications
+  FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Function to create notification for all superadmins
+CREATE OR REPLACE FUNCTION notify_superadmins(
+  notification_title TEXT,
+  notification_message TEXT,
+  notification_type TEXT,
+  notification_action_url TEXT DEFAULT NULL,
+  notification_metadata JSONB DEFAULT '{}'::jsonb
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  INSERT INTO notifications (user_id, title, message, type, action_url, metadata)
+  SELECT m.user_id, notification_title, notification_message, notification_type, notification_action_url, notification_metadata
+  FROM members m
+  JOIN roles r ON m.role_id = r.id
+  WHERE r.name = 'superadmin';
+END;
+$$;
+
+-- Function to mark all notifications as read
+CREATE OR REPLACE FUNCTION mark_all_notifications_read(target_user_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE notifications
+  SET read = true
+  WHERE user_id = target_user_id AND read = false;
+END;
+$$;
+
+-- Trigger to create notifications when school is created
+CREATE OR REPLACE FUNCTION notify_school_created()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  PERFORM notify_superadmins(
+    'New School Created',
+    'A new school "' || NEW.school_name || '" has been added to the platform.',
+    'school_created',
+    '/admin/schools',
+    jsonb_build_object('school_id', NEW.id, 'subdomain', NEW.subdomain)
+  );
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trigger_notify_school_created
+AFTER INSERT ON school_instances
+FOR EACH ROW
+EXECUTE FUNCTION notify_school_created();
+
+-- Trigger to create notifications when school is updated
+CREATE OR REPLACE FUNCTION notify_school_updated()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Only notify if significant fields changed
+  IF (OLD.status IS DISTINCT FROM NEW.status) OR 
+     (OLD.subscription_plan IS DISTINCT FROM NEW.subscription_plan) OR
+     (OLD.school_name IS DISTINCT FROM NEW.school_name) THEN
+    PERFORM notify_superadmins(
+      'School Updated',
+      'School "' || NEW.school_name || '" has been updated.',
+      'school_updated',
+      '/admin/schools',
+      jsonb_build_object('school_id', NEW.id, 'subdomain', NEW.subdomain)
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trigger_notify_school_updated
+AFTER UPDATE ON school_instances
+FOR EACH ROW
+EXECUTE FUNCTION notify_school_updated();
+
+-- Trigger to create notifications when school is deleted
+CREATE OR REPLACE FUNCTION notify_school_deleted()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  PERFORM notify_superadmins(
+    'School Deleted',
+    'School "' || OLD.school_name || '" has been removed from the platform.',
+    'school_deleted',
+    '/admin/schools',
+    jsonb_build_object('school_name', OLD.school_name, 'subdomain', OLD.subdomain, 'status', OLD.status)
+  );
+  RETURN OLD;
+END;
+$$;
+
+CREATE TRIGGER trigger_notify_school_deleted
+BEFORE DELETE ON school_instances
+FOR EACH ROW
+EXECUTE FUNCTION notify_school_deleted();
+
+-- Trigger to create notifications for important activity logs
+CREATE OR REPLACE FUNCTION notify_important_activity()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Only notify for certain critical actions
+  IF NEW.action IN ('CREATE_SCHOOL', 'DELETE_SCHOOL', 'UPDATE_SCHOOL') THEN
+    -- Don't create duplicate notifications if school triggers already fired
+    -- This is a backup in case triggers fail
+    RETURN NEW;
+  END IF;
+  
+  -- Notify for other important activities
+  IF NEW.action IN ('SYSTEM_ERROR', 'SECURITY_ALERT', 'DATA_BREACH') THEN
+    PERFORM notify_superadmins(
+      'Important Activity: ' || NEW.action,
+      'An important activity was logged. Please review.',
+      'activity',
+      '/admin/activity',
+      jsonb_build_object('activity_id', NEW.id, 'action', NEW.action)
+    );
+  END IF;
+  
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trigger_notify_important_activity
+AFTER INSERT ON admin_activity_logs
+FOR EACH ROW
+EXECUTE FUNCTION notify_important_activity();
+
+-- =====================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- Complete School ERP System
+-- =====================================================
+
+-- Enable RLS on all tables
+ALTER TABLE public.academic_years ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.classes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.class_subjects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff_attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guardians ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admission_applications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vehicles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.routes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.route_stops ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vehicle_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.student_transport ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fee_structures ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fee_payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fee_discounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.library_books ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.library_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.exam_types ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.exams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.exam_schedules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.exam_results ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.timetables ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.student_attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inventory_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inventory_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.account_heads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.visitors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.phone_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.medical_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.medical_checkups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.security_incidents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gate_passes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.hostels ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.hostel_rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.hostel_allocations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mess_menus ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mess_attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mess_feedback ENABLE ROW LEVEL SECURITY;
+
+-- =====================================================
+-- HELPER FUNCTIONS
+-- =====================================================
+
+-- Get user's tenant_id from members table
+CREATE OR REPLACE FUNCTION user_tenant_id()
+RETURNS UUID AS $$
+  SELECT tenant_id FROM public.members
+  WHERE user_id = auth.uid()
+  AND status = 'approved'
+  LIMIT 1;
+$$ LANGUAGE SQL SECURITY DEFINER;
+
+-- Check if user has specific role
+CREATE OR REPLACE FUNCTION user_has_role(role_name TEXT)
+RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.members m
+    JOIN public.roles r ON m.role_id = r.id
+    WHERE m.user_id = auth.uid()
+    AND m.status = 'approved'
+    AND r.name = role_name
+  );
+$$ LANGUAGE SQL SECURITY DEFINER;
+
+-- Check if user has any of the specified roles
+CREATE OR REPLACE FUNCTION user_has_any_role(role_names TEXT[])
+RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.members m
+    JOIN public.roles r ON m.role_id = r.id
+    WHERE m.user_id = auth.uid()
+    AND m.status = 'approved'
+    AND r.name = ANY(role_names)
+  );
+$$ LANGUAGE SQL SECURITY DEFINER;
+
+-- =====================================================
+-- ACADEMIC STRUCTURE POLICIES
+-- =====================================================
+
+-- Academic Years
+CREATE POLICY "Users can view academic years in their tenant"
+  ON public.academic_years FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can insert academic years"
+  ON public.academic_years FOR INSERT
+  WITH CHECK (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+CREATE POLICY "Admins can update academic years"
+  ON public.academic_years FOR UPDATE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+CREATE POLICY "Superadmins can delete academic years"
+  ON public.academic_years FOR DELETE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_role('superadmin')
+  );
+
+-- Classes
+CREATE POLICY "Users can view classes in their tenant"
+  ON public.classes FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can insert classes"
+  ON public.classes FOR INSERT
+  WITH CHECK (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+CREATE POLICY "Admins can update classes"
+  ON public.classes FOR UPDATE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+CREATE POLICY "Superadmins can delete classes"
+  ON public.classes FOR DELETE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_role('superadmin')
+  );
+
+-- Sections
+CREATE POLICY "Users can view sections in their tenant"
+  ON public.sections FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage sections"
+  ON public.sections FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Subjects
+CREATE POLICY "Users can view subjects in their tenant"
+  ON public.subjects FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage subjects"
+  ON public.subjects FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Class Subjects
+CREATE POLICY "Users can view class subjects in their tenant"
+  ON public.class_subjects FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage class subjects"
+  ON public.class_subjects FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- STAFF MANAGEMENT POLICIES
+-- =====================================================
+
+-- Staff
+CREATE POLICY "Users can view staff in their tenant"
+  ON public.staff FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can insert staff"
+  ON public.staff FOR INSERT
+  WITH CHECK (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+CREATE POLICY "Admins can update staff"
+  ON public.staff FOR UPDATE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+CREATE POLICY "Superadmins can delete staff"
+  ON public.staff FOR DELETE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_role('superadmin')
+  );
+
+-- Staff Attendance
+CREATE POLICY "Users can view staff attendance in their tenant"
+  ON public.staff_attendance FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage staff attendance"
+  ON public.staff_attendance FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- ADMISSION MODULE POLICIES
+-- =====================================================
+
+-- Students
+CREATE POLICY "Users can view students in their tenant"
+  ON public.students FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can insert students"
+  ON public.students FOR INSERT
+  WITH CHECK (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+CREATE POLICY "Admins can update students"
+  ON public.students FOR UPDATE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+CREATE POLICY "Superadmins can delete students"
+  ON public.students FOR DELETE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_role('superadmin')
+  );
+
+-- Guardians
+CREATE POLICY "Users can view guardians in their tenant"
+  ON public.guardians FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage guardians"
+  ON public.guardians FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Admission Applications
+CREATE POLICY "Users can view admission applications in their tenant"
+  ON public.admission_applications FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage admission applications"
+  ON public.admission_applications FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- TRANSPORT MODULE POLICIES
+-- =====================================================
+
+-- Vehicles
+CREATE POLICY "Users can view vehicles in their tenant"
+  ON public.vehicles FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage vehicles"
+  ON public.vehicles FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'driver'])
+  );
+
+-- Routes
+CREATE POLICY "Users can view routes in their tenant"
+  ON public.routes FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage routes"
+  ON public.routes FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Route Stops
+CREATE POLICY "Users can view route stops in their tenant"
+  ON public.route_stops FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage route stops"
+  ON public.route_stops FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Vehicle Assignments
+CREATE POLICY "Users can view vehicle assignments in their tenant"
+  ON public.vehicle_assignments FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage vehicle assignments"
+  ON public.vehicle_assignments FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Student Transport
+CREATE POLICY "Users can view student transport in their tenant"
+  ON public.student_transport FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage student transport"
+  ON public.student_transport FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- FEE MANAGEMENT POLICIES
+-- =====================================================
+
+-- Fee Structures
+CREATE POLICY "Users can view fee structures in their tenant"
+  ON public.fee_structures FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage fee structures"
+  ON public.fee_structures FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'accountant'])
+  );
+
+-- Fee Payments
+CREATE POLICY "Users can view fee payments in their tenant"
+  ON public.fee_payments FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Accountants can insert fee payments"
+  ON public.fee_payments FOR INSERT
+  WITH CHECK (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'accountant'])
+  );
+
+CREATE POLICY "Accountants can update fee payments"
+  ON public.fee_payments FOR UPDATE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'accountant'])
+  );
+
+CREATE POLICY "Superadmins can delete fee payments"
+  ON public.fee_payments FOR DELETE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_role('superadmin')
+  );
+
+-- Fee Discounts
+CREATE POLICY "Users can view fee discounts in their tenant"
+  ON public.fee_discounts FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage fee discounts"
+  ON public.fee_discounts FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'accountant'])
+  );
+
+-- =====================================================
+-- LIBRARY MODULE POLICIES
+-- =====================================================
+
+-- Library Books
+CREATE POLICY "Users can view library books in their tenant"
+  ON public.library_books FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Librarians can manage library books"
+  ON public.library_books FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'librarian'])
+  );
+
+-- Library Transactions
+CREATE POLICY "Users can view library transactions in their tenant"
+  ON public.library_transactions FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Librarians can manage library transactions"
+  ON public.library_transactions FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'librarian'])
+  );
+
+-- =====================================================
+-- EXAMINATION MODULE POLICIES
+-- =====================================================
+
+-- Exam Types
+CREATE POLICY "Users can view exam types in their tenant"
+  ON public.exam_types FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage exam types"
+  ON public.exam_types FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Exams
+CREATE POLICY "Users can view exams in their tenant"
+  ON public.exams FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage exams"
+  ON public.exams FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Exam Schedules
+CREATE POLICY "Users can view exam schedules in their tenant"
+  ON public.exam_schedules FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage exam schedules"
+  ON public.exam_schedules FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Exam Results
+CREATE POLICY "Users can view exam results in their tenant"
+  ON public.exam_results FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Teachers can insert exam results"
+  ON public.exam_results FOR INSERT
+  WITH CHECK (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'teacher'])
+  );
+
+CREATE POLICY "Teachers can update exam results"
+  ON public.exam_results FOR UPDATE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'teacher'])
+  );
+
+CREATE POLICY "Admins can delete exam results"
+  ON public.exam_results FOR DELETE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- TIMETABLE MODULE POLICIES
+-- =====================================================
+
+-- Timetables
+CREATE POLICY "Users can view timetables in their tenant"
+  ON public.timetables FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage timetables"
+  ON public.timetables FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- ATTENDANCE MODULE POLICIES
+-- =====================================================
+
+-- Student Attendance
+CREATE POLICY "Users can view student attendance in their tenant"
+  ON public.student_attendance FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Teachers can insert student attendance"
+  ON public.student_attendance FOR INSERT
+  WITH CHECK (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'teacher'])
+  );
+
+CREATE POLICY "Teachers can update student attendance"
+  ON public.student_attendance FOR UPDATE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'teacher'])
+  );
+
+CREATE POLICY "Admins can delete student attendance"
+  ON public.student_attendance FOR DELETE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- INVENTORY & PURCHASE POLICIES
+-- =====================================================
+
+-- Inventory Categories
+CREATE POLICY "Users can view inventory categories in their tenant"
+  ON public.inventory_categories FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage inventory categories"
+  ON public.inventory_categories FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Inventory Items
+CREATE POLICY "Users can view inventory items in their tenant"
+  ON public.inventory_items FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage inventory items"
+  ON public.inventory_items FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Suppliers
+CREATE POLICY "Users can view suppliers in their tenant"
+  ON public.suppliers FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage suppliers"
+  ON public.suppliers FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Purchase Orders
+CREATE POLICY "Users can view purchase orders in their tenant"
+  ON public.purchase_orders FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage purchase orders"
+  ON public.purchase_orders FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Purchase Order Items
+CREATE POLICY "Users can view purchase order items in their tenant"
+  ON public.purchase_order_items FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage purchase order items"
+  ON public.purchase_order_items FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- ACCOUNTS MODULE POLICIES
+-- =====================================================
+
+-- Account Heads
+CREATE POLICY "Users can view account heads in their tenant"
+  ON public.account_heads FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage account heads"
+  ON public.account_heads FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'accountant'])
+  );
+
+-- Transactions
+CREATE POLICY "Users can view transactions in their tenant"
+  ON public.transactions FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Accountants can insert transactions"
+  ON public.transactions FOR INSERT
+  WITH CHECK (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'accountant'])
+  );
+
+CREATE POLICY "Accountants can update transactions"
+  ON public.transactions FOR UPDATE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'accountant'])
+  );
+
+CREATE POLICY "Admins can delete transactions"
+  ON public.transactions FOR DELETE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- RECEPTION/VISITOR POLICIES
+-- =====================================================
+
+-- Visitors
+CREATE POLICY "Users can view visitors in their tenant"
+  ON public.visitors FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Reception staff can manage visitors"
+  ON public.visitors FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Phone Logs
+CREATE POLICY "Users can view phone logs in their tenant"
+  ON public.phone_logs FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Reception staff can manage phone logs"
+  ON public.phone_logs FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- INFIRMARY MODULE POLICIES
+-- =====================================================
+
+-- Medical Records
+CREATE POLICY "Users can view medical records in their tenant"
+  ON public.medical_records FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Medical staff can manage medical records"
+  ON public.medical_records FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Medical Checkups
+CREATE POLICY "Users can view medical checkups in their tenant"
+  ON public.medical_checkups FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Medical staff can manage medical checkups"
+  ON public.medical_checkups FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- SECURITY MODULE POLICIES
+-- =====================================================
+
+-- Security Incidents
+CREATE POLICY "Users can view security incidents in their tenant"
+  ON public.security_incidents FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Security staff can manage security incidents"
+  ON public.security_incidents FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Gate Passes
+CREATE POLICY "Users can view gate passes in their tenant"
+  ON public.gate_passes FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Authorized staff can manage gate passes"
+  ON public.gate_passes FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin', 'teacher'])
+  );
+
+-- =====================================================
+-- HOSTEL MODULE POLICIES
+-- =====================================================
+
+-- Hostels
+CREATE POLICY "Users can view hostels in their tenant"
+  ON public.hostels FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage hostels"
+  ON public.hostels FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Hostel Rooms
+CREATE POLICY "Users can view hostel rooms in their tenant"
+  ON public.hostel_rooms FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage hostel rooms"
+  ON public.hostel_rooms FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Hostel Allocations
+CREATE POLICY "Users can view hostel allocations in their tenant"
+  ON public.hostel_allocations FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage hostel allocations"
+  ON public.hostel_allocations FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- MESS MODULE POLICIES
+-- =====================================================
+
+-- Mess Menus
+CREATE POLICY "Users can view mess menus in their tenant"
+  ON public.mess_menus FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can manage mess menus"
+  ON public.mess_menus FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Mess Attendance
+CREATE POLICY "Users can view mess attendance in their tenant"
+  ON public.mess_attendance FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "Mess staff can manage mess attendance"
+  ON public.mess_attendance FOR ALL
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Mess Feedback
+CREATE POLICY "Users can view mess feedback in their tenant"
+  ON public.mess_feedback FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+CREATE POLICY "All authenticated users can insert mess feedback"
+  ON public.mess_feedback FOR INSERT
+  WITH CHECK (tenant_id = user_tenant_id());
+
+CREATE POLICY "Admins can update mess feedback"
+  ON public.mess_feedback FOR UPDATE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+CREATE POLICY "Admins can delete mess feedback"
+  ON public.mess_feedback FOR DELETE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- =====================================================
+-- GRANT PERMISSIONS
+-- =====================================================
+
+-- Grant usage on helper functions
+GRANT EXECUTE ON FUNCTION user_tenant_id() TO authenticated;
+GRANT EXECUTE ON FUNCTION user_has_role(TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION user_has_any_role(TEXT[]) TO authenticated;
+
+-- =====================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- Core Tables: Tenants, Roles, Members
+-- =====================================================
+
+-- Enable RLS on core tables
+ALTER TABLE public.tenants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.members ENABLE ROW LEVEL SECURITY;
+
+-- =====================================================
+-- TENANTS TABLE POLICIES
+-- =====================================================
+
+-- Users can view their own tenant
+CREATE POLICY "Users can view their own tenant"
+  ON public.tenants FOR SELECT
+  USING (id = user_tenant_id());
+
+-- Superadmins can insert new tenants
+CREATE POLICY "Superadmins can insert tenants"
+  ON public.tenants FOR INSERT
+  WITH CHECK (user_has_role('superadmin'));
+
+-- Superadmins can update their own tenant
+CREATE POLICY "Superadmins can update their tenant"
+  ON public.tenants FOR UPDATE
+  USING (
+    id = user_tenant_id() AND
+    user_has_role('superadmin')
+  );
+
+-- Superadmins can delete their own tenant (with caution)
+CREATE POLICY "Superadmins can delete their tenant"
+  ON public.tenants FOR DELETE
+  USING (
+    id = user_tenant_id() AND
+    user_has_role('superadmin')
+  );
+
+-- =====================================================
+-- ROLES TABLE POLICIES
+-- =====================================================
+
+-- All authenticated users can view roles
+CREATE POLICY "All users can view roles"
+  ON public.roles FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- Only superadmins can insert roles
+CREATE POLICY "Superadmins can insert roles"
+  ON public.roles FOR INSERT
+  WITH CHECK (user_has_role('superadmin'));
+
+-- Only superadmins can update roles
+CREATE POLICY "Superadmins can update roles"
+  ON public.roles FOR UPDATE
+  USING (user_has_role('superadmin'));
+
+-- Only superadmins can delete roles
+CREATE POLICY "Superadmins can delete roles"
+  ON public.roles FOR DELETE
+  USING (user_has_role('superadmin'));
+
+-- =====================================================
+-- MEMBERS TABLE POLICIES
+-- =====================================================
+
+-- Users can view members in their tenant
+CREATE POLICY "Users can view members in their tenant"
+  ON public.members FOR SELECT
+  USING (tenant_id = user_tenant_id());
+
+-- Superadmins and admins can insert members
+CREATE POLICY "Admins can insert members"
+  ON public.members FOR INSERT
+  WITH CHECK (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Superadmins and admins can update members
+CREATE POLICY "Admins can update members"
+  ON public.members FOR UPDATE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_any_role(ARRAY['superadmin', 'admin'])
+  );
+
+-- Only superadmins can delete members
+CREATE POLICY "Superadmins can delete members"
+  ON public.members FOR DELETE
+  USING (
+    tenant_id = user_tenant_id() AND
+    user_has_role('superadmin')
+  );
+
+-- =====================================================
+-- COMMENTS
+-- =====================================================
+
+COMMENT ON POLICY "Users can view their own tenant" ON public.tenants IS 
+  'Users can only view the tenant they belong to based on their membership';
+
+COMMENT ON POLICY "All users can view roles" ON public.roles IS 
+  'All authenticated users can view available roles for UI purposes';
+
+COMMENT ON POLICY "Users can view members in their tenant" ON public.members IS 
+  'Users can view all members within their organization/tenant';
+
+  -- Row Level Security Policies for School ERP
+-- Apply these policies to secure your database tables
+
+-- ============================================
+-- HELPER FUNCTION
+-- ============================================
+
+-- Function to check if user belongs to a tenant
+CREATE OR REPLACE FUNCTION public.user_tenant_id()
+RETURNS uuid
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT tenant_id FROM public.members
+  WHERE user_id = auth.uid()
+  AND status = 'approved'
+  LIMIT 1;
+$$;
+
+-- Function to check if user has specific role
+CREATE OR REPLACE FUNCTION public.user_has_role(role_name text)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.members m
+    JOIN public.roles r ON m.role_id = r.id
+    WHERE m.user_id = auth.uid()
+    AND m.status = 'approved'
+    AND r.name = role_name
+  );
+$$;
+
+-- ============================================
+-- STUDENTS TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view students from their tenant"
+ON public.students
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Admins can insert students"
+ON public.students
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+  )
+);
+
+CREATE POLICY "Admins can update students"
+ON public.students
+FOR UPDATE
+TO authenticated
+USING (tenant_id = public.user_tenant_id())
+WITH CHECK (
+  public.user_has_role('superadmin')
+  OR public.user_has_role('admin')
+);
+
+CREATE POLICY "Admins can delete students"
+ON public.students
+FOR DELETE
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+  )
+);
+
+-- ============================================
+-- STAFF TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view staff from their tenant"
+ON public.staff
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Admins can manage staff"
+ON public.staff
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+  )
+);
+
+-- ============================================
+-- CLASSES TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view classes"
+ON public.classes
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Admins can manage classes"
+ON public.classes
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+  )
+);
+
+-- ============================================
+-- SECTIONS TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view sections"
+ON public.sections
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Admins can manage sections"
+ON public.sections
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+  )
+);
+
+-- ============================================
+-- SUBJECTS TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view subjects"
+ON public.subjects
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Admins can manage subjects"
+ON public.subjects
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+  )
+);
+
+-- ============================================
+-- FEE STRUCTURES TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view fee structures"
+ON public.fee_structures
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Admins and accountants can manage fee structures"
+ON public.fee_structures
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+    OR public.user_has_role('accountant')
+  )
+);
+
+-- ============================================
+-- FEE PAYMENTS TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view fee payments from their tenant"
+ON public.fee_payments
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Authorized users can create fee payments"
+ON public.fee_payments
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+    OR public.user_has_role('accountant')
+  )
+);
+
+CREATE POLICY "Authorized users can update fee payments"
+ON public.fee_payments
+FOR UPDATE
+TO authenticated
+USING (tenant_id = public.user_tenant_id())
+WITH CHECK (
+  public.user_has_role('superadmin')
+  OR public.user_has_role('admin')
+  OR public.user_has_role('accountant')
+);
+
+-- ============================================
+-- LIBRARY BOOKS TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view library books"
+ON public.library_books
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Librarians can manage books"
+ON public.library_books
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+    OR public.user_has_role('librarian')
+  )
+);
+
+-- ============================================
+-- LIBRARY TRANSACTIONS TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view library transactions"
+ON public.library_transactions
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Librarians can manage transactions"
+ON public.library_transactions
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+    OR public.user_has_role('librarian')
+  )
+);
+
+-- ============================================
+-- EXAMS TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view exams"
+ON public.exams
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Teachers can manage exams"
+ON public.exams
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+    OR public.user_has_role('teacher')
+  )
+);
+
+-- ============================================
+-- EXAM RESULTS TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view exam results"
+ON public.exam_results
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Teachers can manage exam results"
+ON public.exam_results
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+    OR public.user_has_role('teacher')
+  )
+);
+
+-- ============================================
+-- TRANSPORT ROUTES TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view transport routes"
+ON public.transport_routes
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Admins can manage transport routes"
+ON public.transport_routes
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+  )
+);
+
+-- ============================================
+-- ATTENDANCE TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view attendance"
+ON public.attendance
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Teachers can manage attendance"
+ON public.attendance
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+    OR public.user_has_role('teacher')
+  )
+);
+
+-- ============================================
+-- ACCOUNTS TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Authorized users can view accounts"
+ON public.accounts
+FOR SELECT
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+    OR public.user_has_role('accountant')
+  )
+);
+
+CREATE POLICY "Accountants can manage accounts"
+ON public.accounts
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+    OR public.user_has_role('accountant')
+  )
+);
+
+-- ============================================
+-- VISITORS TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view visitors"
+ON public.visitors
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Admins can manage visitors"
+ON public.visitors
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+  )
+);
+
+-- ============================================
+-- MEDICAL RECORDS TABLE POLICIES
+-- ============================================
+
+CREATE POLICY "Users can view medical records"
+ON public.medical_records
+FOR SELECT
+TO authenticated
+USING (tenant_id = public.user_tenant_id());
+
+CREATE POLICY "Admins can manage medical records"
+ON public.medical_records
+FOR ALL
+TO authenticated
+USING (
+  tenant_id = public.user_tenant_id()
+  AND (
+    public.user_has_role('superadmin')
+    OR public.user_has_role('admin')
+  )
+);
+
+-- ============================================
+-- Apply similar patterns for remaining tables:
+-- - vehicles
+-- - transport_allocations
+-- - inventory_items
+-- - purchase_orders
+-- - hostel_buildings
+-- - hostel_rooms
+-- - hostel_allocations
+-- - timetable
+-- ============================================
+
+-- Note: Adjust policies based on your specific security requirements
+
+
+
+
+
+
