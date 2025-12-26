@@ -505,138 +505,129 @@ export function CreateStudentForm({ classes }: CreateStudentFormProps) {
                     <CardTitle className="text-base">Add Guardian</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Form {...guardianForm}>
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          guardianForm.handleSubmit(addGuardian)(e);
-                        }}
-                        className="space-y-4"
-                      >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <FormField
-                            control={guardianForm.control}
-                            name="name"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Name *</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Guardian name"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={guardianForm.control}
-                            name="relationship"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Relationship</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Father/Mother"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <FormField
-                            control={guardianForm.control}
-                            name="phone"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Phone</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="+91 98765 43210"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={guardianForm.control}
-                            name="email"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Email</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="email"
-                                    placeholder="guardian@example.com"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField
                           control={guardianForm.control}
-                          name="occupation"
+                          name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Occupation</FormLabel>
+                              <FormLabel>Name *</FormLabel>
                               <FormControl>
-                                <Input placeholder="Engineer" {...field} />
+                                <Input placeholder="Guardian name" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-
                         <FormField
                           control={guardianForm.control}
-                          name="is_primary"
+                          name="relationship"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormItem>
+                              <FormLabel>Relationship</FormLabel>
                               <FormControl>
-                                <input
-                                  type="checkbox"
-                                  checked={field.value}
-                                  onChange={field.onChange}
-                                  className="mt-1"
-                                />
+                                <Input placeholder="Father/Mother" {...field} />
                               </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>Primary Guardian</FormLabel>
-                                <FormDescription>
-                                  Mark as primary contact for this student
-                                </FormDescription>
-                              </div>
+                              <FormMessage />
                             </FormItem>
                           )}
                         />
+                      </div>
 
-                        <div className="flex gap-2">
-                          <Button type="submit" size="sm">
-                            Add Guardian
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowGuardianForm(false)}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </form>
-                    </Form>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                          control={guardianForm.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="+91 98765 43210"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={guardianForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="email"
+                                  placeholder="guardian@example.com"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={guardianForm.control}
+                        name="occupation"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Occupation</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Engineer" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={guardianForm.control}
+                        name="is_primary"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={field.onChange}
+                                className="mt-1"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Primary Guardian</FormLabel>
+                              <FormDescription>
+                                Mark as primary contact for this student
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            guardianForm.handleSubmit(addGuardian)();
+                          }}
+                        >
+                          Add Guardian
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowGuardianForm(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               )}
