@@ -47,18 +47,24 @@ export default async function EditSchoolPage({
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <AdminHeader title="Edit School" description="Update school details" />
+    <div>
+      <AdminHeader
+        title="Edit School"
+        description="Update school details"
+        user={user}
+      />
 
-      <div className="max-w-2xl mt-6">
-        <Link href="/admin/schools">
-          <Button variant="outline" size="sm" className="mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Schools
-          </Button>
-        </Link>
+      <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="max-w-4xl mx-auto">
+          <Link href="/admin/schools">
+            <Button variant="outline" size="sm" className="mb-6">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Schools
+            </Button>
+          </Link>
 
-        <EditSchoolForm school={school} />
+          <EditSchoolForm school={school} />
+        </div>
       </div>
     </div>
   );
