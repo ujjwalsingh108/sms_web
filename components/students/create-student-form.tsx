@@ -507,7 +507,11 @@ export function CreateStudentForm({ classes }: CreateStudentFormProps) {
                   <CardContent>
                     <Form {...guardianForm}>
                       <form
-                        onSubmit={guardianForm.handleSubmit(addGuardian)}
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          guardianForm.handleSubmit(addGuardian)(e);
+                        }}
                         className="space-y-4"
                       >
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
