@@ -17,6 +17,7 @@ import {
   GraduationCap,
   DollarSign,
   User,
+  Pencil,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -53,8 +54,8 @@ export default async function StaffDetailPage({
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
             <Link href="/dashboard/staff">
               <Button
                 variant="ghost"
@@ -64,40 +65,55 @@ export default async function StaffDetailPage({
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            {staff.photo_url && (
-              <Image
-                src={staff.photo_url}
-                alt={`${staff.first_name} ${staff.last_name}`}
-                width={80}
-                height={80}
-                className="rounded-full object-cover border-4 border-white shadow-lg"
-              />
-            )}
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                {staff.salutation ? `${staff.salutation} ` : ""}
-                {staff.first_name} {staff.last_name}
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                Employee ID: {staff.employee_id}
-              </p>
+            <div className="flex gap-2 md:hidden">
+              <Link href={`/dashboard/staff/${id}/edit`}>
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+                >
+                  <Pencil className="h-3 w-3 mr-1" />
+                  Edit
+                </Button>
+              </Link>
             </div>
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <Link
-              href={`/dashboard/staff/${id}/edit`}
-              className="flex-1 sm:flex-initial"
-            >
-              <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
-                Edit Details
-              </Button>
-            </Link>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-4 w-full">
+              {staff.photo_url && (
+                <Image
+                  src={staff.photo_url}
+                  alt={`${staff.first_name} ${staff.last_name}`}
+                  width={80}
+                  height={80}
+                  className="rounded-full object-cover border-4 border-white shadow-lg flex-shrink-0"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent break-words">
+                  {staff.salutation ? `${staff.salutation} ` : ""}
+                  {staff.first_name} {staff.last_name}
+                </h1>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                  Employee ID: {staff.employee_id}
+                </p>
+              </div>
+            </div>
+            <div className="hidden md:flex gap-2">
+              <Link
+                href={`/dashboard/staff/${id}/edit`}
+                className="flex-1 sm:flex-initial"
+              >
+                <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
+                  Edit Details
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Information */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-2 lg:order-1">
             <Card className="glass-effect border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
@@ -255,7 +271,7 @@ export default async function StaffDetailPage({
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 order-1 lg:order-2 lg:sticky lg:top-6 lg:self-start">
             <Card className="glass-effect border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="text-lg sm:text-xl">Status</CardTitle>
