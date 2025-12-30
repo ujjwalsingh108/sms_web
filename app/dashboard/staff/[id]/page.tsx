@@ -17,6 +17,7 @@ import {
   GraduationCap,
   DollarSign,
   User,
+  Pencil,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -66,7 +67,10 @@ export default async function StaffDetailPage({
             </Link>
             <div className="flex gap-2 md:hidden">
               <Link href={`/dashboard/staff/${id}/edit`}>
-                <Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+                >
                   <Pencil className="h-3 w-3 mr-1" />
                   Edit
                 </Button>
@@ -95,14 +99,15 @@ export default async function StaffDetailPage({
               </div>
             </div>
             <div className="hidden md:flex gap-2">
-            <Link
-              href={`/dashboard/staff/${id}/edit`}
-              className="flex-1 sm:flex-initial"
-            >
-              <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
-                Edit Details
-              </Button>
-            </Link>
+              <Link
+                href={`/dashboard/staff/${id}/edit`}
+                className="flex-1 sm:flex-initial"
+              >
+                <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
+                  Edit Details
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
