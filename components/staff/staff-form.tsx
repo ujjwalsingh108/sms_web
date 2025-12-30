@@ -135,6 +135,26 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
                     placeholder="staff@example.com"
                   />
                 </div>
+
+                {mode === "create" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-xs sm:text-sm">
+                      Password <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      required
+                      className="text-sm"
+                      placeholder="Enter secure password"
+                      minLength={8}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Minimum 8 characters required
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { revalidatePath } from "next/cache";
 import { getCurrentTenant } from "@/lib/helpers/tenant";
 
@@ -13,6 +14,7 @@ export type Staff = {
   first_name: string;
   last_name: string;
   email: string;
+  password?: string | null; // Password hash - should never be included in SELECT queries
   phone: string | null;
   date_of_birth: string | null;
   gender: "male" | "female" | "other" | null;
@@ -112,12 +114,44 @@ export async function getStaffById(id: string) {
 // Create new staff member
 export async function createStaff(formData: FormData) {
   const supabase = await createClient();
+  const supabaseAdmin = createServiceRoleClient();
 
   // Get current tenant - CRITICAL: Required for tenant_id
   const tenant = await getCurrentTenant();
   if (!tenant) {
     throw new Error("No tenant found. Please log in again.");
   }
+
+  // Extract email and password
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  if (!email || !password) {
+    throw new Error("Email and password are required for staff creation");
+  }
+
+  // Step 1: Create Supabase Auth user using service role
+  const { data: authData, error: authError } =
+    await supabaseAdmin.auth.admin.createUser({
+      email: email,
+      password: password,
+      email_confirm: true, // Auto-confirm the email
+      user_metadata: {
+        role: "staff",
+        tenant_id: tenant.tenant_id,
+        first_name: formData.get("first_name") as string,
+        last_name: formData.get("last_name") as string,
+      },
+    });
+
+  if (authError || !authData.user) {
+    console.error("Error creating auth user:", authError);
+    throw new Error(
+      `Failed to create user account: ${authError?.message || "Unknown error"}`
+    );
+  }
+
+  const userId = authData.user.id;
 
   // Handle photo upload
   let photoUrl: string | null = null;
@@ -150,58 +184,73 @@ export async function createStaff(formData: FormData) {
     photoUrl = publicUrl;
   }
 
-  const staffData = {
-    tenant_id: tenant.tenant_id, // CRITICAL: Add tenant_id
-    employee_id: formData.get("employee_id") as string,
-    salutation: formData.get("salutation") as string | null,
-    first_name: formData.get("first_name") as string,
-    last_name: formData.get("last_name") as string,
-    email: formData.get("email") as string,
-    phone: formData.get("phone") as string | null,
-    date_of_birth: formData.get("date_of_birth") as string | null,
-    gender: formData.get("gender") as "male" | "female" | "other" | null,
-    address: formData.get("address") as string | null,
-    qualification: formData.get("qualification") as string | null,
-    department: formData.get("department") as string | null,
-    date_of_joining: formData.get("date_of_joining") as string | null,
-    salary: formData.get("salary")
-      ? parseFloat(formData.get("salary") as string)
-      : null,
-    status:
-      (formData.get("status") as "active" | "inactive" | "on_leave") ||
-      "active",
-    staff_type:
-      (formData.get("staff_type") as
-        | "teacher"
-        | "principal"
-        | "vice_principal"
-        | "clerk"
-        | "librarian"
-        | "driver"
-        | "security"
-        | "nurse"
-        | "accountant"
-        | "lab_assistant"
-        | "sports_coach"
-        | "counselor"
-        | "other") || "teacher",
-    photo_url: photoUrl,
-  };
+  // Step 2: Create staff record with user_id
+  try {
+    const staffData = {
+      tenant_id: tenant.tenant_id, // CRITICAL: Add tenant_id
+      user_id: userId, // Link to auth user
+      employee_id: formData.get("employee_id") as string,
+      salutation: formData.get("salutation") as string | null,
+      first_name: formData.get("first_name") as string,
+      last_name: formData.get("last_name") as string,
+      email: formData.get("email") as string,
+      phone: formData.get("phone") as string | null,
+      date_of_birth: formData.get("date_of_birth") as string | null,
+      gender: formData.get("gender") as "male" | "female" | "other" | null,
+      address: formData.get("address") as string | null,
+      qualification: formData.get("qualification") as string | null,
+      department: formData.get("department") as string | null,
+      date_of_joining: formData.get("date_of_joining") as string | null,
+      salary: formData.get("salary")
+        ? parseFloat(formData.get("salary") as string)
+        : null,
+      status:
+        (formData.get("status") as "active" | "inactive" | "on_leave") ||
+        "active",
+      staff_type:
+        (formData.get("staff_type") as
+          | "teacher"
+          | "principal"
+          | "vice_principal"
+          | "clerk"
+          | "librarian"
+          | "driver"
+          | "security"
+          | "nurse"
+          | "accountant"
+          | "lab_assistant"
+          | "sports_coach"
+          | "counselor"
+          | "other") || "teacher",
+      photo_url: photoUrl,
+    };
 
-  const supabaseAny: any = supabase;
-  const { data, error } = await supabaseAny
-    .from("staff")
-    .insert([staffData])
-    .select()
-    .single();
+    const supabaseAny: any = supabase;
+    const { data, error } = await supabaseAny
+      .from("staff")
+      .insert([staffData])
+      .select()
+      .single();
 
-  if (error) {
-    console.error("Error creating staff:", error);
-    throw new Error(`Failed to create staff: ${error.message}`);
+    if (error) {
+      console.error("Error creating staff:", error);
+      // Rollback: Delete the auth user since staff creation failed
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      throw new Error(`Failed to create staff: ${error.message}`);
+    }
+
+    revalidatePath("/dashboard/staff");
+    return data as Staff;
+  } catch (staffError) {
+    // Rollback: Delete the auth user if anything went wrong
+    console.error("Error in staff creation process:", staffError);
+    try {
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+    } catch (deleteError) {
+      console.error("Failed to cleanup auth user:", deleteError);
+    }
+    throw staffError;
   }
-
-  revalidatePath("/dashboard/staff");
-  return data as Staff;
 }
 
 // Update staff member
