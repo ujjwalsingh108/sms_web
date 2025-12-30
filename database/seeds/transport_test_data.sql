@@ -18,7 +18,7 @@
 -- VEHICLES
 -- =====================================================
 
-INSERT INTO vehicles (id, tenant_id, vehicle_number, vehicle_type, model, capacity, driver_name, driver_phone, driver_license, status, created_at)
+INSERT INTO vehicles (id, tenant_id, vehicle_number, vehicle_type, model, capacity, driver_name, driver_phone, driver_license, status, is_deleted, created_at)
 VALUES
   -- Vehicle 1: School Bus 1 (Active)
   (
@@ -32,6 +32,7 @@ VALUES
     '+91-9876541111',
     'KA01-20180012345',
     'active',
+    false,
     now()
   ),
   
@@ -47,6 +48,7 @@ VALUES
     '+91-9876541112',
     'KA01-20190023456',
     'active',
+    false,
     now()
   ),
   
@@ -62,6 +64,7 @@ VALUES
     '+91-9876541113',
     'KA02-20200034567',
     'active',
+    false,
     now()
   ),
   
@@ -77,6 +80,7 @@ VALUES
     '+91-9876541114',
     'KA03-20210045678',
     'active',
+    false,
     now()
   ),
   
@@ -92,6 +96,7 @@ VALUES
     '+91-9876541115',
     'KA04-20220056789',
     'active',
+    false,
     now()
   ),
   
@@ -107,6 +112,7 @@ VALUES
     '+91-9876541116',
     'KA05-20180067890',
     'maintenance',
+    false,
     now()
   ),
   
@@ -122,6 +128,7 @@ VALUES
     '+91-9876541117',
     'KA01-20170078901',
     'inactive',
+    false,
     now() - INTERVAL '6 months'
   ),
   
@@ -137,6 +144,7 @@ VALUES
     '+91-9876541118',
     'KA06-20230089012',
     'active',
+    false,
     now()
   )
 ON CONFLICT (id) DO NOTHING;
