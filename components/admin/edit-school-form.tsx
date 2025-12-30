@@ -106,9 +106,11 @@ export function EditSchoolForm({ school }: EditSchoolFormProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card>
+      <Card className="border-0 shadow-xl rounded-2xl bg-white/80 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle>School Information</CardTitle>
+          <CardTitle className="text-xl font-bold text-gray-900">
+            School Information
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Subdomain - Read Only */}
