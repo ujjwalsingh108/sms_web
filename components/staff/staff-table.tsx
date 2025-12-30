@@ -11,8 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, User } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 type StaffTableProps = {
   staff: Staff[];
@@ -46,11 +47,9 @@ export default function StaffTable({ staff, onDelete }: StaffTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="min-w-[60px]">Photo</TableHead>
             <TableHead className="min-w-[100px]">Employee ID</TableHead>
             <TableHead className="min-w-[150px]">Name</TableHead>
-            <TableHead className="hidden md:table-cell min-w-[120px]">
-              Designation
-            </TableHead>
             <TableHead className="hidden lg:table-cell min-w-[120px]">
               Department
             </TableHead>
@@ -67,14 +66,27 @@ export default function StaffTable({ staff, onDelete }: StaffTableProps) {
         <TableBody>
           {staff.map((member) => (
             <TableRow key={member.id}>
+              <TableCell>
+                {member.photo_url ? (
+                  <Image
+                    src={member.photo_url}
+                    alt={`${member.first_name} ${member.last_name}`}
+                    width={40}
+                    height={40}
+                    className="rounded-full object-cover border-2 border-gray-200"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <User className="h-5 w-5 text-gray-400" />
+                  </div>
+                )}
+              </TableCell>
               <TableCell className="font-mono text-xs sm:text-sm">
                 {member.employee_id}
               </TableCell>
               <TableCell className="font-medium text-sm sm:text-base">
+                {member.salutation ? `${member.salutation} ` : ""}
                 {member.first_name} {member.last_name}
-              </TableCell>
-              <TableCell className="hidden md:table-cell text-sm">
-                {member.designation || "N/A"}
               </TableCell>
               <TableCell className="hidden lg:table-cell text-sm">
                 {member.department || "N/A"}

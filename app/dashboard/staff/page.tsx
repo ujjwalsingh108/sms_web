@@ -18,8 +18,6 @@ export default async function StaffPage({
   const filters = {
     department:
       typeof params.department === "string" ? params.department : undefined,
-    designation:
-      typeof params.designation === "string" ? params.designation : undefined,
     status: typeof params.status === "string" ? params.status : undefined,
     search: typeof params.search === "string" ? params.search : undefined,
   };

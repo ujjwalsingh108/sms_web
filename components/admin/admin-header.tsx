@@ -23,15 +23,17 @@ export function AdminHeader({ title, description, user }: AdminHeaderProps) {
     : user?.email?.[0].toUpperCase() || "N";
 
   return (
-    <header className="bg-white border-b sticky top-0 lg:top-0 z-30 mt-14 lg:mt-0">
+    <header className="bg-white/80 backdrop-blur-md border-b border-blue-100 shadow-sm sticky top-0 lg:top-0 z-30 mt-14 lg:mt-0">
       <div className="px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               {title}
             </h1>
             {description && (
-              <p className="text-sm text-gray-600 mt-1">{description}</p>
+              <p className="text-sm sm:text-base text-gray-600 font-medium mt-1">
+                {description}
+              </p>
             )}
           </div>
 
@@ -40,7 +42,10 @@ export function AdminHeader({ title, description, user }: AdminHeaderProps) {
             <div className="hidden md:flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input placeholder="Search..." className="pl-10 w-64" />
+                <Input
+                  placeholder="Search..."
+                  className="pl-10 w-64 h-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
               </div>
             </div>
 
@@ -48,8 +53,8 @@ export function AdminHeader({ title, description, user }: AdminHeaderProps) {
             <NotificationsDrawer />
 
             {/* User Avatar */}
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-blue-600 text-white text-sm">
+            <Avatar className="h-10 w-10 ring-2 ring-blue-100">
+              <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-sm font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>

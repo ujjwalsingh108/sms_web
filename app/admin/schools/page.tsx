@@ -40,15 +40,17 @@ export default async function SchoolsPage() {
         user={user}
       />
 
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
+      <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <p className="text-sm text-gray-600">
-              Total: {schools?.length || 0} schools
+            <p className="text-sm font-semibold text-gray-700">
+              Total:{" "}
+              <span className="text-blue-600">{schools?.length || 0}</span>{" "}
+              schools
             </p>
           </div>
           <Link href="/admin/schools/new">
-            <Button className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all">
               <Plus className="h-4 w-4 mr-2" />
               Create New School
             </Button>
@@ -56,25 +58,25 @@ export default async function SchoolsPage() {
         </div>
 
         {schools && schools.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-4 lg:gap-5">
             {schools.map((school: any) => (
               <Card
                 key={school.id}
-                className="hover:shadow-md transition-shadow"
+                className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm rounded-xl"
               >
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="flex items-center gap-3 mb-3">
+                        <h3 className="text-lg font-bold text-gray-900">
                           {school.school_name}
                         </h3>
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
                             school.status === "active"
-                              ? "bg-green-100 text-green-800"
+                              ? "bg-emerald-100 text-emerald-800"
                               : school.status === "pending"
-                              ? "bg-orange-100 text-orange-800"
+                              ? "bg-amber-100 text-amber-800"
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
@@ -82,50 +84,74 @@ export default async function SchoolsPage() {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm text-gray-600">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                         <div>
-                          <span className="font-medium">Subdomain:</span>{" "}
+                          <span className="font-semibold text-gray-700">
+                            Subdomain:
+                          </span>{" "}
                           <a
                             href={`https://${school.subdomain}.smartschoolerp.xyz`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                            className="text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center gap-1 font-medium"
                           >
                             {school.subdomain}.smartschoolerp.xyz
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         </div>
                         <div>
-                          <span className="font-medium">Plan:</span>{" "}
-                          <span className="capitalize">
+                          <span className="font-semibold text-gray-700">
+                            Plan:
+                          </span>{" "}
+                          <span className="capitalize text-gray-900 font-medium">
                             {school.subscription_plan}
                           </span>
                         </div>
                         <div>
-                          <span className="font-medium">Limits:</span>{" "}
-                          {school.max_students} students, {school.max_staff}{" "}
-                          staff
+                          <span className="font-semibold text-gray-700">
+                            Limits:
+                          </span>{" "}
+                          <span className="text-gray-900 font-medium">
+                            {school.max_students} students, {school.max_staff}{" "}
+                            staff
+                          </span>
                         </div>
                         <div>
-                          <span className="font-medium">Email:</span>{" "}
-                          {school.tenant.email}
+                          <span className="font-semibold text-gray-700">
+                            Email:
+                          </span>{" "}
+                          <span className="text-gray-900">
+                            {school.tenant.email}
+                          </span>
                         </div>
                         {school.tenant.phone && (
                           <div>
-                            <span className="font-medium">Phone:</span>{" "}
-                            {school.tenant.phone}
+                            <span className="font-semibold text-gray-700">
+                              Phone:
+                            </span>{" "}
+                            <span className="text-gray-900">
+                              {school.tenant.phone}
+                            </span>
                           </div>
                         )}
                         <div>
-                          <span className="font-medium">Created:</span>{" "}
-                          {new Date(school.created_at).toLocaleDateString()}
+                          <span className="font-semibold text-gray-700">
+                            Created:
+                          </span>{" "}
+                          <span className="text-gray-900 font-medium">
+                            {new Date(school.created_at).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
 
                       {school.tenant.address && (
-                        <div className="mt-2 text-sm text-gray-600">
-                          <span className="font-medium">Address:</span>{" "}
-                          {school.tenant.address}
+                        <div className="mt-3 text-sm">
+                          <span className="font-semibold text-gray-700">
+                            Address:
+                          </span>{" "}
+                          <span className="text-gray-900">
+                            {school.tenant.address}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -135,7 +161,7 @@ export default async function SchoolsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex-1 sm:flex-none w-full"
+                          className="flex-1 sm:flex-none w-full border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all"
                         >
                           <Settings className="h-4 w-4 sm:mr-2" />
                           <span className="hidden sm:inline">Manage</span>
@@ -153,19 +179,19 @@ export default async function SchoolsPage() {
             ))}
           </div>
         ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <div className="text-gray-400 mb-4">
-                <Plus className="h-16 w-16 mx-auto" />
+          <Card className="border-0 shadow-xl rounded-2xl bg-white/80 backdrop-blur-sm">
+            <CardContent className="py-16 text-center">
+              <div className="text-blue-300 mb-6">
+                <Plus className="h-20 w-20 mx-auto" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
                 No schools yet
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-8 font-medium">
                 Get started by creating your first school instance
               </p>
               <Link href="/admin/schools/new">
-                <Button>
+                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all">
                   <Plus className="h-4 w-4 mr-2" />
                   Create First School
                 </Button>

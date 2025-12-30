@@ -45,6 +45,7 @@ export function CreateStaffForm({
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<CreateStaffInput>({
+    salutation: undefined,
     firstName: "",
     lastName: "",
     email: "",
@@ -94,6 +95,7 @@ export function CreateStaffForm({
 
   const handleClose = () => {
     setFormData({
+      salutation: undefined,
       firstName: "",
       lastName: "",
       email: "",
@@ -251,7 +253,29 @@ export function CreateStaffForm({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="salutation">Salutation</Label>
+                  <Select
+                    value={formData.salutation}
+                    onValueChange={(value: any) =>
+                      setFormData({ ...formData, salutation: value })
+                    }
+                    disabled={loading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Mr.">Mr.</SelectItem>
+                      <SelectItem value="Mrs.">Mrs.</SelectItem>
+                      <SelectItem value="Miss">Miss</SelectItem>
+                      <SelectItem value="Ms.">Ms.</SelectItem>
+                      <SelectItem value="Dr.">Dr.</SelectItem>
+                      <SelectItem value="Prof.">Prof.</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="firstName">
                     First Name <span className="text-red-500">*</span>

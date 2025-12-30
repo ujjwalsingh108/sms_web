@@ -18,14 +18,15 @@
 -- STAFF - TEACHING STAFF (PRIMARY)
 -- =====================================================
 
-INSERT INTO staff (id, tenant_id, employee_id, first_name, last_name, email, phone, date_of_birth, gender, address, qualification, designation, department, date_of_joining, salary, status, created_at, updated_at)
+INSERT INTO staff (id, tenant_id, employee_id, salutation, first_name, last_name, email, phone, date_of_birth, gender, address, qualification, designation, department, date_of_joining, salary, status, created_at, updated_at)
 VALUES
   -- Staff 1: Principal - Complete profile
   (
     'sf100000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000001',
     'EMP2024001',
-    'Dr. Rajesh',
+    'Dr.',
+    'Rajesh',
     'Sharma',
     'rajesh.sharma@school.edu.in',
     '+91-9876543210',
@@ -47,7 +48,8 @@ VALUES
     'sf100000-0000-0000-0000-000000000002',
     '00000000-0000-0000-0000-000000000001',
     'EMP2024002',
-    'Mrs. Priya',
+    'Mrs.',
+    'Priya',
     'Kumar',
     'priya.kumar@school.edu.in',
     '+91-9876543211',

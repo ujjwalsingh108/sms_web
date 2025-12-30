@@ -50,54 +50,64 @@ export default async function ActivityLogsPage() {
         user={user}
       />
 
-      <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-blue-50 to-blue-100/50 hover:scale-105">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-semibold text-blue-900">
                 Today
               </CardTitle>
-              <Activity className="h-4 w-4 text-blue-600" />
+              <Activity className="h-5 w-5 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{todayLogs || 0}</div>
-              <p className="text-xs text-gray-500 mt-1">Activities today</p>
+              <div className="text-2xl sm:text-3xl font-bold text-blue-900">
+                {todayLogs || 0}
+              </div>
+              <p className="text-xs sm:text-sm text-blue-700 font-medium mt-1">
+                Activities today
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-green-50 to-green-100/50 hover:scale-105">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-semibold text-green-900">
                 This Week
               </CardTitle>
-              <Calendar className="h-4 w-4 text-green-600" />
+              <Calendar className="h-5 w-5 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{weekLogs || 0}</div>
-              <p className="text-xs text-gray-500 mt-1">Last 7 days</p>
+              <div className="text-2xl sm:text-3xl font-bold text-green-900">
+                {weekLogs || 0}
+              </div>
+              <p className="text-xs sm:text-sm text-green-700 font-medium mt-1">
+                Last 7 days
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-purple-50 to-purple-100/50 hover:scale-105">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-semibold text-purple-900">
                 Total Admins
               </CardTitle>
-              <Users className="h-4 w-4 text-purple-600" />
+              <Users className="h-5 w-5 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl sm:text-3xl font-bold text-purple-900">
                 {new Set(activityLogs?.map((log: any) => log.admin_user_id))
                   .size || 0}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Active admins</p>
+              <p className="text-xs sm:text-sm text-purple-700 font-medium mt-1">
+                Active admins
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Activity Timeline */}
-        <Card>
+        <Card className="border-0 shadow-xl rounded-2xl bg-white/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
