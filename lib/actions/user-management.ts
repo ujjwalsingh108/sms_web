@@ -36,6 +36,7 @@ function getAdminClient() {
 // =====================================================
 
 export interface CreateStaffInput {
+  salutation?: "Mr." | "Mrs." | "Miss" | "Ms." | "Dr." | "Prof.";
   firstName: string;
   lastName: string;
   email: string;
@@ -125,6 +126,7 @@ export async function createStaffMember(input: CreateStaffInput) {
         tenant_id: tenantId,
         user_id: authUser.user.id,
         employee_id: input.employeeId,
+        salutation: input.salutation,
         first_name: input.firstName,
         last_name: input.lastName,
         email: input.email,

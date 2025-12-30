@@ -13,20 +13,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getDepartments, getDesignations } from "@/app/dashboard/staff/actions";
+import { getDepartments } from "@/app/dashboard/staff/actions";
 
 export default function StaffFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [departments, setDepartments] = useState<string[]>([]);
-  const [designations, setDesignations] = useState<string[]>([]);
 
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [department, setDepartment] = useState(
     searchParams.get("department") || "all"
-  );
-  const [designation, setDesignation] = useState(
-    searchParams.get("designation") || "all"
   );
   const [status, setStatus] = useState(searchParams.get("status") || "all");
 
@@ -35,19 +31,14 @@ export default function StaffFilters() {
   }, []);
 
   async function loadFilters() {
-    const [depts, desigs] = await Promise.all([
-      getDepartments(),
-      getDesignations(),
-    ]);
+    const depts = await getDepartments();
     setDepartments(depts);
-    setDesignations(desigs);
   }
 
   function applyFilters() {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (department !== "all") params.set("department", department);
-    if (designation !== "all") params.set("designation", designation);
     if (status !== "all") params.set("status", status);
 
     router.push(`/dashboard/staff?${params.toString()}`);
@@ -56,7 +47,6 @@ export default function StaffFilters() {
   function clearFilters() {
     setSearch("");
     setDepartment("all");
-    setDesignation("all");
     setStatus("all");
     router.push("/dashboard/staff");
   }
@@ -94,25 +84,6 @@ export default function StaffFilters() {
               {departments.map((dept) => (
                 <SelectItem key={dept} value={dept}>
                   {dept}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="designation" className="text-xs sm:text-sm">
-            Designation
-          </Label>
-          <Select value={designation} onValueChange={setDesignation}>
-            <SelectTrigger id="designation" className="text-sm">
-              <SelectValue placeholder="All Designations" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Designations</SelectItem>
-              {designations.map((desig) => (
-                <SelectItem key={desig} value={desig}>
-                  {desig}
                 </SelectItem>
               ))}
             </SelectContent>

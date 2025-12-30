@@ -19,7 +19,6 @@ import StaffTable from "@/components/staff/staff-table";
 type StaffListClientProps = {
   filters?: {
     department?: string;
-    designation?: string;
     status?: string;
     search?: string;
   };

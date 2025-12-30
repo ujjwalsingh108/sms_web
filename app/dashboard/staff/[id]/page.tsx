@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 
 export default async function StaffDetailPage({
   params,
@@ -53,7 +54,7 @@ export default async function StaffDetailPage({
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-start gap-4">
             <Link href="/dashboard/staff">
               <Button
                 variant="ghost"
@@ -63,8 +64,18 @@ export default async function StaffDetailPage({
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
+            {staff.photo_url && (
+              <Image
+                src={staff.photo_url}
+                alt={`${staff.first_name} ${staff.last_name}`}
+                width={80}
+                height={80}
+                className="rounded-full object-cover border-4 border-white shadow-lg"
+              />
+            )}
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                {staff.salutation ? `${staff.salutation} ` : ""}
                 {staff.first_name} {staff.last_name}
               </h1>
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
@@ -201,18 +212,6 @@ export default async function StaffDetailPage({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="flex items-center gap-3">
-                    <Briefcase className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                        Designation
-                      </p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                        {staff.designation || "N/A"}
-                      </p>
-                    </div>
-                  </div>
-
                   <div className="flex items-center gap-3">
                     <Briefcase className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                     <div>
