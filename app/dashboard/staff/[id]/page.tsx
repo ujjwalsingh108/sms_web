@@ -96,6 +96,11 @@ export default async function StaffDetailPage({
                 <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                   Employee ID: {staff.employee_id}
                 </p>
+                {staff.staff_type && (
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-500 capitalize">
+                    {staff.staff_type.replace(/_/g, " ")}
+                  </p>
+                )}
               </div>
             </div>
             <div className="hidden md:flex gap-2">

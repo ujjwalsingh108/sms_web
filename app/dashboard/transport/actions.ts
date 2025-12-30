@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getCurrentTenant } from "@/lib/helpers/tenant";
 
 // =====================================================
 // VEHICLE TYPES & ACTIONS
@@ -123,7 +124,14 @@ export async function getVehicleById(id: string) {
 export async function createVehicle(formData: FormData) {
   const supabase = await createClient();
 
+  // Get current tenant
+  const tenant = await getCurrentTenant();
+  if (!tenant) {
+    throw new Error("No tenant found. Please log in again.");
+  }
+
   const vehicleData = {
+    tenant_id: tenant.tenant_id,
     vehicle_number: formData.get("vehicle_number") as string,
     vehicle_type: formData.get("vehicle_type") as string | null,
     model: formData.get("model") as string | null,
@@ -269,7 +277,14 @@ export async function getRouteById(id: string) {
 export async function createRoute(formData: FormData) {
   const supabase = await createClient();
 
+  // Get current tenant
+  const tenant = await getCurrentTenant();
+  if (!tenant) {
+    throw new Error("No tenant found. Please log in again.");
+  }
+
   const routeData = {
+    tenant_id: tenant.tenant_id,
     route_name: formData.get("route_name") as string,
     route_number: formData.get("route_number") as string | null,
     starting_point: formData.get("starting_point") as string | null,
@@ -376,7 +391,14 @@ export async function getRouteStops(routeId: string) {
 export async function createRouteStop(formData: FormData) {
   const supabase = await createClient();
 
+  // Get current tenant
+  const tenant = await getCurrentTenant();
+  if (!tenant) {
+    throw new Error("No tenant found. Please log in again.");
+  }
+
   const stopData = {
+    tenant_id: tenant.tenant_id,
     route_id: formData.get("route_id") as string,
     stop_name: formData.get("stop_name") as string,
     stop_order: parseInt(formData.get("stop_order") as string),
@@ -444,7 +466,14 @@ export async function getVehicleAssignments() {
 export async function createVehicleAssignment(formData: FormData) {
   const supabase = await createClient();
 
+  // Get current tenant
+  const tenant = await getCurrentTenant();
+  if (!tenant) {
+    throw new Error("No tenant found. Please log in again.");
+  }
+
   const assignmentData = {
+    tenant_id: tenant.tenant_id,
     vehicle_id: formData.get("vehicle_id") as string,
     route_id: formData.get("route_id") as string,
     assigned_date: formData.get("assigned_date") as string,
@@ -528,7 +557,14 @@ export async function getStudentTransport(filters?: {
 export async function createStudentTransport(formData: FormData) {
   const supabase = await createClient();
 
+  // Get current tenant
+  const tenant = await getCurrentTenant();
+  if (!tenant) {
+    throw new Error("No tenant found. Please log in again.");
+  }
+
   const transportData = {
+    tenant_id: tenant.tenant_id,
     student_id: formData.get("student_id") as string,
     route_id: formData.get("route_id") as string,
     stop_id: formData.get("stop_id") as string | null,

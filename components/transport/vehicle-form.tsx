@@ -74,13 +74,23 @@ export function VehicleForm({ mode, vehicle }: VehicleFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="vehicle_type">Vehicle Type</Label>
-              <Input
-                id="vehicle_type"
+              <Label htmlFor="vehicle_type">Vehicle Type *</Label>
+              <Select
                 name="vehicle_type"
-                defaultValue={vehicle?.vehicle_type || ""}
-                placeholder="e.g., Bus, Van, Car"
-              />
+                defaultValue={vehicle?.vehicle_type || "bus"}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bus">Bus</SelectItem>
+                  <SelectItem value="van">Van</SelectItem>
+                  <SelectItem value="car">Car</SelectItem>
+                  <SelectItem value="mini_bus">Mini Bus</SelectItem>
+                  <SelectItem value="tempo">Tempo</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

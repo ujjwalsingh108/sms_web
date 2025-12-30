@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getStudentTransport } from "../actions";
 import { StudentTransportClient } from "@/components/transport/student-transport-client";
@@ -38,6 +38,12 @@ export default async function StudentTransportPage(props: {
             </p>
           </div>
         </div>
+        <Button asChild>
+          <Link href="/dashboard/transport/students/new">
+            <Plus className="mr-2 h-4 w-4" />
+            Assign Student
+          </Link>
+        </Button>
       </div>
 
       <Card>

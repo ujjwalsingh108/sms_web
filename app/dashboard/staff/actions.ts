@@ -125,6 +125,7 @@ export async function createStaff(formData: FormData) {
   // Extract email and password
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const staffType = (formData.get("staff_type") as string) || "teacher";
 
   if (!email || !password) {
     throw new Error("Email and password are required for staff creation");
@@ -137,7 +138,7 @@ export async function createStaff(formData: FormData) {
       password: password,
       email_confirm: true, // Auto-confirm the email
       user_metadata: {
-        role: "staff",
+        role: staffType, // Use actual staff type (teacher, principal, etc.)
         tenant_id: tenant.tenant_id,
         first_name: formData.get("first_name") as string,
         last_name: formData.get("last_name") as string,
