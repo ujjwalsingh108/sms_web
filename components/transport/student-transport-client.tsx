@@ -60,8 +60,17 @@ export function StudentTransportClient({
                 <th className="px-4 py-3 text-left text-sm font-medium">
                   Route
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium hidden md:table-cell">
-                  Stop
+                <th className="px-4 py-3 text-left text-sm font-medium hidden lg:table-cell">
+                  Pickup Stop
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium hidden lg:table-cell">
+                  Pickup Time
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium hidden xl:table-cell">
+                  Drop Stop
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium hidden xl:table-cell">
+                  Drop Time
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium">
                   Status
@@ -75,7 +84,7 @@ export function StudentTransportClient({
               {initialAssignments.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={9}
                     className="px-4 py-8 text-center text-muted-foreground"
                   >
                     No student transport assignments found
@@ -97,8 +106,33 @@ export function StudentTransportClient({
                     <td className="px-4 py-3 text-sm">
                       {assignment.route?.route_name || "N/A"}
                     </td>
-                    <td className="px-4 py-3 text-sm hidden md:table-cell">
-                      {assignment.stop?.stop_name || "N/A"}
+                    <td className="px-4 py-3 text-sm hidden lg:table-cell">
+                      {assignment.pickup_stop?.stop_name || "N/A"}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-mono hidden lg:table-cell">
+                      {assignment.pickup_time
+                        ? new Date(
+                            `2000-01-01T${assignment.pickup_time}`
+                          ).toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })
+                        : "N/A"}
+                    </td>
+                    <td className="px-4 py-3 text-sm hidden xl:table-cell">
+                      {assignment.drop_stop?.stop_name || "N/A"}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-mono hidden xl:table-cell">
+                      {assignment.drop_time
+                        ? new Date(
+                            `2000-01-01T${assignment.drop_time}`
+                          ).toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })
+                        : "N/A"}
                     </td>
                     <td className="px-4 py-3">
                       <Badge className={getStatusColor(assignment.status)}>

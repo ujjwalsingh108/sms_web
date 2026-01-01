@@ -27,6 +27,8 @@ export function StudentTransportForm({ mode }: StudentTransportFormProps) {
   const [routes, setRoutes] = useState<any[]>([]);
   const [stops, setStops] = useState<any[]>([]);
   const [selectedRoute, setSelectedRoute] = useState<string>("");
+  const [selectedPickupStop, setSelectedPickupStop] = useState<string>("");
+  const [selectedDropStop, setSelectedDropStop] = useState<string>("");
   const [academicYears, setAcademicYears] = useState<any[]>([]);
 
   useEffect(() => {
@@ -165,24 +167,116 @@ export function StudentTransportForm({ mode }: StudentTransportFormProps) {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="stop_id">Stop *</Label>
-            <Select name="stop_id" required disabled={!selectedRoute}>
-              <SelectTrigger>
-                <SelectValue
-                  placeholder={
-                    selectedRoute ? "Select stop" : "Select a route first"
+          {/* Pickup Stop Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-blue-50/50">
+            <div className="md:col-span-2">
+              <h3 className="text-sm font-semibold text-blue-700 mb-2">
+                Pickup Details (Morning Route)
+              </h3>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pickup_stop_id">Pickup Stop *</Label>
+              <Select
+                name="pickup_stop_id"
+                required
+                disabled={!selectedRoute}
+                onValueChange={(value) => {
+                  setSelectedPickupStop(value);
+                  // Auto-fill pickup time from stop data
+                  const stop = stops.find((s) => s.id === value);
+                  if (stop && stop.pickup_time) {
+                    const pickupInput = document.querySelector(
+                      '[name="pickup_time"]'
+                    ) as HTMLInputElement;
+                    if (pickupInput) pickupInput.value = stop.pickup_time;
                   }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {stops.map((stop) => (
-                  <SelectItem key={stop.id} value={stop.id}>
-                    {stop.stop_name} (Stop {stop.stop_order})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      selectedRoute
+                        ? "Select pickup stop"
+                        : "Select a route first"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {stops.map((stop) => (
+                    <SelectItem key={stop.id} value={stop.id}>
+                      {stop.stop_name} (Stop {stop.stop_order})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pickup_time">Pickup Time *</Label>
+              <Input
+                type="time"
+                name="pickup_time"
+                required
+                disabled={!selectedPickupStop}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          {/* Drop Stop Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-green-50/50">
+            <div className="md:col-span-2">
+              <h3 className="text-sm font-semibold text-green-700 mb-2">
+                Drop Details (Evening Route)
+              </h3>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="drop_stop_id">Drop Stop *</Label>
+              <Select
+                name="drop_stop_id"
+                required
+                disabled={!selectedRoute}
+                onValueChange={(value) => {
+                  setSelectedDropStop(value);
+                  // Auto-fill drop time from stop data
+                  const stop = stops.find((s) => s.id === value);
+                  if (stop && stop.drop_time) {
+                    const dropInput = document.querySelector(
+                      '[name="drop_time"]'
+                    ) as HTMLInputElement;
+                    if (dropInput) dropInput.value = stop.drop_time;
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      selectedRoute
+                        ? "Select drop stop"
+                        : "Select a route first"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {stops.map((stop) => (
+                    <SelectItem key={stop.id} value={stop.id}>
+                      {stop.stop_name} (Stop {stop.stop_order})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="drop_time">Drop Time *</Label>
+              <Input
+                type="time"
+                name="drop_time"
+                required
+                disabled={!selectedDropStop}
+                className="w-full"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
