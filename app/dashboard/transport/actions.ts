@@ -61,7 +61,11 @@ export type StudentTransport = {
   tenant_id: string;
   student_id: string;
   route_id: string;
-  stop_id: string | null;
+  stop_id: string | null; // DEPRECATED: Use pickup_stop_id and drop_stop_id
+  pickup_stop_id: string | null;
+  drop_stop_id: string | null;
+  pickup_time: string | null;
+  drop_time: string | null;
   academic_year_id: string | null;
   status: "active" | "inactive";
   created_at: string;
@@ -531,7 +535,8 @@ export async function getStudentTransport(filters?: {
       *,
       student:student_id(id, admission_no, first_name, last_name, class_id),
       route:route_id(id, route_name, route_number),
-      stop:stop_id(id, stop_name)
+      pickup_stop:pickup_stop_id(id, stop_name, stop_order),
+      drop_stop:drop_stop_id(id, stop_name, stop_order)
     `
     )
     .order("created_at", { ascending: false });
@@ -567,7 +572,10 @@ export async function createStudentTransport(formData: FormData) {
     tenant_id: tenant.tenant_id,
     student_id: formData.get("student_id") as string,
     route_id: formData.get("route_id") as string,
-    stop_id: formData.get("stop_id") as string | null,
+    pickup_stop_id: formData.get("pickup_stop_id") as string | null,
+    drop_stop_id: formData.get("drop_stop_id") as string | null,
+    pickup_time: formData.get("pickup_time") as string | null,
+    drop_time: formData.get("drop_time") as string | null,
     academic_year_id: formData.get("academic_year_id") as string | null,
     status: (formData.get("status") as "active" | "inactive") || "active",
   };

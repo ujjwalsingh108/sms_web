@@ -17,7 +17,7 @@ export async function GET(
 
     const { data: stops, error } = await supabase
       .from("route_stops")
-      .select("id, stop_name, stop_order, arrival_time, departure_time")
+      .select("id, stop_name, stop_order, pickup_time, drop_time")
       .eq("tenant_id", tenant.tenant_id)
       .eq("route_id", routeId)
       .order("stop_order", { ascending: true });
