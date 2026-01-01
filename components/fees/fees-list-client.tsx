@@ -153,7 +153,8 @@ export default function FeesListClient({
                       <TableHead>Student</TableHead>
                       <TableHead>Admission No</TableHead>
                       <TableHead>Fee Structure</TableHead>
-                      <TableHead>Amount</TableHead>
+                      <TableHead>Amount Paid</TableHead>
+                      <TableHead>Due Amount</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -163,7 +164,7 @@ export default function FeesListClient({
                     {filteredPayments.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={7}
+                          colSpan={8}
                           className="text-center text-muted-foreground"
                         >
                           No payments found
@@ -182,6 +183,17 @@ export default function FeesListClient({
                           </TableCell>
                           <TableCell>
                             ₹{Number(payment.amount_paid).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={`font-semibold ${
+                                payment.dueAmount > 0
+                                  ? "text-red-600 dark:text-red-400"
+                                  : "text-green-600 dark:text-green-400"
+                              }`}
+                            >
+                              ₹{Number(payment.dueAmount || 0).toLocaleString()}
+                            </span>
                           </TableCell>
                           <TableCell>
                             {new Date(
@@ -278,7 +290,18 @@ export default function FeesListClient({
                           <div className="text-sm">
                             <p>Fee: {payment.fee_structure?.name || "N/A"}</p>
                             <p className="font-semibold text-lg">
-                              ₹{Number(payment.amount_paid).toLocaleString()}
+                              Amount Paid: ₹
+                              {Number(payment.amount_paid).toLocaleString()}
+                            </p>
+                            <p
+                              className={`font-semibold ${
+                                payment.dueAmount > 0
+                                  ? "text-red-600 dark:text-red-400"
+                                  : "text-green-600 dark:text-green-400"
+                              }`}
+                            >
+                              Due: ₹
+                              {Number(payment.dueAmount || 0).toLocaleString()}
                             </p>
                             <p className="text-muted-foreground">
                               {new Date(

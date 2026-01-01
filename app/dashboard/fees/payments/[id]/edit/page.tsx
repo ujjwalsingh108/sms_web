@@ -1,7 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import EditPaymentForm from "@/components/fees/edit-payment-form";
-import { getStudentsForFees } from "@/app/dashboard/fees/actions";
+import {
+  getStudentsForFees,
+  getFeeStructures,
+} from "@/app/dashboard/fees/actions";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -32,7 +35,7 @@ export default async function EditPaymentPage({ params }: PageProps) {
     redirect("/login");
   }
 
-  const [paymentResult, studentsResult] = await Promise.all([
+  const [paymentResult, studentsResult, structuresResult] = await Promise.all([
     supabase
       .from("fee_payments")
       .select("*")
@@ -41,10 +44,12 @@ export default async function EditPaymentPage({ params }: PageProps) {
       .eq("is_deleted", false)
       .single(),
     getStudentsForFees(),
+    getFeeStructures({ status: "active" }),
   ]);
 
   const payment = paymentResult.data;
   const students = studentsResult.success ? studentsResult.data : [];
+  const structures = structuresResult.success ? structuresResult.data : [];
 
   if (!payment) {
     notFound();
@@ -74,7 +79,11 @@ export default async function EditPaymentPage({ params }: PageProps) {
           </div>
         </div>
 
-        <EditPaymentForm payment={payment} students={students || []} />
+        <EditPaymentForm
+          payment={payment}
+          students={students || []}
+          structures={structures || []}
+        />
       </div>
     </div>
   );

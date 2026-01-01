@@ -1,17 +1,23 @@
-import { getStudentsForFees, getClasses } from "../../actions";
+import {
+  getStudentsForFees,
+  getClasses,
+  getFeeStructures,
+} from "../../actions";
 import CreatePaymentForm from "@/components/fees/create-payment-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default async function NewPaymentPage() {
-  const [studentsResult, classesResult] = await Promise.all([
+  const [studentsResult, classesResult, structuresResult] = await Promise.all([
     getStudentsForFees(),
     getClasses(),
+    getFeeStructures({ status: "active" }),
   ]);
 
   const students = studentsResult.success ? studentsResult.data : [];
   const classes = classesResult.success ? classesResult.data : [];
+  const structures = structuresResult.success ? structuresResult.data : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -37,7 +43,10 @@ export default async function NewPaymentPage() {
           </div>
         </div>
 
-        <CreatePaymentForm students={students || []} />
+        <CreatePaymentForm
+          students={students || []}
+          structures={structures || []}
+        />
       </div>
     </div>
   );

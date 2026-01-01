@@ -215,7 +215,43 @@ export async function getFeePayments(filters?: {
     return { success: false, error: error.message };
   }
 
-  return { success: true, data: payments };
+  // Calculate due amount for each payment
+  const paymentsWithDue = await Promise.all(
+    (payments || []).map(async (payment: any) => {
+      if (!payment.fee_structure_id || !payment.student_id) {
+        return { ...payment, dueAmount: 0 };
+      }
+
+      // Get all completed payments for this student and fee structure
+      const { data: allPayments } = await supabase
+        .from("fee_payments")
+        .select("amount_paid")
+        .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
+        .eq("student_id", payment.student_id)
+        .eq("fee_structure_id", payment.fee_structure_id)
+        .eq("status", "completed")
+        .eq("is_deleted", false);
+
+      const totalPaid =
+        allPayments?.reduce(
+          (sum: number, p: any) => sum + Number(p.amount_paid),
+          0
+        ) || 0;
+      const totalDue = payment.fee_structure?.amount
+        ? Number(payment.fee_structure.amount)
+        : 0;
+      const dueAmount = totalDue - totalPaid;
+
+      return {
+        ...payment,
+        dueAmount: dueAmount > 0 ? dueAmount : 0,
+        totalDue,
+        totalPaid,
+      };
+    })
+  );
+
+  return { success: true, data: paymentsWithDue };
 }
 
 export async function createFeePayment(data: CreateFeePaymentData) {
@@ -461,4 +497,68 @@ export async function getClasses() {
   }
 
   return { success: true, data: classes };
+}
+
+// Helper function: Calculate due amount for a student and fee structure
+export async function calculateDueAmount(
+  studentId: string,
+  feeStructureId: string
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const { data: member } = await supabase
+    .from("members")
+    .select("tenant_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!member) {
+    return { success: false, error: "No tenant found" };
+  }
+
+  // Get fee structure total
+  const { data: feeStructure } = await supabase
+    .from("fee_structures")
+    .select("amount")
+    .eq("id", feeStructureId)
+    .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
+    .eq("is_deleted", false)
+    .single();
+
+  if (!feeStructure) {
+    return { success: false, error: "Fee structure not found" };
+  }
+
+  // Get all completed payments for this student and fee structure
+  const { data: payments } = await supabase
+    .from("fee_payments")
+    .select("amount_paid")
+    .eq("tenant_id", (member as { tenant_id: string }).tenant_id)
+    .eq("student_id", studentId)
+    .eq("fee_structure_id", feeStructureId)
+    .eq("status", "completed")
+    .eq("is_deleted", false);
+
+  const totalPaid =
+    payments?.reduce((sum: number, p: any) => sum + Number(p.amount_paid), 0) ||
+    0;
+  const totalDue = Number((feeStructure as any).amount);
+  const dueAmount = totalDue - totalPaid;
+
+  return {
+    success: true,
+    data: {
+      totalDue,
+      totalPaid,
+      dueAmount: dueAmount > 0 ? dueAmount : 0,
+    },
+  };
 }
