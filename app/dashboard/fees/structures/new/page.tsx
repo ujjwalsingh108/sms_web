@@ -1,4 +1,5 @@
 import { getClasses } from "../../actions";
+import { getAcademicYears } from "@/app/dashboard/academic/actions";
 import CreateFeeStructureForm from "@/components/fees/create-fee-structure-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -6,7 +7,11 @@ import Link from "next/link";
 
 export default async function NewFeeStructurePage() {
   const classesResult = await getClasses();
+  const academicYearsResult = await getAcademicYears();
   const classes = classesResult.success ? classesResult.data : [];
+  const academicYears = academicYearsResult.success
+    ? academicYearsResult.data
+    : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -32,7 +37,10 @@ export default async function NewFeeStructurePage() {
           </div>
         </div>
 
-        <CreateFeeStructureForm classes={classes || []} />
+        <CreateFeeStructureForm
+          classes={classes || []}
+          academicYears={academicYears || []}
+        />
       </div>
     </div>
   );

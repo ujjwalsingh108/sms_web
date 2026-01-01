@@ -149,6 +149,28 @@ export default function FeePaymentDetailView({
                         ₹{Number(payment.fee_structure.amount).toLocaleString()}
                       </p>
                     </div>
+                    <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                        Total Paid (All Payments)
+                      </p>
+                      <p className="text-base font-semibold text-green-600 dark:text-green-400">
+                        ₹{Number(payment.totalPaid || 0).toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                        Amount Due
+                      </p>
+                      <p
+                        className={`text-2xl font-bold ${
+                          payment.dueAmount > 0
+                            ? "text-red-600 dark:text-red-400"
+                            : "text-green-600 dark:text-green-400"
+                        }`}
+                      >
+                        ₹{Number(payment.dueAmount || 0).toLocaleString()}
+                      </p>
+                    </div>
                   </>
                 )}
               </CardContent>
@@ -216,7 +238,7 @@ export default function FeePaymentDetailView({
             </div>
           </div>
 
-          {payment.notes && (
+          {payment.remarks && (
             <div className="flex items-start gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
               <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400 mt-0.5" />
               <div className="flex-1">
@@ -224,7 +246,7 @@ export default function FeePaymentDetailView({
                   Notes
                 </p>
                 <p className="text-base text-gray-900 dark:text-gray-100 mt-1 whitespace-pre-wrap">
-                  {payment.notes}
+                  {payment.remarks}
                 </p>
               </div>
             </div>

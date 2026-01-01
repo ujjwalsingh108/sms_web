@@ -31,7 +31,7 @@ import { Loader2, User, CreditCard, Save } from "lucide-react";
 
 const paymentSchema = z.object({
   student_id: z.string().min(1, "Student is required"),
-  fee_structure_id: z.string().optional(),
+  fee_structure_id: z.string().min(1, "Fee structure is required"),
   amount_paid: z.string().min(1, "Amount is required"),
   payment_date: z.string().min(1, "Payment date is required"),
   payment_method: z.enum([
@@ -43,7 +43,7 @@ const paymentSchema = z.object({
     "other",
   ]),
   transaction_id: z.string().optional(),
-  notes: z.string().optional(),
+  remarks: z.string().optional(),
   status: z.enum(["pending", "completed", "failed"]),
 });
 
@@ -52,11 +52,13 @@ type PaymentFormData = z.infer<typeof paymentSchema>;
 interface EditPaymentFormProps {
   payment: any;
   students: any[];
+  structures: any[];
 }
 
 export default function EditPaymentForm({
   payment,
   students,
+  structures,
 }: EditPaymentFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +73,7 @@ export default function EditPaymentForm({
         payment.payment_date || new Date().toISOString().split("T")[0],
       payment_method: payment.payment_method || "cash",
       transaction_id: payment.transaction_id || "",
-      notes: payment.notes || "",
+      remarks: payment.remarks || "",
       status: payment.status || "completed",
     },
   });
@@ -132,6 +134,37 @@ export default function EditPaymentForm({
                             {student.class?.name
                               ? ` (${student.class.name})`
                               : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="fee_structure_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fee Structure *</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select fee structure" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {structures.map((structure) => (
+                          <SelectItem key={structure.id} value={structure.id}>
+                            {structure.name} - ₹
+                            {Number(structure.amount).toLocaleString()}
+                            {structure.class?.name &&
+                              ` (${structure.class.name})`}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -259,7 +292,7 @@ export default function EditPaymentForm({
 
               <FormField
                 control={form.control}
-                name="notes"
+                name="remarks"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Notes</FormLabel>

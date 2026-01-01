@@ -34,7 +34,7 @@ import { Loader2, User, DollarSign, CreditCard, Save } from "lucide-react";
 
 const paymentSchema = z.object({
   student_id: z.string().min(1, "Student is required"),
-  fee_structure_id: z.string().optional(),
+  fee_structure_id: z.string().min(1, "Fee structure is required"),
   amount_paid: z.string().min(1, "Amount is required"),
   payment_date: z.string().min(1, "Payment date is required"),
   payment_method: z.enum([
@@ -46,7 +46,7 @@ const paymentSchema = z.object({
     "other",
   ]),
   transaction_id: z.string().optional(),
-  notes: z.string().optional(),
+  remarks: z.string().optional(),
   status: z.enum(["pending", "completed", "failed"]),
 });
 
@@ -54,15 +54,19 @@ type PaymentFormData = z.infer<typeof paymentSchema>;
 
 interface CreatePaymentFormProps {
   students: any[];
+  structures: any[];
 }
 
 export default function CreatePaymentForm({
   students,
+  structures,
 }: CreatePaymentFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [feeSummary, setFeeSummary] = useState<any>(null);
+  const [selectedStructure, setSelectedStructure] = useState<any>(null);
+  const [studentStructures, setStudentStructures] = useState<any[]>([]);
 
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentSchema),
@@ -78,10 +82,16 @@ export default function CreatePaymentForm({
     if (result.success && result.data) {
       setFeeSummary(result.data.summary);
       setSelectedStudent(result.data.student);
-      if (result.data.feeStructure) {
-        form.setValue("fee_structure_id", (result.data.feeStructure as any).id);
-      }
+
+      // Filter structures for this student's class
+      const student = result.data.student as any;
+      setSelectedStructure(null);
     }
+  };
+
+  const handleStructureChange = (structureId: string) => {
+    const structure = structures.find((s: any) => s.id === structureId);
+    setSelectedStructure(structure);
   };
 
   const onSubmit = async (data: PaymentFormData) => {
@@ -152,10 +162,46 @@ export default function CreatePaymentForm({
                 )}
               />
 
+              {selectedStudent && (
+                <FormField
+                  control={form.control}
+                  name="fee_structure_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fee Structure *</FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          handleStructureChange(value);
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select fee structure" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {studentStructures.map((structure) => (
+                            <SelectItem key={structure.id} value={structure.id}>
+                              {structure.name} - ₹
+                              {Number(structure.amount).toLocaleString()}
+                              {structure.class?.name &&
+                                ` (${structure.class.name})`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
               {feeSummary && (
                 <div className="glass-effect p-4 rounded-lg space-y-2">
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                    Fee Summary
+                    Overall Fee Summary
                   </h3>
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
@@ -176,7 +222,7 @@ export default function CreatePaymentForm({
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Balance
+                        Balance Due
                       </p>
                       <p
                         className={`font-semibold text-lg ${
@@ -188,6 +234,47 @@ export default function CreatePaymentForm({
                         ₹{feeSummary.balance?.toLocaleString() || 0}
                       </p>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedStructure && (
+                <div className="glass-effect p-4 rounded-lg border-2 border-blue-200 dark:border-blue-800 space-y-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                    Selected Fee Structure
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Name:
+                      </span>
+                      <span className="font-semibold">
+                        {selectedStructure.name}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Amount:
+                      </span>
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">
+                        ₹{Number(selectedStructure.amount).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Frequency:
+                      </span>
+                      <span className="font-semibold capitalize">
+                        {selectedStructure.frequency}
+                      </span>
+                    </div>
+                    {selectedStructure.description && (
+                      <div className="pt-2 border-t">
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {selectedStructure.description}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -310,7 +397,7 @@ export default function CreatePaymentForm({
 
               <FormField
                 control={form.control}
-                name="notes"
+                name="remarks"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
