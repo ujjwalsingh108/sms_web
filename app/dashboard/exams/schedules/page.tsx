@@ -9,7 +9,9 @@ export const dynamic = "force-dynamic";
 
 export default async function SchedulesPage() {
   const schedulesResult = await getExamSchedules();
-  const schedules = schedulesResult.success ? schedulesResult.data || [] : [];
+  const schedules = schedulesResult.success
+    ? (schedulesResult.data as any) || []
+    : [];
 
   return (
     <div className="space-y-6 p-6">

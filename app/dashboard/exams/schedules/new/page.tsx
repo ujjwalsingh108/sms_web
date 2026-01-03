@@ -36,9 +36,3 @@ export default function NewSchedulePage() {
     </div>
   );
 }
-          preselectedExamId={resolvedParams.examId}
-        />
-      </div>
-    </div>
-  );
-}
