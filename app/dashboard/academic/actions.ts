@@ -718,11 +718,16 @@ export async function getSubjectById(id: string) {
 
     if (error) throw error;
 
+    if (!data) {
+      return { success: false, error: "Subject not found" };
+    }
+
     // Transform data to include classes array
     const subject = {
-      ...data,
-      classes: data.class_subjects?.map((cs: any) => cs.classes) || [],
-      class_ids: data.class_subjects?.map((cs: any) => cs.class_id) || [],
+      ...(data as any),
+      classes: (data as any).class_subjects?.map((cs: any) => cs.classes) || [],
+      class_ids:
+        (data as any).class_subjects?.map((cs: any) => cs.class_id) || [],
     };
 
     return { success: true, data: subject };
@@ -778,23 +783,23 @@ export async function createSubject(formData: {
       .insert({
         ...subjectData,
         tenant_id: (member as any).tenant_id,
-      })
+      } as any)
       .select()
       .single();
 
     if (subjectError) throw subjectError;
 
     // Create class-subject mappings if class_ids provided
-    if (class_ids && class_ids.length > 0) {
+    if (class_ids && class_ids.length > 0 && subject) {
       const classSubjects = class_ids.map((class_id) => ({
         tenant_id: (member as any).tenant_id,
         class_id,
-        subject_id: subject.id,
+        subject_id: (subject as any).id,
       }));
 
       const { error: mappingError } = await supabase
         .from("class_subjects")
-        .insert(classSubjects);
+        .insert(classSubjects as any);
 
       if (mappingError) throw mappingError;
     }
@@ -818,6 +823,7 @@ export async function updateSubject(
 ) {
   try {
     const supabase = await createClient();
+    const adminClient = getAdminClient();
 
     const {
       data: { user },
@@ -856,8 +862,8 @@ export async function updateSubject(
 
     const { class_ids, ...subjectData } = formData;
 
-    // Update subject
-    const { data: subject, error: subjectError } = await supabase
+    // Update subject using admin client
+    const { data: subject, error: subjectError } = await adminClient
       .from("subjects")
       .update(subjectData)
       .eq("id", id)
@@ -869,7 +875,7 @@ export async function updateSubject(
     // Update class-subject mappings if class_ids provided
     if (class_ids !== undefined) {
       // Delete existing mappings
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await adminClient
         .from("class_subjects")
         .delete()
         .eq("subject_id", id);
@@ -884,7 +890,7 @@ export async function updateSubject(
           subject_id: id,
         }));
 
-        const { error: mappingError } = await supabase
+        const { error: mappingError } = await adminClient
           .from("class_subjects")
           .insert(classSubjects);
 
