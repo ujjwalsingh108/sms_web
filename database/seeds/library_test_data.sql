@@ -822,6 +822,218 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- =====================================================
+-- LIBRARY REPORTS
+-- =====================================================
+
+INSERT INTO library_reports (id, tenant_id, report_name, report_type, description, date_from, date_to, filters, status, generated_at, created_at)
+VALUES
+  -- Completed Reports
+  (
+    'rpt10000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000001',
+    'December 2025 Books Inventory',
+    'books_inventory',
+    'Complete inventory of all library books as of December 2025',
+    NULL,
+    NULL,
+    '{"data": {"total_books": 30, "total_copies": 91, "available_copies": 78, "issued_copies": 6, "damaged_copies": 1, "by_category": {"Science": 4, "Mathematics": 3, "Fiction": 5, "History": 3, "Literature": 3, "Computer Science": 3, "Biography": 3, "Reference": 3, "Children": 3}}}',
+    'completed',
+    '2025-12-31 18:30:00',
+    '2025-12-31 18:00:00'
+  ),
+  (
+    'rpt10000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000001',
+    'Currently Issued Books Report',
+    'issued_books',
+    'List of all currently issued books',
+    '2025-12-01',
+    '2025-12-31',
+    '{"data": {"total_issued": 6, "books": [{"title": "A Brief History of Time", "student": "Aarav Sharma", "issued_date": "2025-12-15", "due_date": "2026-01-14"}, {"title": "1984", "student": "Diya Patel", "issued_date": "2025-12-20", "due_date": "2026-01-19"}, {"title": "Introduction to Algorithms", "student": "Advait Mehta", "issued_date": "2025-12-18", "due_date": "2026-01-17"}, {"title": "Harry Potter and the Philosopher Stone", "student": "Arjun Kumar", "issued_date": "2025-12-22", "due_date": "2026-01-21"}, {"title": "To Kill a Mockingbird", "student": "Advait Mehta", "issued_date": "2025-12-10", "due_date": "2026-01-09"}, {"title": "Complete Works of Shakespeare", "student": "Saanvi Chopra", "issued_date": "2025-12-05", "due_date": "2026-01-04"}]}}',
+    'completed',
+    '2026-01-01 09:00:00',
+    '2026-01-01 08:45:00'
+  ),
+  (
+    'rpt10000-0000-0000-0000-000000000003',
+    '00000000-0000-0000-0000-000000000001',
+    'Overdue Books - January 2026',
+    'overdue_books',
+    'Books that are currently overdue with fine calculations',
+    '2025-11-01',
+    '2026-01-04',
+    '{"data": {"total_overdue": 5, "total_fines": 510.00, "books": [{"title": "1984", "student": "Vihaan Joshi", "issued_date": "2025-11-15", "due_date": "2025-12-15", "days_overdue": 17, "fine": 170.00}, {"title": "Guns, Germs, and Steel", "student": "Ananya Singh", "issued_date": "2025-11-20", "due_date": "2025-12-20", "days_overdue": 12, "fine": 120.00}, {"title": "Long Walk to Freedom", "student": "Ishita Reddy", "issued_date": "2025-11-10", "due_date": "2025-12-10", "days_overdue": 22, "fine": 220.00}]}}',
+    'completed',
+    '2026-01-04 10:00:00',
+    '2026-01-04 09:30:00'
+  ),
+  (
+    'rpt10000-0000-0000-0000-000000000004',
+    '00000000-0000-0000-0000-000000000001',
+    'Q4 2025 Returned Books',
+    'returned_books',
+    'All books returned during Q4 2025',
+    '2025-10-01',
+    '2025-12-31',
+    '{"data": {"total_returned": 8, "on_time": 5, "late": 3, "total_fines_collected": 180.00, "books": [{"title": "Sapiens", "student": "Rohan Verma", "return_date": "2025-11-28", "fine": 0.00}, {"title": "To Kill a Mockingbird", "student": "Ishita Reddy", "return_date": "2025-11-10", "fine": 0.00}, {"title": "The Joy of x", "student": "Ananya Singh", "return_date": "2025-12-08", "fine": 0.00}, {"title": "The Odyssey", "student": "Vihaan Joshi", "return_date": "2025-11-08", "fine": 80.00}, {"title": "The Selfish Gene", "student": "Saanvi Chopra", "return_date": "2025-10-20", "fine": 50.00}, {"title": "Chronicles of Narnia", "student": "Diya Patel", "return_date": "2025-09-05", "fine": 50.00}]}}',
+    'completed',
+    '2026-01-02 14:00:00',
+    '2026-01-02 13:30:00'
+  ),
+  (
+    'rpt10000-0000-0000-0000-000000000005',
+    '00000000-0000-0000-0000-000000000001',
+    'Fine Collection Report - 2025',
+    'fine_collection',
+    'Total fine collection for the year 2025',
+    '2025-01-01',
+    '2025-12-31',
+    '{"data": {"total_fines": 180.00, "total_transactions": 3, "by_month": {"August": 50.00, "September": 50.00, "November": 80.00}, "top_defaulters": [{"student": "Vihaan Joshi", "total_fine": 80.00}, {"student": "Saanvi Chopra", "total_fine": 50.00}, {"student": "Diya Patel", "total_fine": 50.00}]}}',
+    'completed',
+    '2026-01-03 11:00:00',
+    '2026-01-03 10:30:00'
+  ),
+  (
+    'rpt10000-0000-0000-0000-000000000006',
+    '00000000-0000-0000-0000-000000000001',
+    'Most Popular Books - 2025',
+    'popular_books',
+    'Books with highest circulation in 2025',
+    '2025-01-01',
+    '2025-12-31',
+    '{"category": "Fiction", "min_issues": 2}',
+    'completed',
+    '2026-01-03 15:00:00',
+    '2026-01-03 14:45:00'
+  ),
+  (
+    'rpt10000-0000-0000-0000-000000000007',
+    '00000000-0000-0000-0000-000000000001',
+    'Aarav Sharma - Borrowing History',
+    'student_history',
+    'Complete borrowing history for student Aarav Sharma',
+    '2025-01-01',
+    '2025-12-31',
+    '{"student_id": "std10000-0000-0000-0000-000000000001"}',
+    'completed',
+    '2026-01-02 16:00:00',
+    '2026-01-02 15:45:00'
+  ),
+  
+  -- Draft Reports
+  (
+    'rpt10000-0000-0000-0000-000000000008',
+    '00000000-0000-0000-0000-000000000001',
+    'January 2026 Monthly Summary',
+    'monthly_summary',
+    'Monthly library operations summary for January 2026',
+    '2026-01-01',
+    '2026-01-31',
+    '{}',
+    'draft',
+    NULL,
+    '2026-01-04 08:00:00'
+  ),
+  (
+    'rpt10000-0000-0000-0000-000000000009',
+    '00000000-0000-0000-0000-000000000001',
+    'Science Category Inventory',
+    'books_inventory',
+    'Inventory report for Science category books only',
+    NULL,
+    NULL,
+    '{"category": "Science"}',
+    'draft',
+    NULL,
+    '2026-01-03 17:00:00'
+  ),
+  (
+    'rpt10000-0000-0000-0000-000000000010',
+    '00000000-0000-0000-0000-000000000001',
+    'Computer Science Books - Borrowing Trends',
+    'popular_books',
+    'Analysis of Computer Science category borrowing patterns',
+    '2025-01-01',
+    '2025-12-31',
+    '{"category": "Computer Science"}',
+    'draft',
+    NULL,
+    '2026-01-04 09:00:00'
+  ),
+  
+  -- Generating Status
+  (
+    'rpt10000-0000-0000-0000-000000000011',
+    '00000000-0000-0000-0000-000000000001',
+    'Annual Summary 2025',
+    'annual_summary',
+    'Complete annual summary for library operations in 2025',
+    '2025-01-01',
+    '2025-12-31',
+    '{}',
+    'generating',
+    NULL,
+    '2026-01-04 10:30:00'
+  ),
+  (
+    'rpt10000-0000-0000-0000-000000000012',
+    '00000000-0000-0000-0000-000000000001',
+    'Current Week Issued Books',
+    'issued_books',
+    'Books issued in the current week',
+    '2025-12-29',
+    '2026-01-04',
+    '{}',
+    'generating',
+    NULL,
+    '2026-01-04 11:00:00'
+  ),
+  
+  -- Failed Report
+  (
+    'rpt10000-0000-0000-0000-000000000013',
+    '00000000-0000-0000-0000-000000000001',
+    'Lost Books Analysis',
+    'student_history',
+    'Analysis of lost books by student - FAILED due to missing student filter',
+    '2025-01-01',
+    '2025-12-31',
+    '{}',
+    'failed',
+    NULL,
+    '2026-01-02 12:00:00'
+  ),
+  
+  -- Additional Completed Reports
+  (
+    'rpt10000-0000-0000-0000-000000000014',
+    '00000000-0000-0000-0000-000000000001',
+    'Children Category - December Activity',
+    'issued_books',
+    'Borrowing activity for Children category books in December',
+    '2025-12-01',
+    '2025-12-31',
+    '{"category": "Children", "data": {"total_issued": 3, "books": [{"title": "Harry Potter and the Philosopher Stone", "issues": 2}, {"title": "Chronicles of Narnia", "issues": 1}]}}',
+    'completed',
+    '2026-01-01 16:00:00',
+    '2026-01-01 15:30:00'
+  ),
+  (
+    'rpt10000-0000-0000-0000-000000000015',
+    '00000000-0000-0000-0000-000000000001',
+    'Reference Books Usage',
+    'books_inventory',
+    'Status of reference books in library',
+    NULL,
+    NULL,
+    '{"category": "Reference", "data": {"total_books": 3, "total_copies": 10, "available": 10, "never_issued": true}}',
+    'completed',
+    '2026-01-03 12:00:00',
+    '2026-01-03 11:30:00'
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- =====================================================
 -- SUMMARY STATISTICS
 -- =====================================================
 
@@ -838,11 +1050,22 @@ ON CONFLICT (id) DO NOTHING;
 -- Overdue: 5
 -- Lost: 1
 
+-- Total Reports: 15
+-- Completed: 9 (Books Inventory: 3, Issued Books: 3, Overdue: 1, Returned: 1, Fine Collection: 1)
+-- Draft: 3
+-- Generating: 2
+-- Failed: 1
+-- Report Types Covered: All 9 types represented
+
 -- Notes:
--- - Current date is January 1, 2026
+-- - Current date is January 4, 2026
 -- - Fine rate: ₹10 per day overdue
 -- - Loan period: 30 days
 -- - Books in good condition have varied shelf locations (A-I sections)
 -- - Popular books have multiple copies
 -- - Reference books generally have more copies
 -- - Some students have borrowing history showing responsibility
+-- - Reports include sample data showing various report types and statuses
+-- - Completed reports contain generated data in filters JSONB field
+-- - Draft reports ready to be generated
+-- - Failed report demonstrates validation error handling

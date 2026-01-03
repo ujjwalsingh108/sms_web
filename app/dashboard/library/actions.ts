@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getCurrentTenant } from "@/lib/helpers/tenant";
 
 // TypeScript Types
 export type LibraryBook = {
@@ -37,6 +38,32 @@ export type LibraryTransaction = {
   book?: LibraryBook;
   student?: any;
   staff?: any;
+};
+
+export type LibraryReport = {
+  id: string;
+  tenant_id: string;
+  report_name: string;
+  report_type:
+    | "books_inventory"
+    | "issued_books"
+    | "overdue_books"
+    | "returned_books"
+    | "student_history"
+    | "popular_books"
+    | "fine_collection"
+    | "monthly_summary"
+    | "annual_summary";
+  description: string | null;
+  date_from: string | null;
+  date_to: string | null;
+  filters: Record<string, any>;
+  generated_by: string | null;
+  generated_at: string | null;
+  file_url: string | null;
+  status: "draft" | "generating" | "completed" | "failed";
+  created_at: string;
+  updated_at: string;
 };
 
 // =====================================================
@@ -87,31 +114,65 @@ export async function createLibraryBook(formData: FormData) {
     const supabase = await createClient();
     const supabaseAny: any = supabase;
 
-    const bookData = {
-      isbn: formData.get("isbn") as string,
-      title: formData.get("title") as string,
-      author: formData.get("author") as string,
-      publisher: formData.get("publisher") as string,
-      category: formData.get("category") as string,
-      total_copies: parseInt(formData.get("total_copies") as string) || 1,
-      available_copies:
-        parseInt(formData.get("available_copies") as string) || 1,
-      rack_number: formData.get("rack_number") as string,
-      price: formData.get("price")
-        ? parseFloat(formData.get("price") as string)
-        : null,
-      status: (formData.get("status") as string) || "available",
+    // Get the current user's tenant
+    const tenant = await getCurrentTenant();
+
+    if (!tenant) {
+      console.error("No tenant found for user");
+      return { success: false, error: "Unable to determine tenant" };
+    }
+
+    console.log("User tenant:", tenant.tenant_id);
+
+    // Helper function to get form value with or without prefix
+    const getFormValue = (key: string): string | null => {
+      let value = formData.get(key);
+      if (!value) {
+        // Try with "1_" prefix
+        value = formData.get(`1_${key}`);
+      }
+      return value as string | null;
     };
 
-    const { error } = await supabaseAny.from("library_books").insert(bookData);
+    const bookData = {
+      tenant_id: tenant.tenant_id,
+      isbn: getFormValue("isbn"),
+      title: getFormValue("title"),
+      author: getFormValue("author"),
+      publisher: getFormValue("publisher"),
+      category: getFormValue("category"),
+      total_copies: parseInt(getFormValue("total_copies") || "1") || 1,
+      available_copies: parseInt(getFormValue("available_copies") || "1") || 1,
+      rack_number: getFormValue("rack_number"),
+      price: getFormValue("price")
+        ? parseFloat(getFormValue("price") as string)
+        : null,
+      status: getFormValue("status") || "available",
+    };
 
-    if (error) throw error;
+    console.log("Inserting book data:", bookData);
+
+    const { error, data } = await supabaseAny
+      .from("library_books")
+      .insert(bookData)
+      .select();
+
+    if (error) {
+      console.error("Database insert error:", error);
+      throw error;
+    }
+
+    console.log("Book created successfully:", data);
 
     revalidatePath("/dashboard/library");
+    revalidatePath("/dashboard/library/books");
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating library book:", error);
-    return { success: false, error: "Failed to create library book" };
+    return {
+      success: false,
+      error: error?.message || "Failed to create library book",
+    };
   }
 }
 
@@ -191,6 +252,7 @@ export async function getLibraryTransactions() {
         staff:staff(id, first_name, last_name, employee_id)
       `
       )
+      .eq("is_deleted", false)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -234,10 +296,19 @@ export async function issueBook(formData: FormData) {
     const supabase = await createClient();
     const supabaseAny: any = supabase;
 
+    // Get the current user's tenant
+    const tenant = await getCurrentTenant();
+
+    if (!tenant) {
+      console.error("No tenant found for user");
+      return { success: false, error: "Unable to determine tenant" };
+    }
+
     const bookId = formData.get("book_id") as string;
     const studentId = (formData.get("student_id") as string) || null;
     const staffId = (formData.get("staff_id") as string) || null;
     const dueDate = formData.get("due_date") as string;
+    const remarks = (formData.get("remarks") as string) || null;
 
     // Check if book is available
     const { data: book, error: bookError } = await supabaseAny
@@ -258,12 +329,14 @@ export async function issueBook(formData: FormData) {
 
     // Create transaction
     const transactionData = {
+      tenant_id: tenant.tenant_id,
       book_id: bookId,
       student_id: studentId,
       staff_id: staffId,
       issue_date: new Date().toISOString().split("T")[0],
       due_date: dueDate,
       status: "issued",
+      remarks: remarks,
       issued_by: user?.id,
     };
 
@@ -271,7 +344,10 @@ export async function issueBook(formData: FormData) {
       .from("library_transactions")
       .insert(transactionData);
 
-    if (transactionError) throw transactionError;
+    if (transactionError) {
+      console.error("Transaction insert error:", transactionError);
+      throw transactionError;
+    }
 
     // Update book available copies
     const { error: updateError } = await supabaseAny
@@ -282,10 +358,14 @@ export async function issueBook(formData: FormData) {
     if (updateError) throw updateError;
 
     revalidatePath("/dashboard/library");
+    revalidatePath("/dashboard/library/transactions");
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error issuing book:", error);
-    return { success: false, error: "Failed to issue book" };
+    return {
+      success: false,
+      error: error?.message || "Failed to issue book",
+    };
   }
 }
 
@@ -302,11 +382,15 @@ export async function returnBook(transactionId: string, formData: FormData) {
     // Get transaction
     const { data: transaction, error: transError } = await supabaseAny
       .from("library_transactions")
-      .select("book_id")
+      .select("book_id, status")
       .eq("id", transactionId)
       .single();
 
     if (transError) throw transError;
+
+    if (transaction.status === "returned") {
+      return { success: false, error: "Book already returned" };
+    }
 
     // Update transaction
     const updateData = {
@@ -340,10 +424,52 @@ export async function returnBook(transactionId: string, formData: FormData) {
     if (updateBookError) throw updateBookError;
 
     revalidatePath("/dashboard/library");
+    revalidatePath("/dashboard/library/transactions");
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error returning book:", error);
-    return { success: false, error: "Failed to return book" };
+    return {
+      success: false,
+      error: error?.message || "Failed to return book",
+    };
+  }
+}
+
+export async function updateTransaction(id: string, formData: FormData) {
+  try {
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+
+    const updateData: any = {};
+
+    const dueDate = formData.get("due_date") as string;
+    const returnDate = formData.get("return_date") as string;
+    const fineAmount = formData.get("fine_amount") as string;
+    const status = formData.get("status") as string;
+    const remarks = formData.get("remarks") as string;
+
+    if (dueDate) updateData.due_date = dueDate;
+    if (returnDate) updateData.return_date = returnDate;
+    if (fineAmount) updateData.fine_amount = parseFloat(fineAmount);
+    if (status) updateData.status = status;
+    if (remarks !== undefined) updateData.remarks = remarks || null;
+
+    const { error } = await supabaseAny
+      .from("library_transactions")
+      .update(updateData)
+      .eq("id", id);
+
+    if (error) throw error;
+
+    revalidatePath("/dashboard/library");
+    revalidatePath("/dashboard/library/transactions");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error updating transaction:", error);
+    return {
+      success: false,
+      error: error?.message || "Failed to update transaction",
+    };
   }
 }
 
@@ -352,18 +478,57 @@ export async function deleteTransaction(id: string) {
     const supabase = await createClient();
     const supabaseAny: any = supabase;
 
+    // Get current user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // Get transaction to check if book needs to be returned first
+    const { data: transaction, error: fetchError } = await supabaseAny
+      .from("library_transactions")
+      .select("book_id, status")
+      .eq("id", id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // If the book is still issued, increment available copies
+    if (transaction.status === "issued" || transaction.status === "overdue") {
+      const { data: book, error: bookError } = await supabaseAny
+        .from("library_books")
+        .select("available_copies")
+        .eq("id", transaction.book_id)
+        .single();
+
+      if (!bookError && book) {
+        await supabaseAny
+          .from("library_books")
+          .update({ available_copies: book.available_copies + 1 })
+          .eq("id", transaction.book_id);
+      }
+    }
+
+    // Soft delete the transaction
     const { error } = await supabaseAny
       .from("library_transactions")
-      .delete()
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        deleted_by: user?.id,
+      })
       .eq("id", id);
 
     if (error) throw error;
 
     revalidatePath("/dashboard/library");
+    revalidatePath("/dashboard/library/transactions");
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting transaction:", error);
-    return { success: false, error: "Failed to delete transaction" };
+    return {
+      success: false,
+      error: error?.message || "Failed to delete transaction",
+    };
   }
 }
 
@@ -451,5 +616,274 @@ export async function getStaff() {
   } catch (error) {
     console.error("Error fetching staff:", error);
     return { success: false, error: "Failed to fetch staff" };
+  }
+}
+
+// =====================================================
+// LIBRARY REPORTS OPERATIONS
+// =====================================================
+
+export async function getLibraryReports() {
+  try {
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+
+    const { data: reports, error } = await supabaseAny
+      .from("library_reports")
+      .select("*")
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    return { success: true, data: reports as LibraryReport[] };
+  } catch (error) {
+    console.error("Error fetching library reports:", error);
+    return { success: false, error: "Failed to fetch library reports" };
+  }
+}
+
+export async function getLibraryReportById(id: string) {
+  try {
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+
+    const { data: report, error } = await supabaseAny
+      .from("library_reports")
+      .select("*")
+      .eq("id", id)
+      .eq("is_deleted", false)
+      .single();
+
+    if (error) throw error;
+
+    return { success: true, data: report as LibraryReport };
+  } catch (error) {
+    console.error("Error fetching library report:", error);
+    return { success: false, error: "Failed to fetch library report" };
+  }
+}
+
+export async function createLibraryReport(formData: FormData) {
+  try {
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+
+    const tenant = await getCurrentTenant();
+
+    if (!tenant) {
+      return { success: false, error: "Unable to determine tenant" };
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const reportData = {
+      tenant_id: tenant.tenant_id,
+      report_name: formData.get("report_name") as string,
+      report_type: formData.get("report_type") as string,
+      description: (formData.get("description") as string) || null,
+      date_from: (formData.get("date_from") as string) || null,
+      date_to: (formData.get("date_to") as string) || null,
+      filters: JSON.parse((formData.get("filters") as string) || "{}"),
+      status: "draft",
+      generated_by: user?.id,
+    };
+
+    const { error, data } = await supabaseAny
+      .from("library_reports")
+      .insert(reportData)
+      .select();
+
+    if (error) {
+      console.error("Database insert error:", error);
+      throw error;
+    }
+
+    revalidatePath("/dashboard/library/reports");
+    return { success: true, data: data[0] };
+  } catch (error: any) {
+    console.error("Error creating library report:", error);
+    return {
+      success: false,
+      error: error?.message || "Failed to create library report",
+    };
+  }
+}
+
+export async function updateLibraryReport(id: string, formData: FormData) {
+  try {
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+
+    const reportData: any = {
+      report_name: formData.get("report_name") as string,
+      report_type: formData.get("report_type") as string,
+      description: (formData.get("description") as string) || null,
+      date_from: (formData.get("date_from") as string) || null,
+      date_to: (formData.get("date_to") as string) || null,
+      filters: JSON.parse((formData.get("filters") as string) || "{}"),
+      updated_at: new Date().toISOString(),
+    };
+
+    const status = formData.get("status") as string;
+    if (status) {
+      reportData.status = status;
+    }
+
+    const { error } = await supabaseAny
+      .from("library_reports")
+      .update(reportData)
+      .eq("id", id);
+
+    if (error) throw error;
+
+    revalidatePath("/dashboard/library/reports");
+    revalidatePath(`/dashboard/library/reports/${id}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error updating library report:", error);
+    return {
+      success: false,
+      error: error?.message || "Failed to update library report",
+    };
+  }
+}
+
+export async function generateLibraryReport(id: string) {
+  try {
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+
+    // Get report details
+    const { data: report, error: reportError } = await supabaseAny
+      .from("library_reports")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (reportError) throw reportError;
+
+    // Update status to generating
+    await supabaseAny
+      .from("library_reports")
+      .update({ status: "generating" })
+      .eq("id", id);
+
+    // Generate report data based on report type
+    let reportData: any = {};
+
+    switch (report.report_type) {
+      case "books_inventory":
+        const { data: books } = await supabaseAny
+          .from("library_books")
+          .select("*")
+          .eq("is_deleted", false);
+        reportData = { books };
+        break;
+
+      case "issued_books":
+        const { data: issuedBooks } = await supabaseAny
+          .from("library_transactions")
+          .select("*, book:library_books(*), student:students(*)")
+          .eq("status", "issued")
+          .eq("is_deleted", false);
+        reportData = { transactions: issuedBooks };
+        break;
+
+      case "overdue_books":
+        const today = new Date().toISOString().split("T")[0];
+        const { data: overdueBooks } = await supabaseAny
+          .from("library_transactions")
+          .select("*, book:library_books(*), student:students(*)")
+          .in("status", ["issued", "overdue"])
+          .lt("due_date", today)
+          .eq("is_deleted", false);
+        reportData = { transactions: overdueBooks };
+        break;
+
+      case "returned_books":
+        const { data: returnedBooks } = await supabaseAny
+          .from("library_transactions")
+          .select("*, book:library_books(*), student:students(*)")
+          .eq("status", "returned")
+          .gte("return_date", report.date_from || "1900-01-01")
+          .lte("return_date", report.date_to || "2100-12-31")
+          .eq("is_deleted", false);
+        reportData = { transactions: returnedBooks };
+        break;
+
+      case "fine_collection":
+        const { data: fines } = await supabaseAny
+          .from("library_transactions")
+          .select("*, book:library_books(*), student:students(*)")
+          .gt("fine_amount", 0)
+          .eq("is_deleted", false);
+        reportData = { transactions: fines };
+        break;
+
+      default:
+        reportData = { message: "Report type not implemented" };
+    }
+
+    // Update report status to completed
+    await supabaseAny
+      .from("library_reports")
+      .update({
+        status: "completed",
+        generated_at: new Date().toISOString(),
+        filters: { ...report.filters, data: reportData },
+      })
+      .eq("id", id);
+
+    revalidatePath("/dashboard/library/reports");
+    return { success: true, data: reportData };
+  } catch (error: any) {
+    console.error("Error generating library report:", error);
+
+    // Update status to failed
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+    await supabaseAny
+      .from("library_reports")
+      .update({ status: "failed" })
+      .eq("id", id);
+
+    return {
+      success: false,
+      error: error?.message || "Failed to generate library report",
+    };
+  }
+}
+
+export async function deleteLibraryReport(id: string) {
+  try {
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const { error } = await supabaseAny
+      .from("library_reports")
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        deleted_by: user?.id,
+      })
+      .eq("id", id);
+
+    if (error) throw error;
+
+    revalidatePath("/dashboard/library/reports");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error deleting library report:", error);
+    return {
+      success: false,
+      error: error?.message || "Failed to delete library report",
+    };
   }
 }
