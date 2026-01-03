@@ -57,6 +57,28 @@ export type AcademicYear = {
   created_at: string;
 };
 
+export type Subject = {
+  id: string;
+  tenant_id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  created_at: string;
+};
+
+export type ClassSubject = {
+  id: string;
+  tenant_id: string;
+  class_id: string;
+  subject_id: string;
+  created_at: string;
+};
+
+export type SubjectWithClasses = Subject & {
+  classes?: Class[];
+  class_count?: number;
+};
+
 // =====================================================
 // ACADEMIC YEAR CRUD OPERATIONS
 // =====================================================
@@ -603,5 +625,302 @@ export async function getAcademicStats() {
   } catch (error) {
     console.error("Error fetching stats:", error);
     return { success: false, error: "Failed to fetch statistics" };
+  }
+}
+
+// =====================================================
+// SUBJECTS CRUD OPERATIONS
+// =====================================================
+
+export async function getSubjects() {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const { data: member } = await supabase
+      .from("members")
+      .select("tenant_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!member) {
+      return { success: false, error: "No organization found" };
+    }
+
+    const { data, error } = await supabase
+      .from("subjects")
+      .select(
+        `
+        *,
+        class_subjects (
+          class_id,
+          classes (
+            id,
+            name
+          )
+        )
+      `
+      )
+      .eq("tenant_id", (member as any).tenant_id)
+      .order("name", { ascending: true });
+
+    if (error) throw error;
+
+    // Transform data to include class count and class names
+    const subjects = data?.map((subject: any) => ({
+      ...subject,
+      class_count: subject.class_subjects?.length || 0,
+      classes: subject.class_subjects?.map((cs: any) => cs.classes) || [],
+    }));
+
+    return { success: true, data: subjects as SubjectWithClasses[] };
+  } catch (error) {
+    console.error("Error fetching subjects:", error);
+    return { success: false, error: "Failed to fetch subjects" };
+  }
+}
+
+export async function getSubjectById(id: string) {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const { data, error } = await supabase
+      .from("subjects")
+      .select(
+        `
+        *,
+        class_subjects (
+          class_id,
+          classes (
+            id,
+            name
+          )
+        )
+      `
+      )
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+
+    // Transform data to include classes array
+    const subject = {
+      ...data,
+      classes: data.class_subjects?.map((cs: any) => cs.classes) || [],
+      class_ids: data.class_subjects?.map((cs: any) => cs.class_id) || [],
+    };
+
+    return { success: true, data: subject };
+  } catch (error) {
+    console.error("Error fetching subject:", error);
+    return { success: false, error: "Failed to fetch subject" };
+  }
+}
+
+export async function createSubject(formData: {
+  name: string;
+  code: string;
+  description?: string;
+  class_ids?: string[];
+}) {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const { data: member } = await supabase
+      .from("members")
+      .select("tenant_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!member) {
+      return { success: false, error: "No organization found" };
+    }
+
+    // Check if subject code already exists
+    const { data: existing } = await supabase
+      .from("subjects")
+      .select("id")
+      .eq("tenant_id", (member as any).tenant_id)
+      .eq("code", formData.code)
+      .single();
+
+    if (existing) {
+      return { success: false, error: "Subject code already exists" };
+    }
+
+    const { class_ids, ...subjectData } = formData;
+
+    const { data: subject, error: subjectError } = await supabase
+      .from("subjects")
+      .insert({
+        ...subjectData,
+        tenant_id: (member as any).tenant_id,
+      })
+      .select()
+      .single();
+
+    if (subjectError) throw subjectError;
+
+    // Create class-subject mappings if class_ids provided
+    if (class_ids && class_ids.length > 0) {
+      const classSubjects = class_ids.map((class_id) => ({
+        tenant_id: (member as any).tenant_id,
+        class_id,
+        subject_id: subject.id,
+      }));
+
+      const { error: mappingError } = await supabase
+        .from("class_subjects")
+        .insert(classSubjects);
+
+      if (mappingError) throw mappingError;
+    }
+
+    revalidatePath("/dashboard/academic");
+    return { success: true, data: subject as Subject };
+  } catch (error) {
+    console.error("Error creating subject:", error);
+    return { success: false, error: "Failed to create subject" };
+  }
+}
+
+export async function updateSubject(
+  id: string,
+  formData: {
+    name?: string;
+    code?: string;
+    description?: string;
+    class_ids?: string[];
+  }
+) {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const { data: member } = await supabase
+      .from("members")
+      .select("tenant_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!member) {
+      return { success: false, error: "No organization found" };
+    }
+
+    const tenantId = (member as any).tenant_id;
+
+    // Check if code is being changed and if new code already exists
+    if (formData.code) {
+      const { data: existing } = await supabase
+        .from("subjects")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .eq("code", formData.code)
+        .neq("id", id)
+        .single();
+
+      if (existing) {
+        return { success: false, error: "Subject code already exists" };
+      }
+    }
+
+    const { class_ids, ...subjectData } = formData;
+
+    // Update subject
+    const { data: subject, error: subjectError } = await supabase
+      .from("subjects")
+      .update(subjectData)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (subjectError) throw subjectError;
+
+    // Update class-subject mappings if class_ids provided
+    if (class_ids !== undefined) {
+      // Delete existing mappings
+      const { error: deleteError } = await supabase
+        .from("class_subjects")
+        .delete()
+        .eq("subject_id", id);
+
+      if (deleteError) throw deleteError;
+
+      // Create new mappings
+      if (class_ids.length > 0) {
+        const classSubjects = class_ids.map((class_id) => ({
+          tenant_id: tenantId,
+          class_id,
+          subject_id: id,
+        }));
+
+        const { error: mappingError } = await supabase
+          .from("class_subjects")
+          .insert(classSubjects);
+
+        if (mappingError) throw mappingError;
+      }
+    }
+
+    revalidatePath("/dashboard/academic");
+    return { success: true, data: subject as Subject };
+  } catch (error) {
+    console.error("Error updating subject:", error);
+    return { success: false, error: "Failed to update subject" };
+  }
+}
+
+export async function deleteSubject(id: string) {
+  try {
+    const adminClient = getAdminClient();
+
+    // First delete all class-subject mappings
+    const { error: mappingError } = await adminClient
+      .from("class_subjects")
+      .delete()
+      .eq("subject_id", id);
+
+    if (mappingError) throw mappingError;
+
+    // Then delete the subject
+    const { error } = await adminClient.from("subjects").delete().eq("id", id);
+
+    if (error) throw error;
+
+    revalidatePath("/dashboard/academic");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting subject:", error);
+    return { success: false, error: "Failed to delete subject" };
   }
 }

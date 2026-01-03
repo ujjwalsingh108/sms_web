@@ -3,22 +3,31 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, BookOpen, Users, Grid3x3, Layers, Calendar } from "lucide-react";
 import Link from "next/link";
-import { getClasses, getAcademicStats, getAcademicYears } from "./actions";
+import {
+  getClasses,
+  getAcademicStats,
+  getAcademicYears,
+  getSubjects,
+} from "./actions";
 import { ClassesTable } from "@/components/academic/classes-table";
 import { AcademicYearsTable } from "@/components/academic/academic-years-table";
+import { SubjectsTable } from "@/components/academic/subjects-table";
 
 export const dynamic = "force-dynamic";
 
 export default async function AcademicPage() {
-  const [classesResult, statsResult, yearsResult] = await Promise.all([
-    getClasses(),
-    getAcademicStats(),
-    getAcademicYears(),
-  ]);
+  const [classesResult, statsResult, yearsResult, subjectsResult] =
+    await Promise.all([
+      getClasses(),
+      getAcademicStats(),
+      getAcademicYears(),
+      getSubjects(),
+    ]);
 
   const classes = classesResult.success ? classesResult.data : [];
   const stats = statsResult.success ? statsResult.data : null;
   const academicYears = yearsResult.success ? yearsResult.data : [];
+  const subjects = subjectsResult.success ? subjectsResult.data : [];
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
@@ -125,10 +134,14 @@ export default async function AcademicPage() {
         </div>
 
         <Tabs defaultValue="classes" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:w-auto">
+          <TabsList className="grid w-full grid-cols-3 lg:w-auto">
             <TabsTrigger value="classes" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
               Classes & Sections
+            </TabsTrigger>
+            <TabsTrigger value="subjects" className="flex items-center gap-2">
+              <Layers className="h-4 w-4" />
+              Subjects
             </TabsTrigger>
             <TabsTrigger value="years" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -165,6 +178,25 @@ export default async function AcademicPage() {
                 <ClassesTable classes={classes || []} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="subjects" className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-semibold">Subjects</h2>
+                <p className="text-sm text-muted-foreground">
+                  Manage subjects and assign them to classes
+                </p>
+              </div>
+              <Link href="/dashboard/academic/subjects/new">
+                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Subject
+                </Button>
+              </Link>
+            </div>
+
+            <SubjectsTable subjects={subjects || []} />
           </TabsContent>
 
           <TabsContent value="years" className="space-y-6">
