@@ -136,26 +136,28 @@ export default function ExamForm({ exam, examTypes }: Props) {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            <Label htmlFor="start_date">Start Date</Label>
-            <Input
-              id="start_date"
-              name="start_date"
-              type="date"
-              defaultValue={exam?.start_date || ""}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="start_date">Start Date</Label>
+              <Input
+                id="start_date"
+                name="start_date"
+                type="date"
+                defaultValue={exam?.start_date || ""}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="end_date">End Date</Label>
+              <Input
+                id="end_date"
+                name="end_date"
+                type="date"
+                defaultValue={exam?.end_date || ""}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="end_date">End Date</Label>
-            <Input
-              id="end_date"
-              name="end_date"
-              type="date"
-              defaultValue={exam?.end_date || ""}
-            />
-          </div>
-
-          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="status">Status</Label>
             <Select name="status" defaultValue={exam?.status || "scheduled"}>
               <SelectTrigger id="status">
