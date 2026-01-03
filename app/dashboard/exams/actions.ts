@@ -448,6 +448,33 @@ export async function getExamSchedules(examId?: string) {
   }
 }
 
+export async function getExamScheduleById(id: string) {
+  try {
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+
+    const { data, error } = await supabaseAny
+      .from("exam_schedules")
+      .select(
+        `
+        *,
+        exam:exam_id(id, name),
+        class:class_id(id, name),
+        subject:subject_id(id, name, code)
+      `
+      )
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+
+    return { success: true, data: data as ExamSchedule };
+  } catch (error) {
+    console.error("Error fetching exam schedule:", error);
+    return { success: false, error: "Failed to fetch exam schedule" };
+  }
+}
+
 export async function createExamSchedule(formData: {
   exam_id: string;
   class_id: string;
@@ -504,6 +531,40 @@ export async function createExamSchedule(formData: {
   } catch (error) {
     console.error("Error creating exam schedule:", error);
     return { success: false, error: "Failed to create exam schedule" };
+  }
+}
+
+export async function updateExamSchedule(
+  id: string,
+  formData: {
+    exam_id?: string;
+    class_id?: string;
+    subject_id?: string;
+    exam_date?: string;
+    start_time?: string;
+    end_time?: string;
+    room_number?: string;
+    max_marks?: number;
+  }
+) {
+  try {
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+
+    const { data, error } = await supabaseAny
+      .from("exam_schedules")
+      .update(formData)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    revalidatePath("/dashboard/exams");
+    return { success: true, data: data as ExamSchedule };
+  } catch (error) {
+    console.error("Error updating exam schedule:", error);
+    return { success: false, error: "Failed to update exam schedule" };
   }
 }
 

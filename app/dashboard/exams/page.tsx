@@ -170,6 +170,32 @@ export default async function ExamsPage() {
         <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <Calendar className="h-5 w-5 text-orange-500 dark:text-orange-400" />
+              Schedules
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Schedule exams for classes
+            </p>
+            <div className="flex gap-2">
+              <Link href="/dashboard/exams/schedules" className="flex-1">
+                <Button variant="outline" className="w-full">
+                  View All
+                </Button>
+              </Link>
+              <Link href="/dashboard/exams/schedules/new">
+                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
               <ClipboardCheck className="h-5 w-5 text-purple-500 dark:text-purple-400" />
               Results
             </CardTitle>
