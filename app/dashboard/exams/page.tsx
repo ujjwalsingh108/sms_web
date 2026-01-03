@@ -124,7 +124,7 @@ export default async function ExamsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Manage different types of examinations
+              Manage examination types
             </p>
             <div className="flex gap-2">
               <Link href="/dashboard/exams/types" className="flex-1">
