@@ -69,7 +69,11 @@ export default function StaffAttendanceTable({
           {attendance.map((record: any) => (
             <TableRow key={record.id}>
               <TableCell className="font-medium text-sm">
-                {new Date(record.date).toLocaleDateString()}
+                {new Date(record.date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                })}
               </TableCell>
               <TableCell className="text-sm">
                 {record.staff?.first_name} {record.staff?.last_name}

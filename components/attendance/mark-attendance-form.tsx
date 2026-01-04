@@ -117,13 +117,20 @@ export default function MarkAttendanceForm({
     if (result.success && result.data) {
       setStudents(result.data);
 
-      // Initialize attendance data from existing records
+      // Initialize attendance data - set all students with existing records or default to present
       const newAttendanceData = new Map();
       result.data.forEach((student: StudentForAttendance) => {
         if (student.attendance) {
+          // Use existing attendance record
           newAttendanceData.set(student.id, {
             status: student.attendance.status,
             remarks: student.attendance.remarks || "",
+          });
+        } else {
+          // Default all students to present
+          newAttendanceData.set(student.id, {
+            status: "present",
+            remarks: "",
           });
         }
       });

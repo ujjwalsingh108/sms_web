@@ -73,7 +73,11 @@ export default function AttendanceTable({ records }: AttendanceTableProps) {
           {records.map((record) => (
             <TableRow key={record.id}>
               <TableCell className="font-medium">
-                {new Date(record.date).toLocaleDateString()}
+                {new Date(record.date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                })}
               </TableCell>
               <TableCell className="font-mono text-sm">
                 {record.student.admission_no}
