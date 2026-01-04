@@ -76,12 +76,23 @@ export function StudentDetailView({ student }: StudentDetailViewProps) {
                 <div className="mt-2">{getStatusBadge(student.status)}</div>
               </div>
             </div>
-            <Link href={`/dashboard/students/${student.id}/edit`}>
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Student
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link
+                href={`/dashboard/students/${student.id}/edit`}
+                className="flex-1"
+              >
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Student
+                </Button>
+              </Link>
+              <Link href={`/dashboard/students/${student.id}/results`}>
+                <Button variant="outline" className="shadow-lg">
+                  <GraduationCap className="h-4 w-4 mr-2" />
+                  View Results
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>

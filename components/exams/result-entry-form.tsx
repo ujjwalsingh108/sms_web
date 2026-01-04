@@ -15,17 +15,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { bulkCreateExamResults } from "@/app/dashboard/exams/actions";
+import {
+  bulkCreateExamResults,
+  getScheduleWithResults,
+} from "@/app/dashboard/exams/actions";
 import { toast } from "sonner";
-import { Save, CheckCircle2 } from "lucide-react";
+import { Save, CheckCircle2, Download } from "lucide-react";
 
 type Student = {
   id: string;
-  user: {
-    first_name: string;
-    last_name: string;
-  };
-  admission_number: string;
+  first_name: string;
+  last_name: string;
+  admission_no: string;
 };
 
 type ExistingResult = {
@@ -58,6 +59,8 @@ export default function ResultEntryForm({
 }: Props) {
   const [results, setResults] = useState<Map<string, ResultData>>(new Map());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [scheduleData, setScheduleData] = useState<any>(null);
+  const [loadingPDF, setLoadingPDF] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -76,6 +79,166 @@ export default function ResultEntryForm({
 
     setResults(initialResults);
   }, [students, existingResults]);
+
+  const loadScheduleData = async () => {
+    setLoadingPDF(true);
+    const result = await getScheduleWithResults(scheduleId);
+    if (result.success) {
+      setScheduleData(result.data);
+      // Trigger PDF generation after data is loaded
+      setTimeout(() => {
+        generateMarkSheetPDF(result.data);
+      }, 100);
+    } else {
+      toast.error("Failed to load schedule data");
+    }
+    setLoadingPDF(false);
+  };
+
+  const generateMarkSheetPDF = async (data: any) => {
+    try {
+      const jsPDF = (await import("jspdf")).default;
+      const autoTable = (await import("jspdf-autotable")).default;
+
+      const doc = new jsPDF() as any;
+      const schedule = data.schedule;
+      const results = data.results;
+
+      // Header
+      doc.setFontSize(18);
+      doc.setFont(undefined, "bold");
+      doc.text("MARK SHEET", 105, 20, { align: "center" });
+
+      // Exam Info
+      doc.setFontSize(11);
+      doc.setFont(undefined, "normal");
+      doc.text(`Exam: ${schedule.exam.name}`, 20, 32);
+      doc.text(`Type: ${schedule.exam.exam_type.name}`, 20, 39);
+      doc.text(`Class: ${schedule.class.name}`, 20, 46);
+      doc.text(
+        `Subject: ${schedule.subject.code} - ${schedule.subject.name}`,
+        20,
+        53
+      );
+      doc.text(
+        `Date: ${new Date(schedule.exam_date).toLocaleDateString()}`,
+        20,
+        60
+      );
+      doc.text(`Maximum Marks: ${schedule.max_marks}`, 20, 67);
+
+      // Results Table
+      const tableData = results
+        .sort((a: any, b: any) =>
+          a.student.admission_no.localeCompare(b.student.admission_no)
+        )
+        .map((result: any, index: number) => [
+          (index + 1).toString(),
+          result.student.admission_no,
+          `${result.student.first_name} ${result.student.last_name}`,
+          result.is_absent
+            ? "Absent"
+            : result.marks_obtained?.toString() || "-",
+          result.is_absent
+            ? "-"
+            : result.marks_obtained
+            ? `${((result.marks_obtained / schedule.max_marks) * 100).toFixed(
+                1
+              )}%`
+            : "-",
+          result.grade || "-",
+        ]);
+
+      autoTable(doc, {
+        startY: 75,
+        head: [
+          [
+            "S.No",
+            "Admission No",
+            "Student Name",
+            "Marks Obtained",
+            "Percentage",
+            "Grade",
+          ],
+        ],
+        body: tableData,
+        theme: "grid",
+        headStyles: {
+          fillColor: [59, 130, 246],
+          fontStyle: "bold",
+        },
+        styles: {
+          fontSize: 10,
+          cellPadding: 4,
+        },
+        columnStyles: {
+          0: { cellWidth: 15 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 50 },
+          3: { cellWidth: 30 },
+          4: { cellWidth: 30 },
+          5: { cellWidth: 20 },
+        },
+      });
+
+      // Statistics
+      const validResults = results.filter(
+        (r: any) => !r.is_absent && r.marks_obtained !== null
+      );
+      if (validResults.length > 0) {
+        const totalMarks = validResults.reduce(
+          (sum: number, r: any) => sum + (r.marks_obtained || 0),
+          0
+        );
+        const average = (totalMarks / validResults.length).toFixed(2);
+        const highest = Math.max(
+          ...validResults.map((r: any) => r.marks_obtained || 0)
+        );
+        const lowest = Math.min(
+          ...validResults.map((r: any) => r.marks_obtained || 0)
+        );
+
+        const finalY = (doc as any).lastAutoTable.finalY + 10;
+        doc.setFont(undefined, "bold");
+        doc.setFontSize(11);
+        doc.text("Class Statistics", 20, finalY);
+        doc.setFont(undefined, "normal");
+        doc.setFontSize(10);
+        doc.text(`Total Students: ${results.length}`, 20, finalY + 7);
+        doc.text(`Present: ${validResults.length}`, 20, finalY + 14);
+        doc.text(
+          `Absent: ${results.length - validResults.length}`,
+          20,
+          finalY + 21
+        );
+        doc.text(`Class Average: ${average}`, 20, finalY + 28);
+        doc.text(`Highest: ${highest}`, 20, finalY + 35);
+        doc.text(`Lowest: ${lowest}`, 20, finalY + 42);
+      }
+
+      // Footer
+      const pageHeight = doc.internal.pageSize.height;
+      doc.setFontSize(9);
+      doc.text(
+        `Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+        20,
+        pageHeight - 15
+      );
+      doc.text("___________________", 20, pageHeight - 25);
+      doc.text("Teacher's Signature", 20, pageHeight - 20);
+
+      // Save PDF
+      const fileName = `${schedule.class.name}_${
+        schedule.subject.code
+      }_${schedule.exam.name.replace(/\s+/g, "_")}_MarkSheet.pdf`;
+      doc.save(fileName);
+
+      toast.success("Mark sheet downloaded successfully");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF");
+    }
+  };
 
   const calculateGrade = (marks: number | null): string => {
     if (marks === null || marks < 0) return "";
@@ -184,10 +347,22 @@ export default function ResultEntryForm({
             <CardTitle className="text-lg md:text-xl">
               Enter Student Marks
             </CardTitle>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 flex-wrap">
               <div className="text-sm text-muted-foreground">
                 {filledCount} / {students.length} completed
               </div>
+              {existingResults.length > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={loadScheduleData}
+                  disabled={loadingPDF}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  {loadingPDF ? "Loading..." : "Export Mark Sheet"}
+                </Button>
+              )}
               <Button
                 type="submit"
                 disabled={isSubmitting || filledCount === 0}
@@ -217,10 +392,10 @@ export default function ResultEntryForm({
                     <div className="flex items-start justify-between">
                       <div>
                         <h4 className="font-semibold">
-                          {student.user.first_name} {student.user.last_name}
+                          {student.first_name} {student.last_name}
                         </h4>
                         <p className="text-sm text-muted-foreground">
-                          {student.admission_number}
+                          {student.admission_no}
                         </p>
                       </div>
                       {hasResult && (
@@ -245,7 +420,11 @@ export default function ResultEntryForm({
                           min="0"
                           max={maxMarks}
                           step="0.5"
-                          value={studentResult?.marks_obtained ?? ""}
+                          value={
+                            studentResult?.marks_obtained === null
+                              ? ""
+                              : studentResult?.marks_obtained
+                          }
                           onChange={(e) =>
                             updateResult(
                               student.id,
@@ -319,10 +498,10 @@ export default function ResultEntryForm({
                   return (
                     <TableRow key={student.id}>
                       <TableCell className="font-mono text-sm">
-                        {student.admission_number}
+                        {student.admission_no}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {student.user.first_name} {student.user.last_name}
+                        {student.first_name} {student.last_name}
                       </TableCell>
                       <TableCell>
                         <Input
@@ -330,7 +509,11 @@ export default function ResultEntryForm({
                           min="0"
                           max={maxMarks}
                           step="0.5"
-                          value={studentResult?.marks_obtained ?? ""}
+                          value={
+                            studentResult?.marks_obtained === null
+                              ? ""
+                              : studentResult?.marks_obtained
+                          }
                           onChange={(e) =>
                             updateResult(
                               student.id,
