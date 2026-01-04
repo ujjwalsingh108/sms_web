@@ -624,12 +624,12 @@ export async function getExamResults(
       .select(
         `
         *,
-        student:student_id(id, admission_no, first_name, last_name),
+        student:student_id(id, admission_no, first_name, last_name, photo_url),
         exam_schedule:exam_schedule_id(
           id,
           exam_date,
           max_marks,
-          exam:exam_id(id, name),
+          exam:exam_id(id, name, exam_type_id),
           class:class_id(id, name),
           subject:subject_id(id, name, code)
         )
@@ -862,6 +862,7 @@ export async function getStudentsByClass(classId: string) {
       .eq("tenant_id", member.tenant_id)
       .eq("class_id", classId)
       .eq("status", "active")
+      .eq("is_deleted", false)
       .order("first_name");
 
     if (error) throw error;
@@ -932,5 +933,165 @@ export async function getExamStats() {
   } catch (error) {
     console.error("Error fetching exam stats:", error);
     return { success: false, error: "Failed to fetch exam stats" };
+  }
+}
+
+// =====================================================
+// STUDENT EXAM RESULTS
+// =====================================================
+
+export async function getStudentExamResults(
+  studentId: string,
+  examId?: string
+) {
+  try {
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const { data: member }: { data: { tenant_id: string } | null } =
+      await supabase
+        .from("members")
+        .select("tenant_id")
+        .eq("user_id", user.id)
+        .single();
+
+    if (!member) {
+      return { success: false, error: "No organization found" };
+    }
+
+    // Get student info
+    const { data: student } = await supabaseAny
+      .from("students")
+      .select(
+        "id, admission_no, first_name, last_name, photo_url, class_id, classes(id, name)"
+      )
+      .eq("id", studentId)
+      .eq("tenant_id", member.tenant_id)
+      .single();
+
+    if (!student) {
+      return { success: false, error: "Student not found" };
+    }
+
+    // Get exam results
+    let query = supabaseAny
+      .from("exam_results")
+      .select(
+        `
+        *,
+        exam_schedule:exam_schedule_id(
+          id,
+          exam_date,
+          max_marks,
+          exam_id,
+          exam:exam_id(id, name, status, exam_type:exam_type_id(id, name)),
+          subject:subject_id(id, name, code)
+        )
+      `
+      )
+      .eq("tenant_id", member.tenant_id)
+      .eq("student_id", studentId);
+
+    if (examId) {
+      query = query.eq("exam_schedule.exam_id", examId);
+    }
+
+    const { data: results, error } = await query.order("created_at", {
+      ascending: false,
+    });
+
+    if (error) throw error;
+
+    return {
+      success: true,
+      data: {
+        student,
+        results: results || [],
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching student exam results:", error);
+    return { success: false, error: "Failed to fetch student exam results" };
+  }
+}
+
+export async function getScheduleWithResults(scheduleId: string) {
+  try {
+    const supabase = await createClient();
+    const supabaseAny: any = supabase;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const { data: member }: { data: { tenant_id: string } | null } =
+      await supabase
+        .from("members")
+        .select("tenant_id")
+        .eq("user_id", user.id)
+        .single();
+
+    if (!member) {
+      return { success: false, error: "No organization found" };
+    }
+
+    // Get schedule with full details
+    const { data: schedule, error: scheduleError } = await supabaseAny
+      .from("exam_schedules")
+      .select(
+        `
+        *,
+        exam:exam_id(id, name, exam_type:exam_type_id(id, name)),
+        class:class_id(id, name),
+        subject:subject_id(id, name, code)
+      `
+      )
+      .eq("id", scheduleId)
+      .eq("tenant_id", member.tenant_id)
+      .single();
+
+    if (scheduleError || !schedule) {
+      return { success: false, error: "Schedule not found" };
+    }
+
+    // Get all results for this schedule
+    const { data: results, error: resultsError } = await supabaseAny
+      .from("exam_results")
+      .select(
+        `
+        *,
+        student:student_id(id, admission_no, first_name, last_name, photo_url)
+      `
+      )
+      .eq("exam_schedule_id", scheduleId)
+      .eq("tenant_id", member.tenant_id);
+
+    if (resultsError) {
+      console.error("Results fetch error:", resultsError);
+      return { success: false, error: "Failed to fetch results" };
+    }
+
+    return {
+      success: true,
+      data: {
+        schedule,
+        results: results || [],
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching schedule with results:", error);
+    return { success: false, error: "Failed to fetch schedule with results" };
   }
 }
