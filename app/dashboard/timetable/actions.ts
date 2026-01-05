@@ -54,7 +54,6 @@ export type Teacher = {
   first_name: string;
   last_name: string;
   employee_id: string;
-  designation: string | null;
 };
 
 export type AcademicYear = {
@@ -494,7 +493,7 @@ export async function getTeachers() {
 
     const { data, error } = await supabaseAny
       .from("staff")
-      .select("id, first_name, last_name, employee_id, designation")
+      .select("id, first_name, last_name, employee_id")
       .eq("tenant_id", member.tenant_id)
       .eq("status", "active")
       .order("first_name", { ascending: true });
