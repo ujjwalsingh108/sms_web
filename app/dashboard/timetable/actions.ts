@@ -289,6 +289,7 @@ export async function bulkCreateTimetable(entries: {
     start_time: string;
     end_time: string;
     room_number?: string;
+    is_lunch_break?: boolean;
   }[];
 }) {
   try {
@@ -326,6 +327,7 @@ export async function bulkCreateTimetable(entries: {
       start_time: entry.start_time,
       end_time: entry.end_time,
       room_number: entry.room_number || null,
+      is_lunch_break: entry.is_lunch_break || false,
     }));
 
     const { data, error } = await supabaseAny
