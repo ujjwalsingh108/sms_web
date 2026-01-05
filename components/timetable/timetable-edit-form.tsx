@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  createTimetable,
+  updateTimetable,
   getSectionsByClass,
 } from "@/app/dashboard/timetable/actions";
 import { toast } from "sonner";
@@ -46,26 +46,51 @@ type AcademicYear = {
   name: string;
 };
 
+type Timetable = {
+  id: string;
+  class_id: string;
+  section_id: string | null;
+  academic_year_id: string | null;
+  day_of_week: number;
+  period_number: number;
+  subject_id: string | null;
+  teacher_id: string | null;
+  start_time: string;
+  end_time: string;
+  room_number: string | null;
+};
+
 type Props = {
+  timetable: Timetable;
   classes: Class[];
   subjects: Subject[];
   teachers: Teacher[];
   academicYears: AcademicYear[];
 };
 
-export default function TimetableCreateForm({
+export default function TimetableEditForm({
+  timetable,
   classes,
   subjects,
   teachers,
   academicYears,
 }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedClass, setSelectedClass] = useState(timetable.class_id);
   const [sections, setSections] = useState<Section[]>([]);
-  const [selectedSection, setSelectedSection] = useState("none");
-  const [selectedSubject, setSelectedSubject] = useState("none");
-  const [selectedTeacher, setSelectedTeacher] = useState("none");
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState("none");
+  const [selectedSection, setSelectedSection] = useState(
+    timetable.section_id || "none"
+  );
+  const [selectedSubject, setSelectedSubject] = useState(
+    timetable.subject_id || "none"
+  );
+  const [selectedTeacher, setSelectedTeacher] = useState(
+    timetable.teacher_id || "none"
+  );
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState(
+    timetable.academic_year_id || "none"
+  );
+  const [dayOfWeek, setDayOfWeek] = useState(timetable.day_of_week.toString());
   const router = useRouter();
 
   useEffect(() => {
@@ -78,7 +103,6 @@ export default function TimetableCreateForm({
       } else {
         setSections([]);
       }
-      setSelectedSection("none");
     };
     loadSections();
   }, [selectedClass]);
@@ -100,7 +124,7 @@ export default function TimetableCreateForm({
       section_id: selectedSection !== "none" ? selectedSection : undefined,
       academic_year_id:
         selectedAcademicYear !== "none" ? selectedAcademicYear : undefined,
-      day_of_week: parseInt(formData.get("day_of_week") as string),
+      day_of_week: parseInt(dayOfWeek),
       period_number: parseInt(formData.get("period_number") as string),
       subject_id: selectedSubject !== "none" ? selectedSubject : undefined,
       teacher_id: selectedTeacher !== "none" ? selectedTeacher : undefined,
@@ -109,14 +133,14 @@ export default function TimetableCreateForm({
       room_number: (formData.get("room_number") as string) || undefined,
     };
 
-    const result = await createTimetable(data);
+    const result = await updateTimetable(timetable.id, data);
 
     if (result.success) {
-      toast.success("Timetable entry created successfully");
+      toast.success("Timetable entry updated successfully");
       router.push("/dashboard/timetable");
       router.refresh();
     } else {
-      toast.error(result.error || "Failed to create timetable entry");
+      toast.error(result.error || "Failed to update timetable entry");
     }
     setIsSubmitting(false);
   };
@@ -179,7 +203,7 @@ export default function TimetableCreateForm({
           <Label htmlFor="day_of_week">
             Day of Week <span className="text-destructive">*</span>
           </Label>
-          <Select name="day_of_week" required>
+          <Select value={dayOfWeek} onValueChange={setDayOfWeek} required>
             <SelectTrigger id="day_of_week">
               <SelectValue placeholder="Select day" />
             </SelectTrigger>
@@ -205,6 +229,7 @@ export default function TimetableCreateForm({
             type="number"
             min="1"
             max="10"
+            defaultValue={timetable.period_number}
             placeholder="e.g., 1, 2, 3"
             required
           />
@@ -248,14 +273,26 @@ export default function TimetableCreateForm({
           <Label htmlFor="start_time">
             Start Time <span className="text-destructive">*</span>
           </Label>
-          <Input id="start_time" name="start_time" type="time" required />
+          <Input
+            id="start_time"
+            name="start_time"
+            type="time"
+            defaultValue={timetable.start_time}
+            required
+          />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="end_time">
             End Time <span className="text-destructive">*</span>
           </Label>
-          <Input id="end_time" name="end_time" type="time" required />
+          <Input
+            id="end_time"
+            name="end_time"
+            type="time"
+            defaultValue={timetable.end_time}
+            required
+          />
         </div>
 
         <div className="space-y-2">
@@ -263,6 +300,7 @@ export default function TimetableCreateForm({
           <Input
             id="room_number"
             name="room_number"
+            defaultValue={timetable.room_number || ""}
             placeholder="e.g., Room 101, Lab A"
           />
         </div>
@@ -304,7 +342,7 @@ export default function TimetableCreateForm({
           className="w-full sm:w-auto bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white shadow-lg"
         >
           <Save className="h-4 w-4 mr-2" />
-          {isSubmitting ? "Creating..." : "Create Timetable Entry"}
+          {isSubmitting ? "Updating..." : "Update Timetable Entry"}
         </Button>
       </div>
     </form>
