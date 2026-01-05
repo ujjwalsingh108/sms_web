@@ -58,6 +58,7 @@ type Timetable = {
   start_time: string;
   end_time: string;
   room_number: string | null;
+  is_lunch_break?: boolean;
 };
 
 type Props = {
@@ -91,6 +92,9 @@ export default function TimetableEditForm({
     timetable.academic_year_id || "none"
   );
   const [dayOfWeek, setDayOfWeek] = useState(timetable.day_of_week.toString());
+  const [isLunchBreak, setIsLunchBreak] = useState(
+    timetable.is_lunch_break || false
+  );
   const router = useRouter();
 
   useEffect(() => {
@@ -131,6 +135,7 @@ export default function TimetableEditForm({
       start_time: formData.get("start_time") as string,
       end_time: formData.get("end_time") as string,
       room_number: (formData.get("room_number") as string) || undefined,
+      is_lunch_break: isLunchBreak,
     };
 
     const result = await updateTimetable(timetable.id, data);
@@ -235,39 +240,65 @@ export default function TimetableEditForm({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="subject_id">Subject</Label>
-          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-            <SelectTrigger id="subject_id">
-              <SelectValue placeholder="Select subject (optional)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No Subject</SelectItem>
-              {subjects.map((subject) => (
-                <SelectItem key={subject.id} value={subject.id}>
-                  {subject.name} {subject.code && `(${subject.code})`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="space-y-2 flex items-center gap-2 md:col-span-2">
+          <input
+            type="checkbox"
+            id="is_lunch_break"
+            checked={isLunchBreak}
+            onChange={(e) => setIsLunchBreak(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+          />
+          <Label
+            htmlFor="is_lunch_break"
+            className="cursor-pointer font-normal"
+          >
+            This is a lunch break
+          </Label>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="teacher_id">Teacher</Label>
-          <Select value={selectedTeacher} onValueChange={setSelectedTeacher}>
-            <SelectTrigger id="teacher_id">
-              <SelectValue placeholder="Select teacher (optional)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No Teacher</SelectItem>
-              {teachers.map((teacher) => (
-                <SelectItem key={teacher.id} value={teacher.id}>
-                  {teacher.first_name} {teacher.last_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!isLunchBreak && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="subject_id">Subject</Label>
+              <Select
+                value={selectedSubject}
+                onValueChange={setSelectedSubject}
+              >
+                <SelectTrigger id="subject_id">
+                  <SelectValue placeholder="Select subject (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Subject</SelectItem>
+                  {subjects.map((subject) => (
+                    <SelectItem key={subject.id} value={subject.id}>
+                      {subject.name} {subject.code && `(${subject.code})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="teacher_id">Teacher</Label>
+              <Select
+                value={selectedTeacher}
+                onValueChange={setSelectedTeacher}
+              >
+                <SelectTrigger id="teacher_id">
+                  <SelectValue placeholder="Select teacher (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Teacher</SelectItem>
+                  {teachers.map((teacher) => (
+                    <SelectItem key={teacher.id} value={teacher.id}>
+                      {teacher.first_name} {teacher.last_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="start_time">

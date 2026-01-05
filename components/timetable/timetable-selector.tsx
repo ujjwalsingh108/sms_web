@@ -150,16 +150,25 @@ export default function TimetableSelector({ classes }: Props) {
       for (let periodIndex = 0; periodIndex < maxPeriods; periodIndex++) {
         const entry = grid[dayIndex][periodIndex];
         if (entry) {
-          const subject = entry.subject?.name || "—";
-          const teacher = entry.teacher
-            ? `${entry.teacher.first_name} ${entry.teacher.last_name}`
-            : "No teacher";
-          const time = `${formatTime(entry.start_time)} - ${formatTime(
-            entry.end_time
-          )}`;
-          const room = entry.room_number ? `Room: ${entry.room_number}` : "";
+          if (entry.is_lunch_break) {
+            const time = `${formatTime(entry.start_time)} - ${formatTime(
+              entry.end_time
+            )}`;
+            row.push(`🍽️ LUNCH BREAK\n${time}`);
+          } else {
+            const subject = entry.subject?.name || "—";
+            const teacher = entry.teacher
+              ? `${entry.teacher.first_name} ${entry.teacher.last_name}`
+              : "No teacher";
+            const time = `${formatTime(entry.start_time)} - ${formatTime(
+              entry.end_time
+            )}`;
+            const room = entry.room_number ? `Room: ${entry.room_number}` : "";
 
-          row.push(`${subject}\n${teacher}\n${time}${room ? "\n" + room : ""}`);
+            row.push(
+              `${subject}\n${teacher}\n${time}${room ? "\n" + room : ""}`
+            );
+          }
         } else {
           row.push("—");
         }
@@ -341,48 +350,88 @@ export default function TimetableSelector({ classes }: Props) {
                           (entry: any, periodIndex: number) => (
                             <td key={periodIndex} className="border p-2">
                               {entry ? (
-                                <div className="space-y-1 relative group">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <div className="flex-1 space-y-1">
-                                      <div className="font-semibold text-sm">
-                                        {entry.subject?.name || "—"}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground">
-                                        {entry.teacher
-                                          ? `${entry.teacher.first_name} ${entry.teacher.last_name}`
-                                          : "No teacher"}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground">
-                                        {formatTime(entry.start_time)} -{" "}
-                                        {formatTime(entry.end_time)}
-                                      </div>
-                                      {entry.room_number && (
-                                        <div className="text-xs text-muted-foreground">
-                                          Room: {entry.room_number}
+                                <div
+                                  className={`space-y-1 relative group ${
+                                    entry.is_lunch_break
+                                      ? "bg-amber-50 dark:bg-amber-950/20 rounded p-2"
+                                      : ""
+                                  }`}
+                                >
+                                  {entry.is_lunch_break ? (
+                                    <div className="flex items-center justify-center gap-2 py-2">
+                                      <div className="text-center">
+                                        <div className="font-semibold text-sm text-amber-700 dark:text-amber-400">
+                                          🍽️ Lunch Break
                                         </div>
-                                      )}
+                                        <div className="text-xs text-muted-foreground mt-1">
+                                          {formatTime(entry.start_time)} -{" "}
+                                          {formatTime(entry.end_time)}
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-6 w-6"
+                                          onClick={() => handleEdit(entry.id)}
+                                        >
+                                          <Edit className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-6 w-6 text-destructive hover:text-destructive"
+                                          onClick={() =>
+                                            handleDeleteClick(entry.id)
+                                          }
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
                                     </div>
-                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-6 w-6"
-                                        onClick={() => handleEdit(entry.id)}
-                                      >
-                                        <Edit className="h-3 w-3" />
-                                      </Button>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-6 w-6 text-destructive hover:text-destructive"
-                                        onClick={() =>
-                                          handleDeleteClick(entry.id)
-                                        }
-                                      >
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
+                                  ) : (
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex-1 space-y-1">
+                                        <div className="font-semibold text-sm">
+                                          {entry.subject?.name || "—"}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {entry.teacher
+                                            ? `${entry.teacher.first_name} ${entry.teacher.last_name}`
+                                            : "No teacher"}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {formatTime(entry.start_time)} -{" "}
+                                          {formatTime(entry.end_time)}
+                                        </div>
+                                        {entry.room_number && (
+                                          <div className="text-xs text-muted-foreground">
+                                            Room: {entry.room_number}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-6 w-6"
+                                          onClick={() => handleEdit(entry.id)}
+                                        >
+                                          <Edit className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-6 w-6 text-destructive hover:text-destructive"
+                                          onClick={() =>
+                                            handleDeleteClick(entry.id)
+                                          }
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
                                     </div>
-                                  </div>
+                                  )}
                                 </div>
                               ) : (
                                 <div className="text-center text-muted-foreground text-sm">
@@ -413,54 +462,93 @@ export default function TimetableSelector({ classes }: Props) {
                       entry && (
                         <div
                           key={periodIndex}
-                          className="border-l-4 border-primary pl-3 py-2 relative"
+                          className={`${
+                            entry.is_lunch_break
+                              ? "border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20"
+                              : "border-l-4 border-primary"
+                          } pl-3 py-2 relative rounded`}
                         >
-                          <div className="flex justify-between items-start mb-1">
-                            <div className="flex-1">
-                              <div className="flex justify-between items-start">
-                                <span className="font-semibold">
-                                  Period {periodIndex + 1}
+                          {entry.is_lunch_break ? (
+                            <>
+                              <div className="flex justify-between items-start mb-1">
+                                <span className="font-semibold text-amber-700 dark:text-amber-400">
+                                  Period {periodIndex + 1} - 🍽️ Lunch Break
                                 </span>
                                 <span className="text-xs text-muted-foreground">
                                   {formatTime(entry.start_time)} -{" "}
                                   {formatTime(entry.end_time)}
                                 </span>
                               </div>
-                            </div>
-                          </div>
-                          <div className="text-sm font-medium">
-                            {entry.subject?.name || "—"}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {entry.teacher
-                              ? `${entry.teacher.first_name} ${entry.teacher.last_name}`
-                              : "No teacher"}
-                          </div>
-                          {entry.room_number && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              Room: {entry.room_number}
-                            </div>
+                              <div className="flex gap-2 mt-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleEdit(entry.id)}
+                                >
+                                  <Edit className="h-3 w-3 mr-1" />
+                                  Edit
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-destructive"
+                                  onClick={() => handleDeleteClick(entry.id)}
+                                >
+                                  <Trash2 className="h-3 w-3 mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex justify-between items-start mb-1">
+                                <div className="flex-1">
+                                  <div className="flex justify-between items-start">
+                                    <span className="font-semibold">
+                                      Period {periodIndex + 1}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatTime(entry.start_time)} -{" "}
+                                      {formatTime(entry.end_time)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-sm font-medium">
+                                {entry.subject?.name || "—"}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {entry.teacher
+                                  ? `${entry.teacher.first_name} ${entry.teacher.last_name}`
+                                  : "No teacher"}
+                              </div>
+                              {entry.room_number && (
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  Room: {entry.room_number}
+                                </div>
+                              )}
+                              <div className="flex gap-2 mt-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs"
+                                  onClick={() => handleEdit(entry.id)}
+                                >
+                                  <Edit className="h-3 w-3 mr-1" />
+                                  Edit
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs text-destructive hover:text-destructive"
+                                  onClick={() => handleDeleteClick(entry.id)}
+                                >
+                                  <Trash2 className="h-3 w-3 mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </>
                           )}
-                          <div className="flex gap-2 mt-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 text-xs"
-                              onClick={() => handleEdit(entry.id)}
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 text-xs text-destructive hover:text-destructive"
-                              onClick={() => handleDeleteClick(entry.id)}
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
                         </div>
                       )
                   )}

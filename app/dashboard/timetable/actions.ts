@@ -20,6 +20,7 @@ export type Timetable = {
   start_time: string;
   end_time: string;
   room_number: string | null;
+  is_lunch_break: boolean;
   created_at: string;
 };
 
@@ -165,6 +166,7 @@ export async function createTimetable(formData: {
   start_time: string;
   end_time: string;
   room_number?: string;
+  is_lunch_break?: boolean;
 }) {
   try {
     const supabase = await createClient();
@@ -203,6 +205,7 @@ export async function createTimetable(formData: {
         start_time: formData.start_time,
         end_time: formData.end_time,
         room_number: formData.room_number || null,
+        is_lunch_break: formData.is_lunch_break || false,
       })
       .select()
       .single();
@@ -230,6 +233,7 @@ export async function updateTimetable(
     start_time?: string;
     end_time?: string;
     room_number?: string;
+    is_lunch_break?: boolean;
   }
 ) {
   try {
