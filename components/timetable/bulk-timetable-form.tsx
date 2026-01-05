@@ -55,6 +55,7 @@ type TimetableEntry = {
   start_time: string;
   end_time: string;
   room_number: string;
+  is_lunch_break: boolean;
 };
 
 export default function BulkTimetableForm({
@@ -77,6 +78,7 @@ export default function BulkTimetableForm({
       start_time: "09:00",
       end_time: "09:45",
       room_number: "",
+      is_lunch_break: false,
     },
   ]);
   const router = useRouter();
@@ -95,6 +97,7 @@ export default function BulkTimetableForm({
         start_time: lastEntry.end_time,
         end_time: incrementTime(lastEntry.end_time, 45),
         room_number: "",
+        is_lunch_break: false,
       },
     ]);
   };
@@ -154,6 +157,7 @@ export default function BulkTimetableForm({
         start_time: entry.start_time,
         end_time: entry.end_time,
         room_number: entry.room_number || undefined,
+        is_lunch_break: entry.is_lunch_break,
       })),
     };
 
@@ -256,6 +260,24 @@ export default function BulkTimetableForm({
                 )}
               </div>
 
+              <div className="mb-4 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={`lunch_break_${entry.id}`}
+                  checked={entry.is_lunch_break}
+                  onChange={(e) =>
+                    updateEntry(entry.id, "is_lunch_break", e.target.checked)
+                  }
+                  className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                />
+                <Label
+                  htmlFor={`lunch_break_${entry.id}`}
+                  className="cursor-pointer font-normal"
+                >
+                  This is a lunch break
+                </Label>
+              </div>
+
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
                 <div className="space-y-2">
                   <Label>Day</Label>
@@ -313,47 +335,51 @@ export default function BulkTimetableForm({
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Subject</Label>
-                  <Select
-                    value={entry.subject_id}
-                    onValueChange={(v) =>
-                      updateEntry(entry.id, "subject_id", v)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select subject" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subjects.map((subject) => (
-                        <SelectItem key={subject.id} value={subject.id}>
-                          {subject.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {!entry.is_lunch_break && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Subject</Label>
+                      <Select
+                        value={entry.subject_id}
+                        onValueChange={(v) =>
+                          updateEntry(entry.id, "subject_id", v)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select subject" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {subjects.map((subject) => (
+                            <SelectItem key={subject.id} value={subject.id}>
+                              {subject.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label>Teacher</Label>
-                  <Select
-                    value={entry.teacher_id}
-                    onValueChange={(v) =>
-                      updateEntry(entry.id, "teacher_id", v)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select teacher" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teachers.map((teacher) => (
-                        <SelectItem key={teacher.id} value={teacher.id}>
-                          {teacher.first_name} {teacher.last_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div className="space-y-2">
+                      <Label>Teacher</Label>
+                      <Select
+                        value={entry.teacher_id}
+                        onValueChange={(v) =>
+                          updateEntry(entry.id, "teacher_id", v)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select teacher" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {teachers.map((teacher) => (
+                            <SelectItem key={teacher.id} value={teacher.id}>
+                              {teacher.first_name} {teacher.last_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
 
                 <div className="space-y-2 md:col-span-2">
                   <Label>Room Number</Label>
