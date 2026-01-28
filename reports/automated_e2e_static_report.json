@@ -1,0 +1,315 @@
+{
+  "generated_at": "2026-01-28T12:06:29.582Z",
+  "api_routes": [
+    {
+      "file": "app\\api\\academic-years\\route.ts",
+      "methods": []
+    },
+    {
+      "file": "app\\api\\students\\route.ts",
+      "methods": []
+    },
+    {
+      "file": "app\\api\\transport\\routes\\route.ts",
+      "methods": []
+    },
+    {
+      "file": "app\\api\\transport\\routes\\[routeId]\\stops\\route.ts",
+      "methods": []
+    }
+  ],
+  "academic_page_imports": {
+    "@/components/ui/card": [
+      "Card",
+      "CardContent",
+      "CardHeader",
+      "CardTitle"
+    ],
+    "@/components/ui/button": [
+      "Button"
+    ],
+    "@/components/ui/tabs": [
+      "Tabs",
+      "TabsContent",
+      "TabsList",
+      "TabsTrigger"
+    ],
+    "lucide-react": [
+      "Plus",
+      "BookOpen",
+      "Users",
+      "Grid3x3",
+      "Layers",
+      "Calendar"
+    ],
+    "next/link": [
+      "Link"
+    ],
+    "@/components/academic/classes-table": [
+      "ClassesTable"
+    ],
+    "@/components/academic/academic-years-table": [
+      "AcademicYearsTable"
+    ],
+    "@/components/academic/subjects-table": [
+      "SubjectsTable"
+    ]
+  },
+  "ui_mismatches": [
+    {
+      "file": "app\\dashboard\\academic\\actions.ts",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\academic\\subjects\\new\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\academic\\subjects\\page.tsx",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\academic\\subjects\\[id]\\edit\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\academic\\years\\new\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\academic\\years\\[id]\\edit\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\admission\\new\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\admission\\[id]\\edit\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\attendance\\actions.ts",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\exams\\actions.ts",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\exams\\list\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\exams\\list\\[id]\\edit\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\exams\\types\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\exams\\types\\[id]\\edit\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\fees\\actions.ts",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\fees\\payments\\new\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\fees\\payments\\[id]\\edit\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\fees\\payments\\[id]\\page.tsx",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\fees\\structures\\new\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\fees\\structures\\[id]\\edit\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\fees\\structures\\[id]\\page.tsx",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\inventory\\actions.ts",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\inventory\\categories\\[id]\\edit\\page.tsx",
+      "usesButton": false,
+      "usesCard": true
+    },
+    {
+      "file": "app\\dashboard\\inventory\\items\\[id]\\edit\\page.tsx",
+      "usesButton": false,
+      "usesCard": true
+    },
+    {
+      "file": "app\\dashboard\\inventory\\suppliers\\[id]\\edit\\page.tsx",
+      "usesButton": false,
+      "usesCard": true
+    },
+    {
+      "file": "app\\dashboard\\layout.tsx",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\library\\actions.ts",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\library\\books\\new\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\library\\books\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\library\\books\\[id]\\edit\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\library\\issue\\new\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\library\\reports\\new\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\library\\reports\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\library\\reports\\[id]\\edit\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\library\\transactions\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\page.tsx",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\staff\\actions.ts",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\staff\\attendance\\page.tsx",
+      "usesButton": false,
+      "usesCard": true
+    },
+    {
+      "file": "app\\dashboard\\staff\\new\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\staff\\[id]\\edit\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\staff\\[id]\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\students\\actions.ts",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\students\\new\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\students\\[id]\\edit\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\students\\[id]\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\timetable\\actions.ts",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\transport\\actions.ts",
+      "usesButton": false,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\transport\\routes\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    },
+    {
+      "file": "app\\dashboard\\transport\\vehicles\\page.tsx",
+      "usesButton": true,
+      "usesCard": false
+    }
+  ],
+  "env_issues": [
+    {
+      "file": "app\\dashboard\\academic\\actions.ts",
+      "key": "SUPABASE_SERVICE_ROLE_KEY"
+    }
+  ],
+  "notes": [
+    "Server actions depend on SUPABASE_SERVICE_ROLE_KEY; tests requiring admin client will fail without it",
+    "Some dashboard pages do not import core UI components `Button` or `Card` from components/ui — consider reusing shared components for styling consistency"
+  ]
+}
