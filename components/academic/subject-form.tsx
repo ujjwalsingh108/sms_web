@@ -105,7 +105,7 @@ export function SubjectForm({ subject, classes, mode }: SubjectFormProps) {
               </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2 items-start">
               <FormField
                 control={form.control}
                 name="name"
