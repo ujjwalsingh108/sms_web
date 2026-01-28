@@ -13,7 +13,7 @@ export function classPayload() {
   return { name: `E2E Class ${ts}`, description: 'Created by E2E' };
 }
 
-export function sectionPayload(classId) {
+export function sectionPayload(classId: string) {
   const ts = Date.now();
   return { class_id: classId, name: `E2E Section ${ts}`, room_number: null, capacity: 30 };
 }
