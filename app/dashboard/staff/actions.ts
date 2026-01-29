@@ -619,7 +619,8 @@ export async function createRole(formData: FormData) {
     throw new Error("Role name is required");
   }
 
-  const { data, error } = await supabaseAdmin
+  const supabaseAny: any = supabaseAdmin;
+  const { data, error } = await supabaseAny
     .from("roles")
     .insert([{ name, display_name, description }])
     .select()
