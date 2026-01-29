@@ -162,24 +162,24 @@ export default async function AccountsReportsPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Link href="/dashboard/accounts">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-300"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard/accounts">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-300"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Financial Reports
+              </h1>
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
+                Analyze income, expenses, and financial trends
+              </p>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Financial Reports
-            </h1>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
-              Analyze income, expenses, and financial trends
-            </p>
           </div>
         </div>
 
