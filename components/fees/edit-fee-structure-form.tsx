@@ -51,11 +51,13 @@ type FeeStructureFormData = z.infer<typeof feeStructureSchema>;
 interface EditFeeStructureFormProps {
   feeStructure: any;
   classes: any[];
+  academicYears?: any[];
 }
 
 export default function EditFeeStructureForm({
   feeStructure,
   classes,
+  academicYears = [],
 }: EditFeeStructureFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -262,6 +264,34 @@ export default function EditFeeStructureForm({
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="academic_year_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Academic Year</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select academic year" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {academicYears.map((year) => (
+                          <SelectItem key={year.id} value={year.id}>
+                            {year.name}
+                            {year.is_current && (
+                              <span className="ml-2 text-xs text-green-600">(Current)</span>
+                            )}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

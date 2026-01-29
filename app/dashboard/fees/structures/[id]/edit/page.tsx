@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import EditFeeStructureForm from "@/components/fees/edit-fee-structure-form";
 import { getClasses } from "@/app/dashboard/fees/actions";
+import { getAcademicYears } from "@/app/dashboard/academic/actions";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -41,10 +42,12 @@ export default async function EditFeeStructurePage({ params }: PageProps) {
       .eq("is_deleted", false)
       .single(),
     getClasses(),
+    getAcademicYears(),
   ]);
 
   const feeStructure = feeStructureResult.data;
   const classes = classesResult.success ? classesResult.data : [];
+  const academicYears = (await (await getAcademicYears()).data) || [];
 
   if (!feeStructure) {
     notFound();
@@ -77,6 +80,7 @@ export default async function EditFeeStructurePage({ params }: PageProps) {
         <EditFeeStructureForm
           feeStructure={feeStructure}
           classes={classes || []}
+          academicYears={academicYears}
         />
       </div>
     </div>
