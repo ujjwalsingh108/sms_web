@@ -29,6 +29,7 @@ type BookFormProps = {
 export default function BookForm({ book }: BookFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState<string>(book?.status || "available");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -162,6 +163,15 @@ export default function BookForm({ book }: BookFormProps) {
                   type="number"
                   min="0"
                   defaultValue={book?.available_copies || 1}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    if (!Number.isFinite(val)) return;
+                    if (val === 0) {
+                      setStatus("unavailable");
+                    } else {
+                      setStatus((prev) => (prev === "unavailable" ? "available" : prev));
+                    }
+                  }}
                   required
                 />
               </div>
@@ -183,11 +193,7 @@ export default function BookForm({ book }: BookFormProps) {
                 <Label htmlFor="status">
                   Status <span className="text-red-500">*</span>
                 </Label>
-                <Select
-                  name="status"
-                  defaultValue={book?.status || "available"}
-                  required
-                >
+                <Select name="status" value={status} onValueChange={setStatus} required>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

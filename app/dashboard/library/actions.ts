@@ -134,6 +134,11 @@ export async function createLibraryBook(formData: FormData) {
       return value as string | null;
     };
 
+    const parseIntOrDefault = (val: string | null, defaultValue: number) => {
+      const n = val == null ? NaN : parseInt(String(val), 10);
+      return Number.isFinite(n) ? n : defaultValue;
+    };
+
     const bookData = {
       tenant_id: tenant.tenant_id,
       isbn: getFormValue("isbn"),
@@ -142,7 +147,7 @@ export async function createLibraryBook(formData: FormData) {
       publisher: getFormValue("publisher"),
       category: getFormValue("category"),
       total_copies: parseInt(getFormValue("total_copies") || "1") || 1,
-      available_copies: parseInt(getFormValue("available_copies") || "1") || 1,
+      available_copies: parseIntOrDefault(getFormValue("available_copies"), 1),
       rack_number: getFormValue("rack_number"),
       price: getFormValue("price")
         ? parseFloat(getFormValue("price") as string)
@@ -181,15 +186,20 @@ export async function updateLibraryBook(id: string, formData: FormData) {
     const supabase = await createClient();
     const supabaseAny: any = supabase;
 
+    const parseIntOrDefault = (val: any, defaultValue: number) => {
+      const s = val == null ? null : String(val);
+      const n = s == null ? NaN : parseInt(s, 10);
+      return Number.isFinite(n) ? n : defaultValue;
+    };
+
     const bookData = {
       isbn: formData.get("isbn") as string,
       title: formData.get("title") as string,
       author: formData.get("author") as string,
       publisher: formData.get("publisher") as string,
       category: formData.get("category") as string,
-      total_copies: parseInt(formData.get("total_copies") as string) || 1,
-      available_copies:
-        parseInt(formData.get("available_copies") as string) || 1,
+      total_copies: parseIntOrDefault(formData.get("total_copies"), 1),
+      available_copies: parseIntOrDefault(formData.get("available_copies"), 1),
       rack_number: formData.get("rack_number") as string,
       price: formData.get("price")
         ? parseFloat(formData.get("price") as string)
