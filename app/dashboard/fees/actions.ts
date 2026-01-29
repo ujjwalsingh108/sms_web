@@ -562,3 +562,149 @@ export async function calculateDueAmount(
     },
   };
 }
+
+// Get student fees aggregated by month for an academic year (or current year)
+export async function getStudentFeesByMonth(
+  studentId: string,
+  academicYearId?: string
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const { data: member } = await supabase
+    .from("members")
+    .select("tenant_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!member) {
+    return { success: false, error: "No tenant found" };
+  }
+
+  const tenantId = (member as { tenant_id: string }).tenant_id;
+
+  // Determine academic year
+  let academicYear: any = null;
+  if (academicYearId) {
+    const { data } = await supabase
+      .from("academic_years")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .eq("id", academicYearId)
+      .eq("is_deleted", false)
+      .single();
+    academicYear = data;
+  } else {
+    const { data } = await supabase
+      .from("academic_years")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .eq("is_current", true)
+      .eq("is_deleted", false)
+      .single();
+    academicYear = data;
+  }
+
+  if (!academicYear) {
+    return { success: true, data: { academicYear: null, feeStructure: null, months: [], session: null } };
+  }
+
+  // Get student to read class_id
+  const { data: student } = await supabase
+    .from("students")
+    .select("id, class_id")
+    .eq("tenant_id", tenantId)
+    .eq("id", studentId)
+    .single();
+
+  if (!student) {
+    return { success: false, error: "Student not found" };
+  }
+
+  // Get fee structure for student's class for this academic year
+  const { data: feeStructure } = await supabase
+    .from("fee_structures")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .eq("class_id", (student as any).class_id)
+    .eq("academic_year_id", academicYear.id)
+    .eq("status", "active")
+    .eq("is_deleted", false)
+    .single();
+
+  const start = new Date(academicYear.start_date);
+  const end = new Date(academicYear.end_date);
+
+  // months count inclusive
+  const monthsCount =
+    (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+
+  // Get all completed payments for this student within the academic year
+  const { data: payments } = await supabase
+    .from("fee_payments")
+    .select("id, amount_paid, payment_date, fee_structure_id, payment_method, reference, created_at")
+    .eq("tenant_id", tenantId)
+    .eq("student_id", studentId)
+    .eq("status", "completed")
+    .eq("is_deleted", false)
+    .gte("payment_date", start.toISOString().split("T")[0])
+    .lte("payment_date", end.toISOString().split("T")[0]);
+
+  const totalPaid =
+    payments?.reduce((sum: number, p: any) => sum + Number(p.amount_paid), 0) || 0;
+
+  const totalDue = feeStructure ? Number((feeStructure as any).amount) : 0;
+
+  const session = {
+    totalDue,
+    totalPaid,
+    balance: totalDue - totalPaid,
+  };
+
+  const monthlyDue = monthsCount > 0 ? totalDue / monthsCount : 0;
+
+  const months: any[] = [];
+  for (let i = 0; i < monthsCount; i++) {
+    const monthStart = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    const monthEnd = new Date(start.getFullYear(), start.getMonth() + i + 1, 0);
+    const monthStartStr = monthStart.toISOString().split("T")[0];
+    const monthEndStr = monthEnd.toISOString().split("T")[0];
+
+    const monthPayments = (payments || []).filter((p: any) => {
+      if (!p.payment_date) return false;
+      return p.payment_date >= monthStartStr && p.payment_date <= monthEndStr;
+    });
+
+    const monthPaid =
+      monthPayments.reduce((sum: number, p: any) => sum + Number(p.amount_paid), 0) || 0;
+
+    months.push({
+      index: i,
+      month: monthStart.getMonth() + 1,
+      year: monthStart.getFullYear(),
+      monthName: monthStart.toLocaleString("en-IN", { month: "long" }),
+      totalDue: monthlyDue,
+      totalPaid: monthPaid,
+      balance: monthlyDue - monthPaid,
+      payments: monthPayments,
+      range: { from: monthStartStr, to: monthEndStr },
+    });
+  }
+
+  return {
+    success: true,
+    data: {
+      academicYear,
+      feeStructure,
+      session,
+      months,
+    },
+  };
+}

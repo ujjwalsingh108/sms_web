@@ -16,12 +16,34 @@ import {
   GraduationCap,
 } from "lucide-react";
 import type { StudentWithDetails } from "@/lib/types/modules";
+import { useState } from "react";
+
+type FeesMonth = {
+  index: number;
+  month: number;
+  year: number;
+  monthName: string;
+  totalDue: number;
+  totalPaid: number;
+  balance: number;
+  payments: any[];
+};
+
+type FeesSummary = {
+  academicYear: any | null;
+  feeStructure: any | null;
+  session: { totalDue: number; totalPaid: number; balance: number } | null;
+  months: FeesMonth[];
+} | null;
 
 interface StudentDetailViewProps {
   student: StudentWithDetails;
+  feesSummary?: FeesSummary;
+  payments?: any[];
 }
 
-export function StudentDetailView({ student }: StudentDetailViewProps) {
+export function StudentDetailView({ student, feesSummary }: StudentDetailViewProps) {
+  const [openMonth, setOpenMonth] = useState<number | null>(null);
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
       active:
@@ -351,6 +373,112 @@ export function StudentDetailView({ student }: StudentDetailViewProps) {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Fees Information removed — Payments History covers fee details */}
+
+      {/* Payments History List */}
+      <div className="mt-6">
+        <Card className="glass-effect border-0 shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-emerald-500" /> Payments History
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {((arguments[0] as StudentDetailViewProps)?.payments || []).length > 0 ? (
+              <PaymentsTable payments={(arguments[0] as StudentDetailViewProps).payments || []} />
+            ) : (
+              <p className="text-sm text-muted-foreground">No payments found for this student</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function PaymentsTable({ payments }: { payments: any[] }) {
+  const [page, setPage] = useState(1);
+  const perPage = 8;
+  const total = payments.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+
+  const start = (page - 1) * perPage;
+  const pageItems = payments.slice(start, start + perPage);
+
+  return (
+    <div>
+      {/* Desktop table */}
+      <div className="hidden md:block">
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="text-left text-sm text-gray-600">
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Fee Structure</th>
+                <th className="px-4 py-3">Amount Paid</th>
+                <th className="px-4 py-3">Due Amount</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageItems.map((p) => (
+                <tr key={p.id} className="border-t">
+                  <td className="px-4 py-3 align-top">{p.payment_date}</td>
+                  <td className="px-4 py-3 align-top">{p.fee_structure?.name || "-"}</td>
+                  <td className="px-4 py-3 align-top">
+                    {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(Number(p.amount_paid))}
+                  </td>
+                  <td className="px-4 py-3 align-top text-red-600">
+                    {p.dueAmount != null ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(Number(p.dueAmount)) : "-"}
+                  </td>
+                  <td className="px-4 py-3 align-top">{p.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {pageItems.map((p) => (
+          <div key={p.id} className="p-3 border rounded-md">
+            <div className="flex justify-between">
+              <div>
+                <p className="text-sm font-medium">{p.fee_structure?.name || "Payment"}</p>
+                <p className="text-xs text-gray-500">{p.payment_date}</p>
+              </div>
+              <div className="text-right">
+                <p className="font-semibold">{new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(Number(p.amount_paid))}</p>
+                <p className="text-xs text-red-600">Due: {p.dueAmount != null ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(Number(p.dueAmount)) : "-"}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pagination controls */}
+      <div className="mt-4 flex items-center justify-between">
+        <p className="text-sm text-gray-600">Showing {start + 1}-{Math.min(start + perPage, total)} of {total}</p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-3 py-1 rounded border disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <div className="text-sm">{page} / {totalPages}</div>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="px-3 py-1 rounded border disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

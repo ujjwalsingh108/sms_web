@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { StudentDetailView } from "@/components/students/student-detail-view";
+import { getFeePayments } from "@/app/dashboard/fees/actions";
+import { getStudentFeesByMonth } from "@/app/dashboard/fees/actions";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -43,6 +45,12 @@ export default async function StudentDetailPage({
 
   const student = (result as any).data;
 
+  const feesResult = await getStudentFeesByMonth(id);
+  const feesSummary = feesResult.success ? (feesResult as any).data : null;
+
+  const paymentsResult = await getFeePayments({ student_id: id });
+  const payments = paymentsResult.success ? (paymentsResult as any).data || [] : [];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -66,7 +74,7 @@ export default async function StudentDetailPage({
           </div>
         </div>
 
-        <StudentDetailView student={student} />
+        <StudentDetailView student={student} feesSummary={feesSummary} payments={payments} />
       </div>
     </div>
   );
