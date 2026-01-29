@@ -60,9 +60,7 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
     staff?.photo_url || null
   );
   const [roles, setRoles] = useState<Array<{ id: string; name: string; display_name?: string | null }>>([]);
-  const [selectedRole, setSelectedRole] = useState<string | undefined>(
-    staff?.staff_type || "teacher"
-  );
+  const [selectedRole, setSelectedRole] = useState<string | undefined>(staff?.staff_type ?? undefined);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [creatingRole, setCreatingRole] = useState(false);
 
@@ -122,6 +120,11 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
         const rs = await getRoles();
         if (!mounted) return;
         setRoles(rs || []);
+        // pick a sensible default if none selected
+        if (!selectedRole) {
+          const first = (rs && rs.length > 0 && rs[0].name) || undefined;
+          if (first) setSelectedRole(first);
+        }
       } catch (err) {
         console.error("Failed to load roles", err);
       }
@@ -486,7 +489,7 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
                 Staff Type
               </Label>
               <div className="flex items-center gap-2">
-                <Select name="staff_type" defaultValue={selectedRole || staff?.staff_type || "teacher"}>
+                <Select name="staff_type" defaultValue={selectedRole ?? (staff?.staff_type ?? undefined)}>
                   <SelectTrigger id="staff_type" className="text-sm">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
@@ -498,19 +501,6 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
                           </SelectItem>
                         ))
                       : null}
-                    <SelectItem value="teacher">Teacher</SelectItem>
-                    <SelectItem value="principal">Principal</SelectItem>
-                    <SelectItem value="vice_principal">Vice Principal</SelectItem>
-                    <SelectItem value="clerk">Clerk</SelectItem>
-                    <SelectItem value="librarian">Librarian</SelectItem>
-                    <SelectItem value="driver">Driver</SelectItem>
-                    <SelectItem value="security">Security</SelectItem>
-                    <SelectItem value="nurse">Nurse</SelectItem>
-                    <SelectItem value="accountant">Accountant</SelectItem>
-                    <SelectItem value="lab_assistant">Lab Assistant</SelectItem>
-                    <SelectItem value="sports_coach">Sports Coach</SelectItem>
-                    <SelectItem value="counselor">Counselor</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
 
