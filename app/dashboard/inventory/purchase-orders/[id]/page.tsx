@@ -57,10 +57,18 @@ export default async function PurchaseOrderDetailPage({
       icon: XCircle,
     },
   };
+  // Normalize status to avoid null/undefined runtime errors
+  const rawStatus = (purchaseOrder.status as string) ?? "unknown";
 
   const currentStatus =
-    statusConfig[purchaseOrder.status as keyof typeof statusConfig];
-  const StatusIcon = currentStatus.icon;
+    statusConfig[rawStatus as keyof typeof statusConfig] ?? {
+      color: "bg-gray-100 text-gray-800",
+      icon: FileText,
+    };
+  const StatusIcon = currentStatus?.icon ?? FileText;
+  const displayStatus = String(rawStatus);
+  const displayStatusCapitalized =
+    displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
 
   return (
     <div className="space-y-6">
@@ -83,14 +91,12 @@ export default async function PurchaseOrderDetailPage({
         </div>
         <Badge className={currentStatus.color}>
           <StatusIcon className="h-3 w-3 mr-1" />
-          {purchaseOrder.status.charAt(0).toUpperCase() +
-            purchaseOrder.status.slice(1)}
+          {displayStatusCapitalized}
         </Badge>
       </div>
 
       {/* Status Update Form */}
-      {purchaseOrder.status !== "delivered" &&
-        purchaseOrder.status !== "cancelled" && (
+      {rawStatus !== "delivered" && rawStatus !== "cancelled" && (
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Update Status</CardTitle>
@@ -103,7 +109,7 @@ export default async function PurchaseOrderDetailPage({
                 <select
                   name="status"
                   className="flex h-10 w-full sm:w-auto rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  defaultValue={purchaseOrder.status}
+                  defaultValue={rawStatus}
                 >
                   <option value="pending">Pending</option>
                   <option value="approved">Approved</option>
@@ -112,7 +118,7 @@ export default async function PurchaseOrderDetailPage({
                 </select>
                 <Button type="submit">Update Status</Button>
               </form>
-              {purchaseOrder.status === "approved" && (
+              {rawStatus === "approved" && (
                 <p className="text-sm text-gray-600 mt-2">
                   Note: Marking as "Delivered" will automatically update
                   inventory quantities.
@@ -212,7 +218,7 @@ export default async function PurchaseOrderDetailPage({
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Status:</span>
                 <span className="font-medium capitalize">
-                  {purchaseOrder.status}
+                  {displayStatus}
                 </span>
               </div>
             </div>

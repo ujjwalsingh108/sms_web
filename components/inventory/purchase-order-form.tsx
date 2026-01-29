@@ -321,13 +321,16 @@ export default function PurchaseOrderForm({
                       min="1"
                       step="1"
                       value={orderItem.quantity}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        // Strip leading zeroes so typing "100" doesn't result in "0100"
+                        const raw = e.target.value;
+                        const cleaned = raw.replace(/^0+(?=\d)/, "");
                         updateItem(
                           orderItem.id,
                           "quantity",
-                          parseInt(e.target.value) || 0
-                        )
-                      }
+                          parseInt(cleaned) || 0
+                        );
+                      }}
                       disabled={loading}
                     />
                     {selectedItem && (
