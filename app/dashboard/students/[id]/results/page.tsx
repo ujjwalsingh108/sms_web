@@ -23,8 +23,46 @@ export default async function StudentResultsPage({
 
   const result = await getStudentExamResults(studentId, examId);
 
+  // If the action failed, show a graceful message instead of a 404 page.
+  // If the student truly doesn't exist, show a clear message. Otherwise
+  // render an empty-state that matches other pages' background/layout.
   if (!result.success || !result.data) {
-    notFound();
+    const errorMessage = result?.error || "No data available";
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard/students">
+              <Button variant="ghost" size="icon" className="rounded-xl">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="flex-1">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                Student Exam Results
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">Student results</p>
+            </div>
+          </div>
+
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-muted-foreground mb-4">
+                {errorMessage === "Student not found"
+                  ? "Student record not found."
+                  : "No exam results found for this student."}
+              </p>
+              <div>
+                <Link href="/dashboard/students">
+                  <Button>Back to Students</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   const { student, results } = result.data;
