@@ -520,27 +520,57 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
                       +
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="w-full sm:max-w-lg">
                     <DialogHeader>
-                      <DialogTitle>Create Role</DialogTitle>
-                      <DialogDescription>Add a new staff role</DialogDescription>
+                      <DialogTitle className="text-lg sm:text-xl">Create Role</DialogTitle>
+                      <DialogDescription className="text-sm text-muted-foreground">
+                        Add a new staff role
+                      </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleCreateRole} className="space-y-4">
-                      <div>
-                        <Label className="text-xs">Role Name <span className="text-red-500">*</span></Label>
-                        <Input name="name" required placeholder="unique_role_key" />
+
+                    <form onSubmit={handleCreateRole} className="space-y-4 py-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="role_name" className="text-xs sm:text-sm">
+                          Role Name <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="role_name"
+                          name="name"
+                          required
+                          placeholder="unique_role_key"
+                          className="text-sm w-full"
+                        />
                       </div>
-                      <div>
-                        <Label className="text-xs">Display Name</Label>
-                        <Input name="display_name" placeholder="Display name" />
+
+                      <div className="grid gap-2">
+                        <Label htmlFor="display_name" className="text-xs sm:text-sm">
+                          Display Name
+                        </Label>
+                        <Input
+                          id="display_name"
+                          name="display_name"
+                          placeholder="Display name"
+                          className="text-sm w-full"
+                        />
                       </div>
-                      <div>
-                        <Label className="text-xs">Description</Label>
-                        <Textarea name="description" rows={3} />
+
+                      <div className="grid gap-2">
+                        <Label htmlFor="description" className="text-xs sm:text-sm">
+                          Description
+                        </Label>
+                        <Textarea
+                          id="description"
+                          name="description"
+                          rows={3}
+                          className="text-sm resize-none w-full"
+                        />
                       </div>
+
                       <DialogFooter>
                         <DialogClose asChild>
-                          <Button type="button" variant="outline">Cancel</Button>
+                          <Button type="button" variant="outline">
+                            Cancel
+                          </Button>
                         </DialogClose>
                         <Button type="submit" disabled={creatingRole}>
                           {creatingRole ? "Creating…" : "Create Role"}
