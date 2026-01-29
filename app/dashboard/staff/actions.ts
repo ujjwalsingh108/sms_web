@@ -585,3 +585,51 @@ export async function getDepartments() {
   );
   return departments as string[];
 }
+
+// Roles
+export type Role = {
+  id: string;
+  name: string;
+  display_name?: string | null;
+  description?: string | null;
+  created_at?: string;
+};
+
+export async function getRoles() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.from("roles").select("*").order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching roles:", error);
+    return [] as Role[];
+  }
+
+  return data as Role[];
+}
+
+export async function createRole(formData: FormData) {
+  const supabaseAdmin = createServiceRoleClient();
+
+  const name = (formData.get("name") as string)?.trim();
+  const display_name = (formData.get("display_name") as string) || null;
+  const description = (formData.get("description") as string) || null;
+
+  if (!name) {
+    throw new Error("Role name is required");
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("roles")
+    .insert([{ name, display_name, description }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating role:", error);
+    throw new Error(error.message || "Failed to create role");
+  }
+
+  revalidatePath("/dashboard/staff");
+  return data as Role;
+}

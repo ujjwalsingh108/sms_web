@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   createStaff,
   updateStaff,
+  getRoles,
+  createRole,
   type Staff,
 } from "@/app/dashboard/staff/actions";
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,16 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 type StaffFormProps = {
   staff?: Staff;
@@ -47,6 +59,12 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
   const [photoPreview, setPhotoPreview] = useState<string | null>(
     staff?.photo_url || null
   );
+  const [roles, setRoles] = useState<Array<{ id: string; name: string; display_name?: string | null }>>([]);
+  const [selectedRole, setSelectedRole] = useState<string | undefined>(
+    staff?.staff_type || "teacher"
+  );
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [creatingRole, setCreatingRole] = useState(false);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -81,6 +99,12 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
         await createStaff(formData);
       }
 
+      // ensure any newly created role becomes selected when creating staff
+      if (selectedRole) {
+        const el = document.querySelector("[name='staff_type']") as HTMLInputElement | null;
+        if (el) el.value = selectedRole;
+      }
+
       router.push("/dashboard/staff");
       router.refresh();
     } catch (error) {
@@ -88,6 +112,39 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
       alert("Failed to save staff member");
     } finally {
       setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const rs = await getRoles();
+        if (!mounted) return;
+        setRoles(rs || []);
+      } catch (err) {
+        console.error("Failed to load roles", err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  async function handleCreateRole(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setCreatingRole(true);
+    try {
+      const fd = new FormData(e.currentTarget);
+      const newRole = await createRole(fd);
+      setRoles((prev) => [newRole, ...(prev || [])]);
+      setSelectedRole(newRole.name);
+      setRoleDialogOpen(false);
+    } catch (err) {
+      console.error("Failed to create role", err);
+      alert("Failed to create role");
+    } finally {
+      setCreatingRole(false);
     }
   }
 
@@ -428,29 +485,71 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
               <Label htmlFor="staff_type" className="text-xs sm:text-sm">
                 Staff Type
               </Label>
-              <Select
-                name="staff_type"
-                defaultValue={staff?.staff_type || "teacher"}
-              >
-                <SelectTrigger id="staff_type" className="text-sm">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="teacher">Teacher</SelectItem>
-                  <SelectItem value="principal">Principal</SelectItem>
-                  <SelectItem value="vice_principal">Vice Principal</SelectItem>
-                  <SelectItem value="clerk">Clerk</SelectItem>
-                  <SelectItem value="librarian">Librarian</SelectItem>
-                  <SelectItem value="driver">Driver</SelectItem>
-                  <SelectItem value="security">Security</SelectItem>
-                  <SelectItem value="nurse">Nurse</SelectItem>
-                  <SelectItem value="accountant">Accountant</SelectItem>
-                  <SelectItem value="lab_assistant">Lab Assistant</SelectItem>
-                  <SelectItem value="sports_coach">Sports Coach</SelectItem>
-                  <SelectItem value="counselor">Counselor</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2">
+                <Select name="staff_type" defaultValue={selectedRole || staff?.staff_type || "teacher"}>
+                  <SelectTrigger id="staff_type" className="text-sm">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles && roles.length > 0
+                      ? roles.map((r) => (
+                          <SelectItem key={r.id} value={r.name}>
+                            {r.display_name || r.name}
+                          </SelectItem>
+                        ))
+                      : null}
+                    <SelectItem value="teacher">Teacher</SelectItem>
+                    <SelectItem value="principal">Principal</SelectItem>
+                    <SelectItem value="vice_principal">Vice Principal</SelectItem>
+                    <SelectItem value="clerk">Clerk</SelectItem>
+                    <SelectItem value="librarian">Librarian</SelectItem>
+                    <SelectItem value="driver">Driver</SelectItem>
+                    <SelectItem value="security">Security</SelectItem>
+                    <SelectItem value="nurse">Nurse</SelectItem>
+                    <SelectItem value="accountant">Accountant</SelectItem>
+                    <SelectItem value="lab_assistant">Lab Assistant</SelectItem>
+                    <SelectItem value="sports_coach">Sports Coach</SelectItem>
+                    <SelectItem value="counselor">Counselor</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button type="button" size="sm" variant="outline" className="h-8 w-8 p-0">
+                      +
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create Role</DialogTitle>
+                      <DialogDescription>Add a new staff role</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleCreateRole} className="space-y-4">
+                      <div>
+                        <Label className="text-xs">Role Name <span className="text-red-500">*</span></Label>
+                        <Input name="name" required placeholder="unique_role_key" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Display Name</Label>
+                        <Input name="display_name" placeholder="Display name" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Description</Label>
+                        <Textarea name="description" rows={3} />
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button type="button" variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Button type="submit" disabled={creatingRole}>
+                          {creatingRole ? "Creating…" : "Create Role"}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </div>
         </CardContent>
