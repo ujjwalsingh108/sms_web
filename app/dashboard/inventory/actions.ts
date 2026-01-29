@@ -754,7 +754,10 @@ export async function getPurchaseOrderById(
         supplier:suppliers(name),
         items:purchase_order_items(
           *,
-          item:inventory_items(item_name)
+          inventory_item:inventory_items(
+            *,
+            category:inventory_categories(name)
+          )
         )
       `
       )
@@ -762,7 +765,25 @@ export async function getPurchaseOrderById(
       .single();
 
     if (error) throw error;
-    return { success: true, data: data as PurchaseOrderWithDetails };
+
+    // Backfill missing inventory_item objects (in case the nest join returned null)
+    const purchase = data as any;
+    if (purchase?.items && Array.isArray(purchase.items)) {
+      for (const it of purchase.items) {
+        if (!it.inventory_item && it.inventory_item_id) {
+          const { data: invData, error: invError } = await supabase
+            .from("inventory_items")
+            .select(`*, category:inventory_categories(name)`)
+            .eq("id", it.inventory_item_id)
+            .single();
+          if (!invError && invData) {
+            it.inventory_item = invData;
+          }
+        }
+      }
+    }
+
+    return { success: true, data: purchase as PurchaseOrderWithDetails };
   } catch (error) {
     console.error("Error fetching purchase order:", error);
     return { success: false, error: "Failed to fetch purchase order" };

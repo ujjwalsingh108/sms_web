@@ -71,33 +71,29 @@ export default async function PurchaseOrderDetailPage({
     displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-        <div className="flex items-start gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
           <Link href="/dashboard/inventory/purchase-orders">
-            <Button variant="outline" size="icon">
-              <ArrowLeft className="h-4 w-4" />
+            <Button
+              variant="ghost"
+              className="h-9 w-9 p-0 hover:bg-white/50 dark:hover:bg-gray-800/50"
+            >
+              <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
               {purchaseOrder.order_number}
             </h1>
-            <p className="text-sm md:text-base text-gray-600 mt-1">
-              Purchase order details
-            </p>
+            <p className="text-muted-foreground mt-1">Purchase order details</p>
           </div>
         </div>
-        <Badge className={currentStatus.color}>
-          <StatusIcon className="h-3 w-3 mr-1" />
-          {displayStatusCapitalized}
-        </Badge>
-      </div>
 
       {/* Status Update Form */}
-      {rawStatus !== "delivered" && rawStatus !== "cancelled" && (
-          <Card>
+        {rawStatus !== "delivered" && rawStatus !== "cancelled" && (
+          <Card className="glass-effect border-0 shadow-xl">
             <CardHeader>
               <CardTitle className="text-lg">Update Status</CardTitle>
             </CardHeader>
@@ -130,7 +126,7 @@ export default async function PurchaseOrderDetailPage({
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Order Information */}
-        <Card>
+        <Card className="glass-effect border-0 shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
@@ -194,7 +190,7 @@ export default async function PurchaseOrderDetailPage({
         </Card>
 
         {/* Financial Summary */}
-        <Card>
+        <Card className="glass-effect border-0 shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
@@ -227,7 +223,7 @@ export default async function PurchaseOrderDetailPage({
       </div>
 
       {/* Order Items */}
-      <Card>
+      <Card className="glass-effect border-0 shadow-xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -349,6 +345,7 @@ export default async function PurchaseOrderDetailPage({
           </div>
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 }
