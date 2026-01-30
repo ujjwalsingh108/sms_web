@@ -67,56 +67,21 @@ export default async function AccountsReportsPage() {
 
   const transactions = (allTransactions as Transaction[] | null) || [];
 
-  // Calculate monthly statistics
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
 
-  const currentMonthTransactions = transactions.filter((t) => {
-    const txnDate = new Date(t.transaction_date);
-    return (
-      txnDate.getMonth() === currentMonth &&
-      txnDate.getFullYear() === currentYear
-    );
-  });
+  // --- Use same statistics logic as accounts page ---
+  const totalIncome = transactions.reduce((sum, t) => {
+    return t.type === "credit" ? sum + Number(t.amount) : sum;
+  }, 0);
 
-  const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-  const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+  const totalExpense = transactions.reduce((sum, t) => {
+    return t.type === "debit" ? sum + Number(t.amount) : sum;
+  }, 0);
 
-  const previousMonthTransactions = transactions.filter((t) => {
-    const txnDate = new Date(t.transaction_date);
-    return (
-      txnDate.getMonth() === previousMonth &&
-      txnDate.getFullYear() === previousMonthYear
-    );
-  });
+  const balance = totalIncome - totalExpense;
 
-  const currentMonthIncome = currentMonthTransactions
-    .filter((t) => t.type === "credit" && t.account_head?.type === "income")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-
-  const currentMonthExpense = currentMonthTransactions
-    .filter((t) => t.type === "debit" && t.account_head?.type === "expense")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-
-  const previousMonthIncome = previousMonthTransactions
-    .filter((t) => t.type === "credit" && t.account_head?.type === "income")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-
-  const previousMonthExpense = previousMonthTransactions
-    .filter((t) => t.type === "debit" && t.account_head?.type === "expense")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-
-  const incomeChange =
-    previousMonthIncome > 0
-      ? ((currentMonthIncome - previousMonthIncome) / previousMonthIncome) * 100
-      : 0;
-
-  const expenseChange =
-    previousMonthExpense > 0
-      ? ((currentMonthExpense - previousMonthExpense) / previousMonthExpense) *
-        100
-      : 0;
+  // Group account heads by type (optional, for display)
+  // const incomeHeads = ...
+  // const expenseHeads = ...
 
   // Top account heads by transaction volume
   const accountHeadStats = transactions.reduce((acc, txn) => {
@@ -157,6 +122,68 @@ export default async function AccountsReportsPage() {
     "December",
   ];
 
+  // Monthly aggregates for insights
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const prev = new Date(currentYear, currentMonth - 1);
+  const prevMonth = prev.getMonth();
+  const prevYear = prev.getFullYear();
+
+  const currentMonthIncome = transactions
+    .filter((t) => {
+      const d = new Date(t.transaction_date);
+      return (
+        d.getMonth() === currentMonth && d.getFullYear() === currentYear &&
+        t.type === "credit"
+      );
+    })
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const previousMonthIncome = transactions
+    .filter((t) => {
+      const d = new Date(t.transaction_date);
+      return (
+        d.getMonth() === prevMonth && d.getFullYear() === prevYear &&
+        t.type === "credit"
+      );
+    })
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const incomeChange =
+    previousMonthIncome === 0
+      ? previousMonthIncome === currentMonthIncome
+        ? 0
+        : 100
+      : ((currentMonthIncome - previousMonthIncome) / previousMonthIncome) * 100;
+
+  const currentMonthExpense = transactions
+    .filter((t) => {
+      const d = new Date(t.transaction_date);
+      return (
+        d.getMonth() === currentMonth && d.getFullYear() === currentYear &&
+        t.type === "debit"
+      );
+    })
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const previousMonthExpense = transactions
+    .filter((t) => {
+      const d = new Date(t.transaction_date);
+      return (
+        d.getMonth() === prevMonth && d.getFullYear() === prevYear &&
+        t.type === "debit"
+      );
+    })
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const expenseChange =
+    previousMonthExpense === 0
+      ? previousMonthExpense === currentMonthExpense
+        ? 0
+        : 100
+      : ((currentMonthExpense - previousMonthExpense) / previousMonthExpense) * 100;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -183,104 +210,77 @@ export default async function AccountsReportsPage() {
           </div>
         </div>
 
-        {/* Current Month Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-green-600" />
-                This Month Income
+        {/* Statistics (same as accounts page) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 md:gap-6">
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
+                Total Income
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+              <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
                 ₹
-                {currentMonthIncome.toLocaleString("en-IN", {
+                {totalIncome.toLocaleString("en-IN", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
               </p>
-              {incomeChange !== 0 && (
-                <p
-                  className={`text-xs mt-1 ${
-                    incomeChange > 0 ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {incomeChange > 0 ? "+" : ""}
-                  {incomeChange.toFixed(1)}% from last month
-                </p>
-              )}
             </CardContent>
           </Card>
 
-          <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                <TrendingDown className="h-4 w-4 text-red-600" />
-                This Month Expense
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
+                Total Expense
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-600 to-rose-600 dark:from-red-400 dark:to-rose-400 bg-clip-text text-transparent">
+              <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-red-600 to-rose-600 dark:from-red-400 dark:to-rose-400 bg-clip-text text-transparent">
                 ₹
-                {currentMonthExpense.toLocaleString("en-IN", {
+                {totalExpense.toLocaleString("en-IN", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
               </p>
-              {expenseChange !== 0 && (
-                <p
-                  className={`text-xs mt-1 ${
-                    expenseChange < 0 ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {expenseChange > 0 ? "+" : ""}
-                  {expenseChange.toFixed(1)}% from last month
-                </p>
-              )}
             </CardContent>
           </Card>
 
-          <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                <Activity className="h-4 w-4 text-blue-600" />
-                Net (This Month)
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
+                Net Balance
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p
-                className={`text-2xl md:text-3xl font-bold ${
-                  currentMonthIncome - currentMonthExpense >= 0
+                className={`text-2xl md:text-4xl font-bold ${
+                  balance >= 0
                     ? "bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent"
                     : "bg-gradient-to-r from-red-600 to-rose-600 dark:from-red-400 dark:to-rose-400 bg-clip-text text-transparent"
                 }`}
               >
                 ₹
-                {(currentMonthIncome - currentMonthExpense).toLocaleString(
-                  "en-IN",
-                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-                )}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {monthNames[currentMonth]} {currentYear}
+                {balance.toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-purple-600" />
+          <Card className="stat-card-hover glass-effect border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
                 Total Transactions
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
-                {currentMonthTransactions.length}
+              <p className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                {transactions.length}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                This month
+                All time
               </p>
             </CardContent>
           </Card>
