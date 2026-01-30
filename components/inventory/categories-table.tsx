@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 import { deleteCategory } from "@/app/dashboard/inventory/actions";
 import { useRouter } from "next/navigation";
@@ -31,7 +32,7 @@ export default function CategoriesTable({ categories }: CategoriesTableProps) {
     setDeletingId(null);
 
     if (!result.success) {
-      alert(result.error || "Failed to delete category");
+      toast.error(result.error || "Failed to delete category");
     } else {
       router.refresh();
     }

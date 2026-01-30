@@ -15,6 +15,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ArrowLeft, Save } from "lucide-react";
+import { toast } from "sonner";
 import { useRouter, useParams } from "next/navigation";
 
 export default function EditAllocationPage() {
@@ -118,7 +119,7 @@ export default function EditAllocationPage() {
       router.refresh();
     } catch (error) {
       console.error("Error updating allocation:", error);
-      alert("Failed to update allocation. Please try again.");
+      toast.error("Failed to update allocation. Please try again.");
     } finally {
       setLoading(false);
     }

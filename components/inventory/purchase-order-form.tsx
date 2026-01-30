@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Package, Save } from "lucide-react";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { createPurchaseOrder } from "@/app/dashboard/inventory/actions";
 import type {
@@ -58,7 +59,7 @@ export default function PurchaseOrderForm({
 
   const removeItem = (id: string) => {
     if (orderItems.length === 1) {
-      alert("At least one item is required");
+      toast.error("At least one item is required");
       return;
     }
     setOrderItems(orderItems.filter((item) => item.id !== id));

@@ -16,6 +16,7 @@ import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ArrowLeft, Save, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function EditIncidentPage({
   params,
@@ -105,7 +106,7 @@ export default function EditIncidentPage({
       router.refresh();
     } catch (error) {
       console.error("Error updating incident:", error);
-      alert("Failed to update incident. Please try again.");
+      toast.error("Failed to update incident. Please try again.");
     } finally {
       setUpdating(false);
     }

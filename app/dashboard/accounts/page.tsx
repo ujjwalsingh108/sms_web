@@ -79,15 +79,22 @@ export default async function AccountsPage() {
   const typedTransactions = (transactions as Transaction[] | null) || [];
   const typedAccountHeads = (accountHeads as AccountHeadData[] | null) || [];
 
-  // Calculate income from transactions with type 'credit' and account_head type 'income'
-  const totalIncome = typedTransactions
-    .filter((t) => t.type === "credit" && t.account_head?.type === "income")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+  // Build a lookup map of account heads by id for fallback when joined data is missing
+  const accountHeadMap = typedAccountHeads.reduce(
+    (acc, h) => ({ ...acc, [h.id]: h }),
+    {} as Record<string, AccountHeadData>
+  );
 
-  // Calculate expense from transactions with type 'debit' and account_head type 'expense'
-  const totalExpense = typedTransactions
-    .filter((t) => t.type === "debit" && t.account_head?.type === "expense")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+  // Calculate income and expense totals directly from transactions based on type
+  // 1) total income = sum of amounts where transaction.type === 'credit'
+  // 2) total expense = sum of amounts where transaction.type === 'debit'
+  const totalIncome = typedTransactions.reduce((sum, t) => {
+    return t.type === "credit" ? sum + Number(t.amount) : sum;
+  }, 0);
+
+  const totalExpense = typedTransactions.reduce((sum, t) => {
+    return t.type === "debit" ? sum + Number(t.amount) : sum;
+  }, 0);
 
   const balance = totalIncome - totalExpense;
 
@@ -302,7 +309,7 @@ export default async function AccountsPage() {
                       </td>
                       <td className="p-2 md:p-3 text-center">
                         <Link
-                          href={`/dashboard/accounts/transactions/${txn.id}`}
+                          href={`/dashboard/accounts/transactions/${txn.id}/view`}
                         >
                           <Button
                             variant="outline"

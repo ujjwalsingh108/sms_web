@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createStudentTransport } from "@/app/dashboard/transport/actions";
 import { Loader2, Bus, User, MapPin, Save } from "lucide-react";
+import { toast } from "sonner";
 
 type StudentTransportFormProps = {
   mode: "create";
@@ -86,7 +87,7 @@ export function StudentTransportForm({ mode }: StudentTransportFormProps) {
       router.push("/dashboard/transport/students");
     } catch (error) {
       console.error("Failed to create assignment:", error);
-      alert("Failed to create assignment. Please try again.");
+      toast.error("Failed to create assignment. Please try again.");
       setIsSubmitting(false);
     }
   };

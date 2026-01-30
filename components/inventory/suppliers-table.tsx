@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Phone, Mail, MapPin, User } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 import { deleteSupplier } from "@/app/dashboard/inventory/actions";
 import { useRouter } from "next/navigation";
@@ -31,7 +32,7 @@ export default function SuppliersTable({ suppliers }: SuppliersTableProps) {
     setDeletingId(null);
 
     if (!result.success) {
-      alert(result.error || "Failed to delete supplier");
+      toast.error(result.error || "Failed to delete supplier");
     } else {
       router.refresh();
     }

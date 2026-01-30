@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ArrowLeft, Save, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function NewVisitorPage() {
   const router = useRouter();
@@ -60,7 +61,7 @@ export default function NewVisitorPage() {
       router.refresh();
     } catch (error) {
       console.error("Error logging visitor:", error);
-      alert("Failed to log visitor. Please try again.");
+      toast.error("Failed to log visitor. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -17,6 +17,7 @@ import {
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 export default function NewSecurityIncidentPage() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function NewSecurityIncidentPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        alert("Please login to continue");
+        toast.error("Please login to continue");
         router.push("/login");
         return;
       }
@@ -53,7 +54,7 @@ export default function NewSecurityIncidentPage() {
         .single();
 
       if (!members) {
-        alert("No active tenant found");
+        toast.error("No active tenant found");
         return;
       }
 
@@ -75,12 +76,12 @@ export default function NewSecurityIncidentPage() {
 
       if (error) throw error;
 
-      alert("Security incident reported successfully");
+      toast.success("Security incident reported successfully");
       router.push("/dashboard/security/incidents");
       router.refresh();
     } catch (error) {
       console.error("Error reporting incident:", error);
-      alert("Failed to report incident. Please try again.");
+      toast.error("Failed to report incident. Please try again.");
     } finally {
       setLoading(false);
     }

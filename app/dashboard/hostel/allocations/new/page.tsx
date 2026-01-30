@@ -15,6 +15,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ArrowLeft, Save, Info } from "lucide-react";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export default function NewAllocationPage() {
@@ -100,7 +101,7 @@ export default function NewAllocationPage() {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (room && (room as any).occupied_beds >= (room as any).capacity) {
-        alert("This room is at full capacity.");
+        toast.error("This room is at full capacity.");
         setLoading(false);
         return;
       }
@@ -139,7 +140,7 @@ export default function NewAllocationPage() {
       router.refresh();
     } catch (error) {
       console.error("Error creating allocation:", error);
-      alert("Failed to create allocation. Please try again.");
+      toast.error("Failed to create allocation. Please try again.");
     } finally {
       setLoading(false);
     }

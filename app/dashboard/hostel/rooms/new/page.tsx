@@ -15,6 +15,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ArrowLeft, Save, Info } from "lucide-react";
+import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function NewRoomForm() {
@@ -80,7 +81,7 @@ function NewRoomForm() {
       router.refresh();
     } catch (error) {
       console.error("Error creating room:", error);
-      alert("Failed to create room. Please try again.");
+      toast.error("Failed to create room. Please try again.");
     } finally {
       setLoading(false);
     }

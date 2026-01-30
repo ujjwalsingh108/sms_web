@@ -6,6 +6,7 @@ import {
   getStaff,
   type Staff,
 } from "@/app/dashboard/staff/actions";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,7 +56,7 @@ export default function StaffAttendanceForm({
       setSelectedStaff("");
     } catch (error) {
       console.error("Failed to mark attendance:", error);
-      alert("Failed to mark attendance");
+      toast.error("Failed to mark attendance");
     } finally {
       setLoading(false);
     }

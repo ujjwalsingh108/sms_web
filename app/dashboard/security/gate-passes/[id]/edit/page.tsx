@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ArrowLeft, Save, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function EditGatePassPage({
   params,
@@ -127,7 +128,7 @@ export default function EditGatePassPage({
       router.refresh();
     } catch (error) {
       console.error("Error updating gate pass:", error);
-      alert("Failed to update gate pass. Please try again.");
+      toast.error("Failed to update gate pass. Please try again.");
     } finally {
       setUpdating(false);
     }

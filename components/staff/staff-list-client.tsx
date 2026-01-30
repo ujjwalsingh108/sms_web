@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   getStaff,
   deleteStaff,
@@ -54,7 +55,7 @@ export default function StaffListClient({ filters }: StaffListClientProps) {
       await loadStaff();
     } catch (error) {
       console.error("Failed to delete staff:", error);
-      alert("Failed to delete staff member");
+      toast.error("Failed to delete staff member");
     }
   }
 

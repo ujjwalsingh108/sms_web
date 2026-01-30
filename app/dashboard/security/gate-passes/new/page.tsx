@@ -18,6 +18,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 type Student = {
   id: string;
@@ -104,7 +105,7 @@ export default function NewGatePassPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        alert("Please login to continue");
+        toast.error("Please login to continue");
         router.push("/login");
         return;
       }
@@ -117,7 +118,7 @@ export default function NewGatePassPage() {
         .single();
 
       if (!members) {
-        alert("No active tenant found");
+        toast.error("No active tenant found");
         return;
       }
 
@@ -138,12 +139,12 @@ export default function NewGatePassPage() {
 
       if (error) throw error;
 
-      alert("Gate pass created successfully");
+      toast.success("Gate pass created successfully");
       router.push("/dashboard/security/gate-passes");
       router.refresh();
     } catch (error) {
       console.error("Error creating gate pass:", error);
-      alert("Failed to create gate pass. Please try again.");
+      toast.error("Failed to create gate pass. Please try again.");
     } finally {
       setLoading(false);
     }

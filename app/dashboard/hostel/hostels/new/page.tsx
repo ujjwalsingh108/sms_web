@@ -16,6 +16,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ArrowLeft, Save, Info } from "lucide-react";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export default function NewHostelPage() {
@@ -60,7 +61,7 @@ export default function NewHostelPage() {
       router.refresh();
     } catch (error) {
       console.error("Error creating hostel:", error);
-      alert("Failed to create hostel. Please try again.");
+      toast.error("Failed to create hostel. Please try again.");
     } finally {
       setLoading(false);
     }

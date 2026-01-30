@@ -18,6 +18,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function VisitorDetailsPage({
   params,
@@ -88,7 +89,7 @@ export default function VisitorDetailsPage({
       router.refresh();
     } catch (error) {
       console.error("Error checking out visitor:", error);
-      alert("Failed to check out visitor. Please try again.");
+      toast.error("Failed to check out visitor. Please try again.");
     } finally {
       setChecking(false);
     }

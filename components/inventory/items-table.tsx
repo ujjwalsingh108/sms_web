@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, AlertTriangle, Package } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 import { deleteItem } from "@/app/dashboard/inventory/actions";
 import { useRouter } from "next/navigation";
@@ -31,7 +32,7 @@ export default function ItemsTable({ items }: ItemsTableProps) {
     setDeletingId(null);
 
     if (!result.success) {
-      alert(result.error || "Failed to delete item");
+      toast.error(result.error || "Failed to delete item");
     } else {
       router.refresh();
     }

@@ -35,6 +35,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -107,7 +108,7 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
       router.refresh();
     } catch (error) {
       console.error("Failed to save staff:", error);
-      alert("Failed to save staff member");
+      toast.error("Failed to save staff member");
     } finally {
       setLoading(false);
     }
@@ -145,7 +146,7 @@ export default function StaffForm({ staff, mode = "create" }: StaffFormProps) {
       setRoleDialogOpen(false);
     } catch (err) {
       console.error("Failed to create role", err);
-      alert("Failed to create role");
+      toast.error("Failed to create role");
     } finally {
       setCreatingRole(false);
     }
