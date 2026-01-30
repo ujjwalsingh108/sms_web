@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft, Save } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -39,7 +40,7 @@ export default function NewAccountHeadPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        alert("Please login to continue");
+        toast.error("Please login to continue");
         router.push("/login");
         return;
       }
@@ -52,7 +53,7 @@ export default function NewAccountHeadPage() {
         .single();
 
       if (!members) {
-        alert("No active tenant found");
+        toast.error("No active tenant found");
         return;
       }
 
@@ -69,12 +70,12 @@ export default function NewAccountHeadPage() {
 
       if (error) throw error;
 
-      alert("Account head created successfully");
+      toast.success("Account head created successfully");
       router.push("/dashboard/accounts/account-heads");
       router.refresh();
     } catch (error) {
       console.error("Error creating account head:", error);
-      alert("Failed to create account head. Please try again.");
+      toast.error("Failed to create account head. Please try again.");
     } finally {
       setLoading(false);
     }

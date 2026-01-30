@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
 type AccountHead = {
@@ -83,7 +84,7 @@ export default function NewTransactionPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        alert("Please login to continue");
+        toast.error("Please login to continue");
         router.push("/login");
         return;
       }
@@ -96,7 +97,7 @@ export default function NewTransactionPage() {
         .single();
 
       if (!members) {
-        alert("No active tenant found");
+        toast.error("No active tenant found");
         return;
       }
 
@@ -118,12 +119,12 @@ export default function NewTransactionPage() {
 
       if (error) throw error;
 
-      alert("Transaction created successfully");
+      toast.success("Transaction created successfully");
       router.push("/dashboard/accounts");
       router.refresh();
     } catch (error) {
       console.error("Error creating transaction:", error);
-      alert("Failed to create transaction. Please try again.");
+      toast.error("Failed to create transaction. Please try again.");
     } finally {
       setLoading(false);
     }
