@@ -17,7 +17,7 @@ type TransactionParams = {
   params: Promise<{ id: string }>;
 };
 
-export default async function TransactionViewPage({ params }: TransactionParams) {
+export default async function TransactionDetailPage({ params }: TransactionParams) {
   const resolvedParams = await params;
   const supabase = await createClient();
 
@@ -41,6 +41,7 @@ export default async function TransactionViewPage({ params }: TransactionParams)
     .eq("user_id", user.id)
     .eq("status", "approved");
 
+
   const member = members?.[0] as { tenant_id: string } | undefined;
 
   if (!member) {
@@ -48,21 +49,45 @@ export default async function TransactionViewPage({ params }: TransactionParams)
   }
 
   // Fetch transaction details
-  const { data: transaction } = await supabase
+  const { data: transaction, error: txnError } = await supabase
     .from("transactions")
     .select(
       `
       *,
-      account_head:account_heads(id, name, type, description),
-      created_by_user:created_by(id, email)
+      account_head:account_heads(id, name, type, description)
     `
     )
     .eq("id", resolvedParams.id)
     .eq("tenant_id", member.tenant_id)
     .single();
 
+  // Debug info for troubleshooting
+  console.log("Transaction detail debug:", {
+    requestedId: resolvedParams.id,
+    memberTenantId: member.tenant_id,
+    transaction,
+    txnError,
+  });
+
   if (!transaction) {
-    notFound();
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <Card className="max-w-xl w-full">
+          <CardHeader>
+            <CardTitle>Transaction not found</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600">The requested transaction was not found or you don't have access to view it.</p>
+            <pre className="text-xs text-gray-400 mt-2 bg-gray-50 p-2 rounded">Debug: {JSON.stringify({ requestedId: resolvedParams.id, memberTenantId: member.tenant_id, txnError }, null, 2)}</pre>
+            <div className="mt-4">
+              <Link href="/dashboard/accounts">
+                <Button>Back to Accounts</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   type AccountHead = {
@@ -87,15 +112,15 @@ export default async function TransactionViewPage({ params }: TransactionParams)
     description?: string | null;
     created_at: string;
     account_head: AccountHead;
-    created_by_user?: CreatedByUser | null;
+    // created_by_user?: CreatedByUser | null; // removed, no join
   };
 
   const txn = transaction as unknown as TransactionDetail;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-4 mb-4">
           <Link href="/dashboard/accounts">
             <Button
               variant="ghost"
@@ -105,15 +130,14 @@ export default async function TransactionViewPage({ params }: TransactionParams)
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-        </div>
-
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-            Transaction Details
-          </h1>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
-            View complete transaction information
-          </p>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Transaction Details
+            </h1>
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
+              View complete transaction information
+            </p>
+          </div>
         </div>
 
         {/* Transaction Type Badge */}
@@ -215,15 +239,7 @@ export default async function TransactionViewPage({ params }: TransactionParams)
                 </div>
               )}
 
-              {txn.created_by_user && (
-                <div className="flex items-start gap-3 pt-2 border-t border-gray-200 dark:border-gray-700">
-                  <User className="h-5 w-5 text-gray-500 dark:text-gray-400 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Created By</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">{txn.created_by_user.email}</p>
-                  </div>
-                </div>
-              )}
+              {/* Created By field removed due to missing relationship */}
 
               <div className="flex items-start gap-3 pt-2 border-t border-gray-200 dark:border-gray-700">
                 <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400 mt-0.5" />

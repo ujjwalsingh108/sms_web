@@ -106,6 +106,8 @@ export default async function AccountsPage() {
     (h) => h.type === "liability"
   );
 
+  console.log({ typedTransactions, accountHeadMap });
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -307,7 +309,7 @@ export default async function AccountsPage() {
                       <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden md:table-cell truncate max-w-xs">
                         {txn.description || "-"}
                       </td>
-                      <td className="p-2 md:p-3 text-center">
+                      <td className="p-2 md:p-3 text-center">                        
                         <Link
                           href={`/dashboard/accounts/transactions/${txn.id}/view`}
                         >
