@@ -94,9 +94,24 @@ export default async function InfirmaryPage() {
 
   const totalRecords = typedMedicalRecords.length;
   const totalCheckups = typedCheckups.length;
-  const todayVisits = typedMedicalRecords.filter(
-    (r) => new Date(r.record_date).toDateString() === new Date().toDateString()
-  ).length;
+
+  // Calculate unique students visited today from both medical records and checkups
+  const today = new Date().toDateString();
+  const visitedStudentsToday = new Set<string>();
+
+  typedMedicalRecords.forEach((record) => {
+    if (new Date(record.record_date).toDateString() === today && record.student?.id) {
+      visitedStudentsToday.add(record.student.id);
+    }
+  });
+
+  typedCheckups.forEach((checkup) => {
+    if (new Date(checkup.checkup_date).toDateString() === today && checkup.student?.id) {
+      visitedStudentsToday.add(checkup.student.id);
+    }
+  });
+
+  const todayVisits = visitedStudentsToday.size;
 
   return (
     <div className="space-y-6 p-6">

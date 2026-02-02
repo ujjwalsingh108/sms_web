@@ -139,7 +139,7 @@ export default function EditCheckupPage() {
         return;
       }
 
-      const checkupData = {
+      const checkupData: Record<string, any> = {
         student_id: formData.student_id,
         checkup_date: formData.checkup_date,
         height: formData.height ? parseFloat(formData.height) : null,
@@ -152,8 +152,9 @@ export default function EditCheckupPage() {
         remarks: formData.remarks || null,
       };
 
-      const { error: updateError } = await supabase
-        .from("medical_checkups")
+      const { error: updateError } = await (
+        supabase.from("medical_checkups") as any
+      )
         .update(checkupData)
         .eq("id", checkupId);
 

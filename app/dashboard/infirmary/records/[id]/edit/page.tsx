@@ -126,7 +126,7 @@ export default function EditMedicalRecordPage() {
         return;
       }
 
-      const recordData = {
+      const recordData: Record<string, any> = {
         student_id: formData.student_id,
         record_date: formData.record_date,
         symptoms: formData.symptoms || null,
@@ -138,8 +138,9 @@ export default function EditMedicalRecordPage() {
         remarks: formData.remarks || null,
       };
 
-      const { error: updateError } = await supabase
-        .from("medical_records")
+      const { error: updateError } = await (
+        supabase.from("medical_records") as any
+      )
         .update(recordData)
         .eq("id", recordId);
 
