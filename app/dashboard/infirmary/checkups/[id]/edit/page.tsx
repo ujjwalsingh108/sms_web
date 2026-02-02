@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,18 +29,35 @@ type FormData = {
   remarks: string;
 };
 
-export default function NewCheckupPage() {
+type MedicalCheckup = {
+  id: string;
+  student_id: string;
+  checkup_date: string;
+  height: number | null;
+  weight: number | null;
+  blood_pressure: string | null;
+  temperature: number | null;
+  vision_test: string | null;
+  remarks: string | null;
+  conducted_by: string | null;
+  tenant_id: string;
+};
+
+export default function EditCheckupPage() {
   const router = useRouter();
+  const params = useParams();
+  const checkupId = params.id as string;
   const supabase = createClient();
 
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState("");
   const [bmi, setBmi] = useState<string>("");
 
   const [formData, setFormData] = useState<FormData>({
     student_id: "",
-    checkup_date: new Date().toISOString().split("T")[0],
+    checkup_date: "",
     height: "",
     weight: "",
     blood_pressure: "",
@@ -50,7 +67,7 @@ export default function NewCheckupPage() {
   });
 
   useEffect(() => {
-    fetchStudents();
+    fetchStudentsAndCheckup();
   }, []);
 
   useEffect(() => {
@@ -69,13 +86,41 @@ export default function NewCheckupPage() {
     }
   }, [formData.height, formData.weight]);
 
-  const fetchStudents = async () => {
-    const { data } = await supabase
-      .from("students")
-      .select("id, first_name, last_name, admission_no")
-      .order("first_name");
+  const fetchStudentsAndCheckup = async () => {
+    try {
+      // Fetch students
+      const { data: studentData } = await supabase
+        .from("students")
+        .select("id, first_name, last_name, admission_no")
+        .order("first_name");
 
-    setStudents((data as Student[] | null) || []);
+      setStudents((studentData as Student[] | null) || []);
+
+      // Fetch checkup data
+      const { data: checkupData } = await supabase
+        .from("medical_checkups")
+        .select("*")
+        .eq("id", checkupId)
+        .single();
+
+      if (checkupData) {
+        const checkup = checkupData as MedicalCheckup;
+        setFormData({
+          student_id: checkup.student_id,
+          checkup_date: checkup.checkup_date,
+          height: checkup.height?.toString() || "",
+          weight: checkup.weight?.toString() || "",
+          blood_pressure: checkup.blood_pressure || "",
+          temperature: checkup.temperature?.toString() || "",
+          vision_test: checkup.vision_test || "",
+          remarks: checkup.remarks || "",
+        });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load data");
+    } finally {
+      setInitialLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,29 +139,7 @@ export default function NewCheckupPage() {
         return;
       }
 
-      // Fetch user's tenant_id from members table
-      const { data: userMember, error: memberError } = await supabase
-        .from("members")
-        .select("tenant_id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (memberError || !userMember) {
-        setError("Failed to fetch user tenant information");
-        setLoading(false);
-        return;
-      }
-
-      const tenantId = (userMember as { tenant_id: string }).tenant_id;
-
-      if (!tenantId) {
-        setError("User tenant information not found");
-        setLoading(false);
-        return;
-      }
-
       const checkupData = {
-        tenant_id: tenantId,
         student_id: formData.student_id,
         checkup_date: formData.checkup_date,
         height: formData.height ? parseFloat(formData.height) : null,
@@ -127,23 +150,23 @@ export default function NewCheckupPage() {
           : null,
         vision_test: formData.vision_test || null,
         remarks: formData.remarks || null,
-        conducted_by: user.id,
       };
 
-      const { error: insertError } = await (
-        supabase.from("medical_checkups") as any
-      ).insert(checkupData);
+      const { error: updateError } = await supabase
+        .from("medical_checkups")
+        .update(checkupData)
+        .eq("id", checkupId);
 
-      if (insertError) {
-        setError(insertError.message);
+      if (updateError) {
+        setError(updateError.message);
         setLoading(false);
         return;
       }
 
-      router.push("/dashboard/infirmary");
+      router.push(`/dashboard/infirmary/checkups/${checkupId}`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create checkup");
+      setError(err instanceof Error ? err.message : "Failed to update checkup");
       setLoading(false);
     }
   };
@@ -156,12 +179,20 @@ export default function NewCheckupPage() {
     return "Obese";
   };
 
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8 flex items-center justify-center">
+        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/infirmary">
+          <Link href={`/dashboard/infirmary/checkups/${checkupId}`}>
             <Button
               variant="ghost"
               size="icon"
@@ -172,10 +203,10 @@ export default function NewCheckupPage() {
           </Link>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">
-              New Health Checkup
+              Edit Health Checkup
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Schedule and record a health checkup
+              Update health checkup details
             </p>
           </div>
         </div>
@@ -388,9 +419,12 @@ export default function NewCheckupPage() {
                   className="flex-1 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all"
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  {loading ? "Creating..." : "Create Health Checkup"}
+                  {loading ? "Updating..." : "Update Health Checkup"}
                 </Button>
-                <Link href="/dashboard/infirmary" className="flex-1">
+                <Link
+                  href={`/dashboard/infirmary/checkups/${checkupId}`}
+                  className="flex-1"
+                >
                   <Button
                     type="button"
                     variant="outline"

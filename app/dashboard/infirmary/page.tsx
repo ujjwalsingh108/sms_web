@@ -248,6 +248,17 @@ export default async function InfirmaryPage() {
                             View
                           </Button>
                         </Link>
+                        <Link
+                          href={`/dashboard/infirmary/records/${record.id}/edit`}
+                          className="ml-2"
+                        >
+                          <Button
+                            size="sm"
+                            className="text-xs bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-md hover:shadow-lg transition-all"
+                          >
+                            Edit
+                          </Button>
+                        </Link>
                       </td>
                     </tr>
                   ))
@@ -337,7 +348,7 @@ export default async function InfirmaryPage() {
                       <td className="p-2 md:p-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden sm:table-cell">
                         {checkup.vision_test || "-"}
                       </td>
-                      <td className="p-2 md:p-3 text-center">
+                      <td className="p-2 md:p-3 text-center space-x-2">
                         <Link
                           href={`/dashboard/infirmary/checkups/${checkup.id}`}
                         >
@@ -347,6 +358,16 @@ export default async function InfirmaryPage() {
                             className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20"
                           >
                             View
+                          </Button>
+                        </Link>
+                        <Link
+                          href={`/dashboard/infirmary/checkups/${checkup.id}/edit`}
+                        >
+                          <Button
+                            size="sm"
+                            className="text-xs bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-md hover:shadow-lg transition-all"
+                          >
+                            Edit
                           </Button>
                         </Link>
                       </td>
