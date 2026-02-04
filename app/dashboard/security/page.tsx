@@ -48,11 +48,13 @@ export default async function SecurityPage() {
     .select(
       `
       *,
-      student:students(first_name, last_name, roll_number)
+      student:student_id(first_name, last_name, admission_no),
+      staff:staff_id(first_name, last_name, employee_id)
     `
     )
     .eq("tenant_id", member.tenant_id)
-    .order("issue_date", { ascending: false })
+    .is("is_deleted", false)
+    .order("pass_date", { ascending: false })
     .limit(30);
 
   // Fetch visitors
@@ -278,10 +280,10 @@ export default async function SecurityPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-3">Pass Number</th>
-                    <th className="text-left p-3">Student</th>
-                    <th className="text-left p-3">Issue Date</th>
-                    <th className="text-left p-3">Valid Until</th>
+                    <th className="text-left p-3">Issued Date</th>
+                    <th className="text-left p-3">Person</th>
+                    <th className="text-left p-3">Exit Time</th>
+                    <th className="text-left p-3">Expected Return</th>
                     <th className="text-left p-3">Reason</th>
                     <th className="text-left p-3">Status</th>
                     <th className="text-left p-3">Actions</th>
@@ -290,51 +292,56 @@ export default async function SecurityPage() {
                 <tbody>
                   {gatePasses && gatePasses.length > 0 ? (
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    gatePasses.map((pass: any) => (
-                      <tr key={pass.id} className="border-b hover:bg-gray-50">
-                        <td className="p-3 font-mono text-sm">
-                          {pass.pass_number}
-                        </td>
-                        <td className="p-3 font-medium">
-                          {pass.student
-                            ? `${pass.student.first_name} ${pass.student.last_name}`
-                            : "N/A"}
-                        </td>
-                        <td className="p-3">
-                          {new Date(pass.issue_date).toLocaleDateString()}
-                        </td>
-                        <td className="p-3">
-                          {pass.valid_until
-                            ? new Date(pass.valid_until).toLocaleDateString()
-                            : "N/A"}
-                        </td>
-                        <td className="p-3 text-sm max-w-xs truncate">
-                          {pass.reason || "N/A"}
-                        </td>
-                        <td className="p-3">
-                          <span
-                            className={`px-2 py-1 rounded text-xs ${
-                              pass.status === "active"
-                                ? "bg-green-100 text-green-800"
-                                : pass.status === "used"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {pass.status}
-                          </span>
-                        </td>
-                        <td className="p-3">
-                          <Link
-                            href={`/dashboard/security/gate-passes/${pass.id}`}
-                          >
-                            <Button variant="outline" size="sm">
-                              View
-                            </Button>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))
+                    gatePasses.map((pass: any) => {
+                      const person = pass.student || pass.staff;
+                      return (
+                        <tr key={pass.id} className="border-b hover:bg-gray-50">
+                          <td className="p-3">
+                            {new Date(pass.pass_date + "T00:00:00").toLocaleDateString()}
+                          </td>
+                          <td className="p-3 font-medium">
+                            {person
+                              ? `${person.first_name} ${person.last_name}`
+                              : "Unknown"}
+                          </td>
+                          <td className="p-3 text-sm">
+                            {pass.exit_time || "N/A"}
+                          </td>
+                          <td className="p-3 text-sm">
+                            {pass.expected_return_time || "N/A"}
+                          </td>
+                          <td className="p-3 text-sm max-w-xs truncate">
+                            {pass.reason || "N/A"}
+                          </td>
+                          <td className="p-3">
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-medium ${
+                                pass.status === "approved"
+                                  ? "bg-green-100 text-green-800"
+                                  : pass.status === "returned"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : pass.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : pass.status === "rejected"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {pass.status}
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            <Link
+                              href={`/dashboard/security/gate-passes/${pass.id}`}
+                            >
+                              <Button variant="outline" size="sm">
+                                View
+                              </Button>
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
                       <td colSpan={7} className="text-center p-8 text-gray-500">

@@ -42,11 +42,10 @@ export default function NewGatePassPage() {
   const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
   const [formData, setFormData] = useState({
     person_id: "",
-    pass_type: "",
-    purpose: "",
-    date_of_exit: "",
-    expected_return: "",
-    remarks: "",
+    pass_date: "",
+    exit_time: "",
+    expected_return_time: "",
+    reason: "",
   });
 
   useEffect(() => {
@@ -128,11 +127,10 @@ export default function NewGatePassPage() {
           tenant_id: (members as { tenant_id: string }).tenant_id,
           student_id: personType === "student" ? formData.person_id : null,
           staff_id: personType === "staff" ? formData.person_id : null,
-          pass_type: formData.pass_type,
-          purpose: formData.purpose,
-          date_of_exit: formData.date_of_exit,
-          expected_return: formData.expected_return,
-          remarks: formData.remarks || null,
+          pass_date: formData.pass_date,
+          exit_time: formData.exit_time,
+          expected_return_time: formData.expected_return_time || null,
+          reason: formData.reason || null,
           status: "pending",
         },
       ]);
@@ -153,7 +151,7 @@ export default function NewGatePassPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-4">
           <Link href="/dashboard/security/gate-passes">
             <Button
               variant="ghost"
@@ -163,15 +161,14 @@ export default function NewGatePassPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-        </div>
-
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Issue Gate Pass
-          </h1>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
-            Create a new exit permission for student or staff
-          </p>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Issue Gate Pass
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Create a new exit permission for student or staff
+            </p>
+          </div>
         </div>
 
         <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
@@ -263,67 +260,56 @@ export default function NewGatePassPage() {
                   </Select>
                 </div>
 
-                {/* Pass Type */}
+                {/* Pass Date */}
                 <div className="space-y-2">
-                  <Label htmlFor="pass_type" className="text-sm font-medium">
-                    Pass Type <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={formData.pass_type}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, pass_type: value })
-                    }
-                    required
-                  >
-                    <SelectTrigger id="pass_type" className="w-full">
-                      <SelectValue placeholder="Select pass type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="temporary">
-                        Temporary (Single Day)
-                      </SelectItem>
-                      <SelectItem value="medical">Medical Leave</SelectItem>
-                      <SelectItem value="home">Home Visit</SelectItem>
-                      <SelectItem value="emergency">Emergency</SelectItem>
-                      <SelectItem value="official">Official Work</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Exit Date */}
-                <div className="space-y-2">
-                  <Label htmlFor="date_of_exit" className="text-sm font-medium">
-                    Date of Exit <span className="text-red-500">*</span>
+                  <Label htmlFor="pass_date" className="text-sm font-medium">
+                    Pass Date <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    id="date_of_exit"
+                    id="pass_date"
                     type="date"
-                    value={formData.date_of_exit}
+                    value={formData.pass_date}
                     onChange={(e) =>
-                      setFormData({ ...formData, date_of_exit: e.target.value })
+                      setFormData({ ...formData, pass_date: e.target.value })
                     }
                     required
                     className="w-full"
                   />
                 </div>
 
-                {/* Expected Return Date */}
+                {/* Exit Time */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="expected_return"
-                    className="text-sm font-medium"
-                  >
-                    Expected Return Date
+                  <Label htmlFor="exit_time" className="text-sm font-medium">
+                    Exit Time <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    id="expected_return"
-                    type="date"
-                    value={formData.expected_return}
+                    id="exit_time"
+                    type="time"
+                    value={formData.exit_time}
+                    onChange={(e) =>
+                      setFormData({ ...formData, exit_time: e.target.value })
+                    }
+                    required
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Expected Return Time */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="expected_return_time"
+                    className="text-sm font-medium"
+                  >
+                    Expected Return Time
+                  </Label>
+                  <Input
+                    id="expected_return_time"
+                    type="time"
+                    value={formData.expected_return_time}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        expected_return: e.target.value,
+                        expected_return_time: e.target.value,
                       })
                     }
                     className="w-full"
@@ -331,38 +317,20 @@ export default function NewGatePassPage() {
                 </div>
               </div>
 
-              {/* Purpose */}
+              {/* Reason */}
               <div className="space-y-2">
-                <Label htmlFor="purpose" className="text-sm font-medium">
-                  Purpose of Exit <span className="text-red-500">*</span>
+                <Label htmlFor="reason" className="text-sm font-medium">
+                  Reason for Pass
                 </Label>
                 <Textarea
-                  id="purpose"
-                  placeholder="Provide detailed reason for exit..."
-                  value={formData.purpose}
+                  id="reason"
+                  value={formData.reason}
                   onChange={(e) =>
-                    setFormData({ ...formData, purpose: e.target.value })
+                    setFormData({ ...formData, reason: e.target.value })
                   }
-                  required
+                  placeholder="Enter the reason for the gate pass (e.g., Medical appointment, Family emergency, etc.)"
                   rows={4}
-                  className="w-full resize-none"
-                />
-              </div>
-
-              {/* Remarks */}
-              <div className="space-y-2">
-                <Label htmlFor="remarks" className="text-sm font-medium">
-                  Additional Remarks (Optional)
-                </Label>
-                <Textarea
-                  id="remarks"
-                  placeholder="Any additional information or special instructions..."
-                  value={formData.remarks}
-                  onChange={(e) =>
-                    setFormData({ ...formData, remarks: e.target.value })
-                  }
-                  rows={3}
-                  className="w-full resize-none"
+                  className="w-full"
                 />
               </div>
 
@@ -373,9 +341,8 @@ export default function NewGatePassPage() {
                   disabled={
                     loading ||
                     !formData.person_id ||
-                    !formData.pass_type ||
-                    !formData.date_of_exit ||
-                    !formData.purpose
+                    !formData.pass_date ||
+                    !formData.exit_time
                   }
                   className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
                 >

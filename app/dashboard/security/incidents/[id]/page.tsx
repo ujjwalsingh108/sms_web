@@ -15,7 +15,23 @@ import {
   Clock,
   CheckCircle2,
   Edit,
+  Shield,
 } from "lucide-react";
+
+type SecurityIncident = {
+  id: string;
+  incident_date: string;
+  incident_time: string;
+  incident_type: string;
+  location: string;
+  description: string;
+  severity: string;
+  reported_by: string;
+  action_taken: string | null;
+  status: string;
+  created_at: string;
+  is_deleted: boolean;
+};
 
 export default function IncidentDetailsPage({
   params,
@@ -23,10 +39,7 @@ export default function IncidentDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const supabase = createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [incident, setIncident] = useState<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [reporter, setReporter] = useState<any>(null);
+  const [incident, setIncident] = useState<SecurityIncident | null>(null);
   const [loading, setLoading] = useState(true);
   const [id, setId] = useState<string | null>(null);
 
@@ -51,21 +64,11 @@ export default function IncidentDetailsPage({
         .from("security_incidents")
         .select("*")
         .eq("id", id)
+        .is("is_deleted", false)
         .single();
 
       if (incidentError) throw incidentError;
-      setIncident(incidentData);
-
-      // Fetch reporter information
-      if ((incidentData as any)?.reported_by) {
-        const { data: userData } = await supabase
-          .from("users")
-          .select("first_name, last_name, email")
-          .eq("id", (incidentData as any).reported_by)
-          .single();
-
-        setReporter(userData);
-      }
+      setIncident(incidentData as SecurityIncident);
     } catch (error) {
       console.error("Error fetching incident:", error);
     } finally {
@@ -74,7 +77,7 @@ export default function IncidentDetailsPage({
   };
 
   const getSeverityColor = (severity: string) => {
-    switch (severity) {
+    switch (severity?.toLowerCase()) {
       case "critical":
         return "from-red-100 to-rose-100 text-red-700 dark:from-red-900/30 dark:to-rose-900/30 dark:text-red-400";
       case "high":
@@ -89,7 +92,7 @@ export default function IncidentDetailsPage({
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case "resolved":
       case "closed":
         return "from-green-100 to-emerald-100 text-green-700 dark:from-green-900/30 dark:to-emerald-900/30 dark:text-green-400";
@@ -102,209 +105,264 @@ export default function IncidentDetailsPage({
     }
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    try {
+      // Handle both date-only strings (YYYY-MM-DD) and full timestamps
+      let date: Date;
+      if (dateString.includes("T") || dateString.includes(" ")) {
+        // It's a full timestamp
+        date = new Date(dateString);
+      } else {
+        // It's a date-only string
+        date = new Date(dateString + "T00:00:00");
+      }
+      return date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const formatTime = (timeString: string) => {
+    if (!timeString) return "N/A";
+    try {
+      // timeString is in HH:MM:SS format
+      const [hours, minutes] = timeString.split(":").slice(0, 2);
+      const hour = parseInt(hours);
+      const min = parseInt(minutes);
+      const period = hour >= 12 ? "PM" : "AM";
+      const displayHour = hour % 12 || 12;
+      return `${String(displayHour).padStart(2, "0")}:${String(min).padStart(
+        2,
+        "0"
+      )} ${period}`;
+    } catch {
+      return timeString;
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8 flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8 flex items-center justify-center">
+        <p className="text-gray-600 dark:text-gray-400">Loading incident details...</p>
       </div>
     );
   }
 
   if (!incident) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8 flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400">Incident not found</p>
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8 flex items-center justify-center">
+        <p className="text-gray-600 dark:text-gray-400">Incident not found</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard/security/incidents">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-amber-600 to-red-600 bg-clip-text text-transparent">
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/security/incidents">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-white/50 dark:hover:bg-gray-800/50"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-600 to-red-600 bg-clip-text text-transparent">
               Incident Details
             </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Incident dated {formatDate(incident.incident_date)} at{" "}
+              {formatTime(incident.incident_time)}
+            </p>
           </div>
           <Link href={`/dashboard/security/incidents/${id}/edit`}>
-            <Button className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+            <Button className="bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white">
               <Edit className="mr-2 h-4 w-4" />
-              Update Status
+              Edit
             </Button>
           </Link>
         </div>
 
         {/* Status Badges */}
-        <div className="flex flex-wrap gap-4 justify-center">
+        <div className="flex flex-wrap gap-3">
           <span
-            className={`inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold bg-gradient-to-r ${getSeverityColor(
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r ${getSeverityColor(
               incident.severity
             )}`}
           >
-            <AlertTriangle className="h-5 w-5" />
-            {incident.severity?.toUpperCase()} Severity
+            <AlertTriangle className="h-4 w-4" />
+            {incident.severity?.charAt(0).toUpperCase() +
+              incident.severity?.slice(1)}
           </span>
           <span
-            className={`inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold bg-gradient-to-r ${getStatusColor(
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r ${getStatusColor(
               incident.status
             )}`}
           >
             {incident.status === "resolved" || incident.status === "closed" ? (
-              <CheckCircle2 className="h-5 w-5" />
+              <CheckCircle2 className="h-4 w-4" />
             ) : (
-              <Clock className="h-5 w-5" />
+              <Clock className="h-4 w-4" />
             )}
-            {incident.status?.replace("_", " ").toUpperCase()}
+            {incident.status?.replace(/_/g, " ").charAt(0).toUpperCase() +
+              incident.status?.replace(/_/g, " ").slice(1)}
           </span>
         </div>
 
-        {/* Incident Information */}
+        {/* Incident Information Card */}
         <Card className="glass-effect border-0 shadow-xl">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-            <CardTitle className="text-xl md:text-2xl font-bold bg-gradient-to-r from-amber-600 to-red-600 bg-clip-text text-transparent">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
               Incident Information
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span className="font-medium">Incident Type</span>
-                </div>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
-                  {incident.incident_type?.replace(/_/g, " ")}
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Incident Type
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 capitalize">
+                  {incident.incident_type?.replace(/_/g, " ") || "N/A"}
                 </p>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <MapPin className="h-4 w-4" />
-                  <span className="font-medium">Location</span>
-                </div>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Location
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-amber-600" />
                   {incident.location || "N/A"}
                 </p>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <Calendar className="h-4 w-4" />
-                  <span className="font-medium">Reported Date</span>
-                </div>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {new Date(incident.reported_at).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Date
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-amber-600" />
+                  {formatDate(incident.incident_date)}
                 </p>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <Clock className="h-4 w-4" />
-                  <span className="font-medium">Reported Time</span>
-                </div>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {new Date(incident.reported_at).toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  })}
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Time
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-amber-600" />
+                  {formatTime(incident.incident_time)}
                 </p>
               </div>
-
-              {reporter && (
-                <>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                      <User className="h-4 w-4" />
-                      <span className="font-medium">Reported By</span>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {reporter.first_name} {reporter.last_name}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                      <User className="h-4 w-4" />
-                      <span className="font-medium">Reporter Email</span>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {reporter.email}
-                    </p>
-                  </div>
-                </>
-              )}
-
-              {incident.resolved_at && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">Resolved Date</span>
-                  </div>
-                  <p className="text-lg font-semibold text-green-700 dark:text-green-400">
-                    {new Date(incident.resolved_at).toLocaleDateString(
-                      "en-US",
-                      {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      }
-                    )}
-                  </p>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Reported By
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <User className="h-4 w-4 text-amber-600" />
+                  {incident.reported_by || "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Severity
+                </p>
+                <div
+                  className={`inline-block px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${getSeverityColor(
+                    incident.severity
+                  )}`}
+                >
+                  {incident.severity?.charAt(0).toUpperCase() +
+                    incident.severity?.slice(1)}
                 </div>
-              )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Description */}
+        {/* Description Card */}
         <Card className="glass-effect border-0 shadow-xl">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-            <CardTitle className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
               <FileText className="h-5 w-5 text-amber-600" />
               Incident Description
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+          <CardContent>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
               {incident.description || "No description provided"}
             </p>
           </CardContent>
         </Card>
 
-        {/* Resolution Notes */}
-        {incident.resolution_notes && (
-          <Card className="glass-effect border-0 shadow-xl bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-900/10 dark:to-emerald-900/10">
-            <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-              <CardTitle className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                Resolution Notes
+        {/* Action Taken Card */}
+        {incident.action_taken && (
+          <Card className="glass-effect border-0 shadow-xl bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                Action Taken
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                {incident.resolution_notes}
+            <CardContent>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                {incident.action_taken}
               </p>
             </CardContent>
           </Card>
         )}
+
+        {/* Additional Details Card */}
+        <Card className="glass-effect border-0 shadow-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <Shield className="h-5 w-5 text-amber-600" />
+              Additional Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Current Status
+                </p>
+                <div
+                  className={`inline-block px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r ${getStatusColor(
+                    incident.status
+                  )}`}
+                >
+                  {incident.status?.replace(/_/g, " ").charAt(0).toUpperCase() +
+                    incident.status?.replace(/_/g, " ").slice(1)}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Record Created
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
+                  {formatDate(incident.created_at)}
+                </p>
+              </div>
+              <div className="md:col-span-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Incident ID
+                </p>
+                <p className="font-mono text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded">
+                  {incident.id}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

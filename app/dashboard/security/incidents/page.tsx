@@ -34,33 +34,28 @@ export default async function SecurityIncidentsPage() {
     redirect("/login");
   }
 
-  // Fetch all security incidents with reporter info
+  // Fetch all security incidents
   const { data: incidents } = await supabase
     .from("security_incidents")
-    .select(
-      `
-      *,
-      reported_by_user:reported_by(id, email)
-    `
-    )
+    .select("*")
     .eq("tenant_id", member.tenant_id)
-    .order("reported_at", { ascending: false });
-
-  type Reporter = {
-    id: string;
-    email: string;
-  };
+    .is("is_deleted", false)
+    .order("incident_date", { ascending: false })
+    .order("incident_time", { ascending: false });
 
   type Incident = {
     id: string;
+    incident_date: string;
+    incident_time: string;
     incident_type: string | null;
     description: string | null;
     location: string | null;
     severity: string | null;
     status: string;
-    reported_at: string;
-    resolved_at: string | null;
-    reported_by_user: Reporter | null;
+    reported_by: string | null;
+    action_taken: string | null;
+    created_at: string;
+    is_deleted: boolean;
   };
 
   const typedIncidents = (incidents as Incident[] | null) || [];
@@ -113,24 +108,24 @@ export default async function SecurityIncidentsPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Link href="/dashboard/security">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-300"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard/security">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-300"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-600 to-red-600 bg-clip-text text-transparent">
+                Security Incidents
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Monitor and manage all security incidents
+              </p>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-amber-600 to-red-600 bg-clip-text text-transparent">
-              Security Incidents
-            </h1>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
-              Monitor and manage all security incidents
-            </p>
           </div>
           <Link
             href="/dashboard/security/incidents/new"
@@ -243,7 +238,7 @@ export default async function SecurityIncidentsPage() {
                       >
                         <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
                           <div className="font-medium">
-                            {new Date(incident.reported_at).toLocaleDateString(
+                            {new Date(incident.incident_date).toLocaleDateString(
                               "en-IN",
                               {
                                 day: "2-digit",
@@ -253,13 +248,7 @@ export default async function SecurityIncidentsPage() {
                             )}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(incident.reported_at).toLocaleTimeString(
-                              "en-IN",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )}
+                            {incident.incident_time}
                           </div>
                         </td>
                         <td className="p-3 text-sm font-medium text-gray-900 dark:text-gray-100">

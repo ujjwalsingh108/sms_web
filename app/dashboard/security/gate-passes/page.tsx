@@ -41,11 +41,11 @@ export default async function GatePassesPage() {
       `
       *,
       student:student_id(id, first_name, last_name, admission_no),
-      staff:staff_id(id, first_name, last_name, employee_id),
-      approved_by_user:approved_by(id, email)
+      staff:staff_id(id, first_name, last_name, employee_id)
     `
     )
     .eq("tenant_id", member.tenant_id)
+    .is("is_deleted", false)
     .order("created_at", { ascending: false });
 
   type Student = {
@@ -62,23 +62,17 @@ export default async function GatePassesPage() {
     employee_id: string;
   };
 
-  type Approver = {
-    id: string;
-    email: string;
-  };
-
   type GatePass = {
     id: string;
-    pass_type: string | null;
-    purpose: string | null;
-    date_of_exit: string | null;
-    expected_return: string | null;
-    actual_return: string | null;
+    pass_date: string;
+    exit_time: string;
+    expected_return_time: string | null;
+    actual_return_time: string | null;
+    reason: string | null;
     status: string;
     created_at: string;
     student: Student | null;
     staff: Staff | null;
-    approved_by_user: Approver | null;
   };
 
   const typedGatePasses = (gatePasses as GatePass[] | null) || [];
@@ -132,24 +126,24 @@ export default async function GatePassesPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Link href="/dashboard/security">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-300"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard/security">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-300"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Gate Passes
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Manage student and staff exit permissions
+              </p>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Gate Passes
-            </h1>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
-              Manage student and staff exit permissions
-            </p>
           </div>
           <Link
             href="/dashboard/security/gate-passes/new"
@@ -289,14 +283,14 @@ export default async function GatePassesPage() {
                           </div>
                         </td>
                         <td className="p-3 text-sm text-gray-600 dark:text-gray-400 hidden md:table-cell capitalize">
-                          {pass.pass_type || "N/A"}
+                          {pass.exit_time || "N/A"}
                         </td>
                         <td className="p-3 text-sm text-gray-600 dark:text-gray-400 hidden lg:table-cell max-w-xs truncate">
-                          {pass.purpose || "N/A"}
+                          {pass.reason || "N/A"}
                         </td>
                         <td className="p-3 text-sm text-gray-600 dark:text-gray-400 hidden lg:table-cell">
-                          {pass.date_of_exit
-                            ? new Date(pass.date_of_exit).toLocaleDateString(
+                          {pass.pass_date
+                            ? new Date(pass.pass_date).toLocaleDateString(
                                 "en-IN"
                               )
                             : "N/A"}

@@ -1,84 +1,133 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
-import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ArrowLeft,
-  User,
   Calendar,
-  FileText,
   Clock,
-  CheckCircle,
-  XCircle,
-  LogOut,
+  User,
+  FileText,
+  CheckCircle2,
   Edit,
 } from "lucide-react";
+import Link from "next/link";
 
-export default function GatePassDetailsPage({
+type Student = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  admission_no: string;
+};
+
+type Staff = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  employee_id: string;
+};
+
+type GatePass = {
+  id: string;
+  pass_date: string;
+  exit_time: string;
+  expected_return_time: string | null;
+  actual_return_time: string | null;
+  reason: string | null;
+  status: string;
+  created_at: string;
+  student: Student | null;
+  staff: Staff | null;
+};
+
+export default async function GatePassDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const supabase = createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [gatePass, setGatePass] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [id, setId] = useState<string | null>(null);
+  const { id } = await params;
+  const supabase = await createClient();
 
-  useEffect(() => {
-    params.then((resolvedParams) => {
-      setId(resolvedParams.id);
-    });
-  }, [params]);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  useEffect(() => {
-    if (id) {
-      fetchGatePass();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  if (!user) {
+    redirect("/login");
+  }
 
-  const fetchGatePass = async () => {
-    if (!id) return;
+  const { data: members } = await supabase
+    .from("members")
+    .select("tenant_id")
+    .eq("user_id", user.id)
+    .eq("status", "approved")
+    .single();
 
+  if (!members) {
+    redirect("/login");
+  }
+
+  // Fetch gate pass with person details
+  const { data: gatePass } = await supabase
+    .from("gate_passes")
+    .select(
+      `
+      *,
+      student:student_id(id, first_name, last_name, admission_no),
+      staff:staff_id(id, first_name, last_name, employee_id)
+    `
+    )
+    .eq("id", id)
+    .eq("tenant_id", (members as { tenant_id: string }).tenant_id)
+    .is("is_deleted", false)
+    .single();
+
+  if (!gatePass) {
+    redirect("/dashboard/security/gate-passes");
+  }
+
+  const pass = gatePass as GatePass;
+  const person = pass.student || pass.staff;
+  const personType = pass.student ? "student" : "staff";
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
     try {
-      const { data, error } = await supabase
-        .from("gate_passes")
-        .select(
-          `
-          *,
-          student:students (
-            first_name,
-            last_name,
-            admission_no,
-            class,
-            section
-          ),
-          staff:staff (
-            first_name,
-            last_name,
-            employee_id,
-            department
-          )
-        `
-        )
-        .eq("id", id)
-        .single();
+      let date: Date;
+      if (dateString.includes("T") || dateString.includes(" ")) {
+        date = new Date(dateString);
+      } else {
+        date = new Date(dateString + "T00:00:00");
+      }
+      return date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  };
 
-      if (error) throw error;
-      setGatePass(data);
-    } catch (error) {
-      console.error("Error fetching gate pass:", error);
-    } finally {
-      setLoading(false);
+  const formatTime = (timeString: string) => {
+    if (!timeString) return "N/A";
+    try {
+      const [hours, minutes] = timeString.split(":").slice(0, 2);
+      const hour = parseInt(hours);
+      const min = parseInt(minutes);
+      const period = hour >= 12 ? "PM" : "AM";
+      const displayHour = hour % 12 || 12;
+      return `${String(displayHour).padStart(2, "0")}:${String(min).padStart(
+        2,
+        "0"
+      )} ${period}`;
+    } catch {
+      return timeString;
     }
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case "approved":
         return "from-green-100 to-emerald-100 text-green-700 dark:from-green-900/30 dark:to-emerald-900/30 dark:text-green-400";
       case "pending":
@@ -92,274 +141,198 @@ export default function GatePassDetailsPage({
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "approved":
-        return <CheckCircle className="h-5 w-5" />;
-      case "pending":
-        return <Clock className="h-5 w-5" />;
-      case "rejected":
-        return <XCircle className="h-5 w-5" />;
-      case "returned":
-        return <LogOut className="h-5 w-5" />;
-      default:
-        return null;
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8 flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
-      </div>
-    );
-  }
-
-  if (!gatePass) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8 flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400">Gate pass not found</p>
-      </div>
-    );
-  }
-
-  const person = gatePass.student || gatePass.staff;
-  const personType = gatePass.student ? "Student" : "Staff";
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard/security/gate-passes">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/security/gate-passes">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-white/50 dark:hover:bg-gray-800/50"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Gate Pass Details
             </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Pass dated {formatDate(pass.pass_date)} at {formatTime(pass.exit_time)}
+            </p>
           </div>
-          {gatePass.status === "pending" && (
-            <Link href={`/dashboard/security/gate-passes/${id}/edit`}>
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
-                <Edit className="mr-2 h-4 w-4" />
-                Update Status
-              </Button>
-            </Link>
-          )}
+          <Link href={`/dashboard/security/gate-passes/${id}/edit`}>
+            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+          </Link>
         </div>
 
         {/* Status Badge */}
-        <div className="flex justify-center">
+        <div className="flex flex-wrap gap-3">
           <span
-            className={`inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold bg-gradient-to-r ${getStatusColor(
-              gatePass.status
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r ${getStatusColor(
+              pass.status
             )}`}
           >
-            {getStatusIcon(gatePass.status)}
-            {gatePass.status?.toUpperCase()}
+            {pass.status === "returned" || pass.status === "approved" ? (
+              <CheckCircle2 className="h-4 w-4" />
+            ) : (
+              <Clock className="h-4 w-4" />
+            )}
+            {pass.status?.charAt(0).toUpperCase() + pass.status?.slice(1)}
           </span>
         </div>
 
-        {/* Person Information */}
-        <Card className="glass-effect border-0 shadow-xl">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-            <CardTitle className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              {personType} Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <User className="h-4 w-4" />
-                  <span className="font-medium">Name</span>
+        {/* Person Information Card */}
+        {person && (
+          <Card className="glass-effect border-0 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                <User className="h-5 w-5 text-blue-600" />
+                {personType === "student" ? "Student" : "Staff"} Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                    Name
+                  </p>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">
+                    {person.first_name} {person.last_name}
+                  </p>
                 </div>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {person?.first_name} {person?.last_name}
-                </p>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                    {personType === "student" ? "Admission No." : "Employee ID"}
+                  </p>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">
+                    {personType === "student"
+                      ? (person as Student).admission_no
+                      : (person as Staff).employee_id}
+                  </p>
+                </div>
               </div>
+            </CardContent>
+          </Card>
+        )}
 
-              {gatePass.student && (
-                <>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                      <FileText className="h-4 w-4" />
-                      <span className="font-medium">Admission No</span>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {person?.admission_no}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                      <FileText className="h-4 w-4" />
-                      <span className="font-medium">Class</span>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {person?.class} - {person?.section}
-                    </p>
-                  </div>
-                </>
-              )}
-
-              {gatePass.staff && (
-                <>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                      <FileText className="h-4 w-4" />
-                      <span className="font-medium">Employee ID</span>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {person?.employee_id}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                      <FileText className="h-4 w-4" />
-                      <span className="font-medium">Department</span>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {person?.department}
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pass Details */}
+        {/* Pass Details Card */}
         <Card className="glass-effect border-0 shadow-xl">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-            <CardTitle className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <Calendar className="h-5 w-5 text-blue-600" />
               Pass Details
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <FileText className="h-4 w-4" />
-                  <span className="font-medium">Pass Type</span>
-                </div>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
-                  {gatePass.pass_type?.replace(/_/g, " ")}
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Pass Date
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                  {formatDate(pass.pass_date)}
                 </p>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <Calendar className="h-4 w-4" />
-                  <span className="font-medium">Date of Exit</span>
-                </div>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {new Date(gatePass.date_of_exit).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Exit Time
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                  {formatTime(pass.exit_time)}
                 </p>
               </div>
-
-              {gatePass.expected_return && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <Clock className="h-4 w-4" />
-                    <span className="font-medium">Expected Return</span>
-                  </div>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {new Date(gatePass.expected_return).toLocaleDateString(
-                      "en-US",
-                      {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      }
-                    )}
-                  </p>
-                </div>
-              )}
-
-              {gatePass.actual_return && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <LogOut className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">Actual Return</span>
-                  </div>
-                  <p className="text-lg font-semibold text-green-700 dark:text-green-400">
-                    {new Date(gatePass.actual_return).toLocaleDateString(
-                      "en-US",
-                      {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      }
-                    )}
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <Calendar className="h-4 w-4" />
-                  <span className="font-medium">Issued Date</span>
-                </div>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {new Date(gatePass.created_at).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Expected Return Time
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                  {pass.expected_return_time
+                    ? formatTime(pass.expected_return_time)
+                    : "Not specified"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Actual Return Time
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  {pass.actual_return_time
+                    ? formatTime(pass.actual_return_time)
+                    : "Not returned yet"}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Purpose */}
-        <Card className="glass-effect border-0 shadow-xl">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-            <CardTitle className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-600" />
-              Purpose
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-              {gatePass.purpose || "No purpose provided"}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Remarks */}
-        {gatePass.remarks && (
+        {/* Reason Card */}
+        {pass.reason && (
           <Card className="glass-effect border-0 shadow-xl">
-            <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-              <CardTitle className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <FileText className="h-5 w-5 text-indigo-600" />
-                Remarks
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                <FileText className="h-5 w-5 text-blue-600" />
+                Reason for Pass
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                {gatePass.remarks}
+            <CardContent>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                {pass.reason}
               </p>
             </CardContent>
           </Card>
         )}
+
+        {/* Additional Information Card */}
+        <Card className="glass-effect border-0 shadow-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Additional Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Status
+                </p>
+                <div
+                  className={`inline-block px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r ${getStatusColor(
+                    pass.status
+                  )}`}
+                >
+                  {pass.status?.charAt(0).toUpperCase() + pass.status?.slice(1)}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Created Date
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
+                  {formatDate(pass.created_at)}
+                </p>
+              </div>
+              <div className="md:col-span-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Gate Pass ID
+                </p>
+                <p className="font-mono text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded">
+                  {pass.id}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

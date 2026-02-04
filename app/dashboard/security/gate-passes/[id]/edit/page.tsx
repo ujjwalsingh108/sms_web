@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -15,9 +14,21 @@ import {
 } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
-import { ArrowLeft, Save, Info } from "lucide-react";
+import { ArrowLeft, Save, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
+type GatePass = {
+  id: string;
+  pass_date: string;
+  exit_time: string;
+  expected_return_time: string | null;
+  actual_return_time: string | null;
+  reason: string | null;
+  status: string;
+  student_id: string | null;
+  staff_id: string | null;
+};
 
 export default function EditGatePassPage({
   params,
@@ -26,16 +37,14 @@ export default function EditGatePassPage({
 }) {
   const router = useRouter();
   const supabase = createClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [gatePass, setGatePass] = useState<any>(null);
+  const [gatePass, setGatePass] = useState<GatePass | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [id, setId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     status: "",
-    actual_return: "",
-    remarks: "",
+    actual_return_time: "",
   });
 
   useEffect(() => {
@@ -57,33 +66,21 @@ export default function EditGatePassPage({
     try {
       const { data, error } = await supabase
         .from("gate_passes")
-        .select(
-          `
-          *,
-          student:students (
-            first_name,
-            last_name,
-            admission_no
-          ),
-          staff:staff (
-            first_name,
-            last_name,
-            employee_id
-          )
-        `
-        )
+        .select("*")
         .eq("id", id)
+        .is("is_deleted", false)
         .single();
 
       if (error) throw error;
-      setGatePass(data);
+      setGatePass(data as GatePass);
       setFormData({
-        status: (data as any)?.status || "pending",
-        actual_return: (data as any)?.actual_return || "",
-        remarks: (data as any)?.remarks || "",
+        status: (data as GatePass)?.status || "pending",
+        actual_return_time: (data as GatePass)?.actual_return_time || "",
       });
     } catch (error) {
       console.error("Error fetching gate pass:", error);
+      toast.error("Failed to load gate pass");
+      router.push("/dashboard/security/gate-passes");
     } finally {
       setLoading(false);
     }
@@ -94,36 +91,22 @@ export default function EditGatePassPage({
     setUpdating(true);
 
     try {
-      const { data: userData } = await supabase.auth.getUser();
-
       const updateData: {
         status: string;
-        remarks: string;
-        actual_return?: string;
-        approved_by?: string;
+        actual_return_time: string | null;
       } = {
         status: formData.status,
-        remarks: formData.remarks,
+        actual_return_time: formData.actual_return_time || null,
       };
 
-      // If status is approved, set approved_by
-      if (formData.status === "approved" && !gatePass.approved_by) {
-        updateData.approved_by = userData.user?.id;
-      }
-
-      // If status is returned and actual_return is provided, set it
-      if (formData.status === "returned" && formData.actual_return) {
-        updateData.actual_return = formData.actual_return;
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("gate_passes")
         .update(updateData)
         .eq("id", id);
 
       if (error) throw error;
 
+      toast.success("Gate pass updated successfully");
       router.push(`/dashboard/security/gate-passes/${id}`);
       router.refresh();
     } catch (error) {
@@ -136,94 +119,94 @@ export default function EditGatePassPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8 flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8 flex items-center justify-center">
+        <p className="text-gray-600 dark:text-gray-400">Loading gate pass...</p>
       </div>
     );
   }
 
   if (!gatePass) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8 flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400">Gate pass not found</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8 flex items-center justify-center">
+        <p className="text-gray-600 dark:text-gray-400">Gate pass not found</p>
       </div>
     );
   }
 
-  const person = gatePass.student || gatePass.staff;
-  const personType = gatePass.student ? "Student" : "Staff";
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <Link href={`/dashboard/security/gate-passes/${id}`}>
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
+              className="hover:bg-white/50 dark:hover:bg-gray-800/50"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Update Gate Pass
-          </h1>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Update Gate Pass
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Update status and return time
+            </p>
+          </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Card className="glass-effect border-0 shadow-xl">
-            <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-              <CardTitle className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Gate Pass Status Update
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              {/* Current Gate Pass Info */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">
-                    {personType}:{" "}
-                    <span className="font-normal">
-                      {person?.first_name} {person?.last_name}
-                    </span>
-                  </p>
-                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">
-                    {personType === "Student" ? "Admission No" : "Employee ID"}:{" "}
-                    <span className="font-normal">
-                      {person?.admission_no || person?.employee_id}
-                    </span>
-                  </p>
-                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">
-                    Pass Type:{" "}
-                    <span className="font-normal capitalize">
-                      {gatePass.pass_type?.replace(/_/g, " ")}
-                    </span>
-                  </p>
-                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">
-                    Date of Exit:{" "}
-                    <span className="font-normal">
-                      {new Date(gatePass.date_of_exit).toLocaleDateString()}
-                    </span>
-                  </p>
-                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">
-                    Current Status:{" "}
-                    <span className="font-normal capitalize">
-                      {gatePass.status}
-                    </span>
-                  </p>
-                </div>
+        {/* Current Pass Info */}
+        <Card className="glass-effect border-0 shadow-xl bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/10">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-gray-500 dark:text-gray-400">Pass Date</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
+                  {new Date(gatePass.pass_date + "T00:00:00").toLocaleDateString(
+                    "en-IN"
+                  )}
+                </p>
               </div>
+              <div>
+                <p className="text-gray-500 dark:text-gray-400">Exit Time</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
+                  {gatePass.exit_time}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Expected Return Time
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
+                  {gatePass.expected_return_time || "Not specified"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500 dark:text-gray-400">Current Status</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 capitalize">
+                  {gatePass.status}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
+        {/* Edit Form */}
+        <Card className="glass-effect border-0 shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-lg md:text-xl">Update Pass Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Status Selection */}
               <div className="space-y-2">
                 <Label
                   htmlFor="status"
                   className="text-sm font-semibold text-gray-700 dark:text-gray-300"
                 >
-                  New Status <span className="text-red-500">*</span>
+                  Status <span className="text-red-500">*</span>
                 </Label>
                 <Select
                   value={formData.status}
@@ -233,7 +216,7 @@ export default function EditGatePassPage({
                   required
                 >
                   <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                    <SelectValue placeholder="Select new status" />
+                    <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pending">
@@ -264,47 +247,29 @@ export default function EditGatePassPage({
                 </Select>
               </div>
 
-              {/* Actual Return Date (only show if status is returned) */}
-              {formData.status === "returned" && (
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="actual_return"
-                    className="text-sm font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    Actual Return Date
-                  </Label>
-                  <Input
-                    id="actual_return"
-                    type="date"
-                    value={formData.actual_return}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        actual_return: e.target.value,
-                      })
-                    }
-                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-              )}
-
-              {/* Remarks */}
+              {/* Actual Return Time */}
               <div className="space-y-2">
                 <Label
-                  htmlFor="remarks"
+                  htmlFor="actual_return_time"
                   className="text-sm font-semibold text-gray-700 dark:text-gray-300"
                 >
-                  Remarks
+                  Actual Return Time
+                  {formData.status === "returned" && (
+                    <span className="text-red-500">*</span>
+                  )}
                 </Label>
-                <Textarea
-                  id="remarks"
-                  value={formData.remarks}
+                <Input
+                  id="actual_return_time"
+                  type="time"
+                  value={formData.actual_return_time}
                   onChange={(e) =>
-                    setFormData({ ...formData, remarks: e.target.value })
+                    setFormData({
+                      ...formData,
+                      actual_return_time: e.target.value,
+                    })
                   }
-                  rows={4}
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 resize-none"
-                  placeholder="Add any notes or remarks about this gate pass..."
+                  required={formData.status === "returned"}
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
@@ -315,44 +280,41 @@ export default function EditGatePassPage({
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8"
                 >
                   <Save className="mr-2 h-4 w-4" />
-                  {updating ? "Updating..." : "Update Status"}
+                  {updating ? "Updating..." : "Update Gate Pass"}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </form>
+          </CardContent>
+        </Card>
 
-          {/* Info Section */}
-          <Card className="glass-effect border-0 shadow-xl bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/10">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-3">
-                <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                  <p className="font-semibold text-blue-900 dark:text-blue-300">
-                    Status Guidelines:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400">
-                    <li>
-                      <strong>Pending:</strong> Gate pass awaiting approval
-                    </li>
-                    <li>
-                      <strong>Approved:</strong> Gate pass approved for exit
-                    </li>
-                    <li>
-                      <strong>Rejected:</strong> Gate pass request denied
-                    </li>
-                    <li>
-                      <strong>Returned:</strong> Person has returned to campus
-                    </li>
-                  </ul>
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-3">
-                    Note: When marking as returned, you can optionally specify
-                    the actual return date.
-                  </p>
-                </div>
+        {/* Help Section */}
+        <Card className="glass-effect border-0 shadow-xl bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/10">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <p className="font-semibold text-blue-900 dark:text-blue-300">
+                  Status Guidelines:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400">
+                  <li>
+                    <strong>Pending:</strong> Pass request awaiting approval
+                  </li>
+                  <li>
+                    <strong>Approved:</strong> Pass has been approved for exit
+                  </li>
+                  <li>
+                    <strong>Rejected:</strong> Pass request has been declined
+                  </li>
+                  <li>
+                    <strong>Returned:</strong> Student/Staff has returned (requires
+                    actual return time)
+                  </li>
+                </ul>
               </div>
-            </CardContent>
-          </Card>
-        </form>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -33,7 +33,7 @@ export default function EditIncidentPage({
 
   const [formData, setFormData] = useState({
     status: "",
-    resolution_notes: "",
+    action_taken: "",
   });
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function EditIncidentPage({
       setIncident(data);
       setFormData({
         status: (data as any)?.status || "open",
-        resolution_notes: (data as any)?.resolution_notes || "",
+        action_taken: (data as any)?.action_taken || "",
       });
     } catch (error) {
       console.error("Error fetching incident:", error);
@@ -79,20 +79,11 @@ export default function EditIncidentPage({
     try {
       const updateData: {
         status: string;
-        resolution_notes: string;
-        resolved_at?: string;
+        action_taken: string;
       } = {
         status: formData.status,
-        resolution_notes: formData.resolution_notes,
+        action_taken: formData.action_taken,
       };
-
-      // If status is resolved or closed, set resolved_at timestamp
-      if (
-        (formData.status === "resolved" || formData.status === "closed") &&
-        !incident.resolved_at
-      ) {
-        updateData.resolved_at = new Date().toISOString();
-      }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
@@ -233,25 +224,25 @@ export default function EditIncidentPage({
                 </Select>
               </div>
 
-              {/* Resolution Notes */}
+              {/* Action Taken */}
               <div className="space-y-2">
                 <Label
-                  htmlFor="resolution_notes"
+                  htmlFor="action_taken"
                   className="text-sm font-semibold text-gray-700 dark:text-gray-300"
                 >
-                  Resolution Notes{" "}
+                  Action Taken{" "}
                   {(formData.status === "resolved" ||
                     formData.status === "closed") && (
                     <span className="text-red-500">*</span>
                   )}
                 </Label>
                 <Textarea
-                  id="resolution_notes"
-                  value={formData.resolution_notes}
+                  id="action_taken"
+                  value={formData.action_taken}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      resolution_notes: e.target.value,
+                      action_taken: e.target.value,
                     })
                   }
                   required={

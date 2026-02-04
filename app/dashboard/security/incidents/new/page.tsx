@@ -23,11 +23,15 @@ export default function NewSecurityIncidentPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    incident_date: new Date().toISOString().split("T")[0],
+    incident_time: new Date().toTimeString().split(" ")[0].slice(0, 5),
     incident_type: "",
     description: "",
     location: "",
     severity: "",
     status: "open",
+    reported_by: "",
+    action_taken: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,13 +68,15 @@ export default function NewSecurityIncidentPage() {
       ).insert([
         {
           tenant_id: (members as { tenant_id: string }).tenant_id,
+          incident_date: formData.incident_date,
+          incident_time: formData.incident_time,
           incident_type: formData.incident_type,
           description: formData.description,
           location: formData.location,
           severity: formData.severity,
           status: formData.status,
-          reported_by: user.id,
-          reported_at: new Date().toISOString(),
+          reported_by: formData.reported_by,
+          action_taken: formData.action_taken,
         },
       ]);
 
@@ -88,30 +94,31 @@ export default function NewSecurityIncidentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center gap-2 mb-4">
+        {/* Header */}
+        <div className="flex items-center gap-4">
           <Link href="/dashboard/security/incidents">
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-300"
+              className="hover:bg-white/50 dark:hover:bg-gray-800/50"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-600 to-red-600 bg-clip-text text-transparent">
+              Report Security Incident
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Document a new security incident or concern
+            </p>
+          </div>
         </div>
 
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-amber-600 to-red-600 bg-clip-text text-transparent">
-            Report Security Incident
-          </h1>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
-            Document a new security incident or concern
-          </p>
-        </div>
-
-        <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+        {/* Form Card */}
+        <Card className="glass-effect border-0 shadow-xl">
           <CardHeader>
             <CardTitle className="text-lg md:text-xl">
               Incident Details
@@ -120,6 +127,46 @@ export default function NewSecurityIncidentPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Date */}
+                <div className="space-y-2">
+                  <Label htmlFor="incident_date" className="text-sm font-medium">
+                    Incident Date <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="incident_date"
+                    type="date"
+                    value={formData.incident_date}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        incident_date: e.target.value,
+                      })
+                    }
+                    required
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Time */}
+                <div className="space-y-2">
+                  <Label htmlFor="incident_time" className="text-sm font-medium">
+                    Incident Time <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="incident_time"
+                    type="time"
+                    value={formData.incident_time}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        incident_time: e.target.value,
+                      })
+                    }
+                    required
+                    className="w-full"
+                  />
+                </div>
+
                 {/* Incident Type */}
                 <div className="space-y-2">
                   <Label
@@ -139,19 +186,32 @@ export default function NewSecurityIncidentPage() {
                       <SelectValue placeholder="Select incident type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="theft">Theft</SelectItem>
-                      <SelectItem value="vandalism">Vandalism</SelectItem>
-                      <SelectItem value="trespassing">Trespassing</SelectItem>
-                      <SelectItem value="fire">Fire Hazard</SelectItem>
-                      <SelectItem value="medical_emergency">
+                      <SelectItem value="Theft">Theft</SelectItem>
+                      <SelectItem value="Vandalism">Vandalism</SelectItem>
+                      <SelectItem value="Trespassing">Trespassing</SelectItem>
+                      <SelectItem value="Fire Hazard">Fire Hazard</SelectItem>
+                      <SelectItem value="Medical Emergency">
                         Medical Emergency
                       </SelectItem>
-                      <SelectItem value="fight">Fight/Altercation</SelectItem>
-                      <SelectItem value="suspicious_activity">
+                      <SelectItem value="Fight/Altercation">
+                        Fight/Altercation
+                      </SelectItem>
+                      <SelectItem value="Suspicious Activity">
                         Suspicious Activity
                       </SelectItem>
-                      <SelectItem value="bullying">Bullying</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="Equipment Damage">
+                        Equipment Damage
+                      </SelectItem>
+                      <SelectItem value="Student Misconduct">
+                        Student Misconduct
+                      </SelectItem>
+                      <SelectItem value="Unauthorized Entry">
+                        Unauthorized Entry
+                      </SelectItem>
+                      <SelectItem value="Property Damage">
+                        Property Damage
+                      </SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -217,6 +277,48 @@ export default function NewSecurityIncidentPage() {
                     className="w-full"
                   />
                 </div>
+
+                {/* Reported By */}
+                <div className="space-y-2">
+                  <Label htmlFor="reported_by" className="text-sm font-medium">
+                    Reported By <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="reported_by"
+                    type="text"
+                    placeholder="Name of person reporting"
+                    value={formData.reported_by}
+                    onChange={(e) =>
+                      setFormData({ ...formData, reported_by: e.target.value })
+                    }
+                    required
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Status */}
+                <div className="space-y-2">
+                  <Label htmlFor="status" className="text-sm font-medium">
+                    Status <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, status: value })
+                    }
+                    required
+                  >
+                    <SelectTrigger id="status" className="w-full">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="investigating">Investigating</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Description */}
@@ -240,16 +342,38 @@ export default function NewSecurityIncidentPage() {
                 </p>
               </div>
 
+              {/* Action Taken */}
+              <div className="space-y-2">
+                <Label htmlFor="action_taken" className="text-sm font-medium">
+                  Action Taken <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="action_taken"
+                  placeholder="Describe the actions taken in response to this incident..."
+                  value={formData.action_taken}
+                  onChange={(e) =>
+                    setFormData({ ...formData, action_taken: e.target.value })
+                  }
+                  required
+                  rows={4}
+                  className="w-full resize-none"
+                />
+              </div>
+
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <Button
                   type="submit"
                   disabled={
                     loading ||
+                    !formData.incident_date ||
+                    !formData.incident_time ||
                     !formData.incident_type ||
                     !formData.severity ||
                     !formData.location ||
-                    !formData.description
+                    !formData.description ||
+                    !formData.reported_by ||
+                    !formData.action_taken
                   }
                   className="w-full sm:w-auto bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white shadow-lg"
                 >
