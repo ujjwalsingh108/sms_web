@@ -223,7 +223,7 @@ export default async function GatePassesPage() {
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px]">
+              <table className="w-full min-w-[1000px]">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
                     <th className="text-left p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -305,18 +305,31 @@ export default async function GatePassesPage() {
                             {pass.status.toUpperCase()}
                           </span>
                         </td>
-                        <td className="p-3 text-center">
-                          <Link
-                            href={`/dashboard/security/gate-passes/${pass.id}`}
-                          >
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/dashboard/security/gate-passes/${pass.id}`}
                             >
-                              View
-                            </Button>
-                          </Link>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              >
+                                View
+                              </Button>
+                            </Link>
+                            <Link
+                              href={`/dashboard/security/gate-passes/${pass.id}/edit`}
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              >
+                                Edit
+                              </Button>
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))

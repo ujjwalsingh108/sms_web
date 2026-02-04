@@ -1,16 +1,44 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, UserPlus, LogIn, LogOut, Clock } from "lucide-react";
 
 export default async function VisitorsPage() {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: members } = await supabase
+    .from("members")
+    .select(
+      `
+      *,
+      role:role_id(id, name, display_name),
+      tenant:tenant_id(id, name, email)
+    `
+    )
+    .eq("user_id", user.id)
+    .eq("status", "approved");
+
+  const member = members?.[0] as { tenant_id: string } | undefined;
+
+  if (!member) {
+    redirect("/login");
+  }
+
   const { data: visitors } = await supabase
     .from("visitors")
     .select("*")
-    .order("visit_date", { ascending: false })
+    .eq("tenant_id", member.tenant_id)
+    .is("is_deleted", false)
     .order("check_in_time", { ascending: false })
     .limit(100);
 
@@ -23,10 +51,11 @@ export default async function VisitorsPage() {
     visitors?.filter((v: any) => v.status === "checked_out").length || 0;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const todayVisitors =
-    visitors?.filter(
-      (v: any) =>
-        new Date(v.visit_date).toDateString() === new Date().toDateString()
-    ).length || 0;
+    visitors?.filter((v: any) => {
+      const checkInDate = new Date(v.check_in_time).toDateString();
+      const today = new Date().toDateString();
+      return checkInDate === today;
+    }).length || 0;
   const totalVisitors = visitors?.length || 0;
 
   return (
@@ -39,14 +68,19 @@ export default async function VisitorsPage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
+                className="hover:bg-white/50 dark:hover:bg-gray-800/50"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Visitor Management
-            </h1>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Visitor Management
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Manage visitor check-ins and logs
+              </p>
+            </div>
           </div>
           <Link href="/dashboard/security/visitors/new">
             <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
@@ -123,7 +157,7 @@ export default async function VisitorsPage() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px]">
+              <table className="w-full min-w-[1000px]">
                 <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
                   <tr>
                     <th className="text-left p-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -215,17 +249,30 @@ export default async function VisitorsPage() {
                           </span>
                         </td>
                         <td className="p-4">
-                          <Link
-                            href={`/dashboard/security/visitors/${visitor.id}`}
-                          >
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:border-purple-300 transition-all duration-300"
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/dashboard/security/visitors/${visitor.id}`}
                             >
-                              View
-                            </Button>
-                          </Link>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:border-purple-300 transition-all duration-300"
+                              >
+                                View
+                              </Button>
+                            </Link>
+                            <Link
+                              href={`/dashboard/security/visitors/${visitor.id}/edit`}
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:border-purple-300 transition-all duration-300"
+                              >
+                                Edit
+                              </Button>
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))

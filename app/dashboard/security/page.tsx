@@ -245,13 +245,25 @@ export default async function SecurityPage() {
                           </span>
                         </td>
                         <td className="p-3">
-                          <Link
-                            href={`/dashboard/security/incidents/${incident.id}`}
-                          >
-                            <Button variant="outline" size="sm">
-                              View
-                            </Button>
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/dashboard/security/incidents/${incident.id}`}
+                            >
+                              <Button variant="outline" size="sm">
+                                View
+                              </Button>
+                            </Link>
+                            <Link
+                              href={`/dashboard/security/incidents/${incident.id}/edit`}
+                            >
+                              <Button 
+                                size="sm"
+                                className="bg-gradient-to-r from-amber-500 to-red-500 hover:from-amber-600 hover:to-red-600 text-white shadow-md hover:shadow-lg transition-all"
+                              >
+                                Edit
+                              </Button>
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -331,13 +343,25 @@ export default async function SecurityPage() {
                             </span>
                           </td>
                           <td className="p-3">
-                            <Link
-                              href={`/dashboard/security/gate-passes/${pass.id}`}
-                            >
-                              <Button variant="outline" size="sm">
-                                View
-                              </Button>
-                            </Link>
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={`/dashboard/security/gate-passes/${pass.id}`}
+                              >
+                                <Button variant="outline" size="sm">
+                                  View
+                                </Button>
+                              </Link>
+                              <Link
+                                href={`/dashboard/security/gate-passes/${pass.id}/edit`}
+                              >
+                                <Button 
+                                  size="sm"
+                                  className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-md hover:shadow-lg transition-all"
+                                >
+                                  Edit
+                                </Button>
+                              </Link>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -405,13 +429,25 @@ export default async function SecurityPage() {
                           )}
                         </td>
                         <td className="p-3">
-                          <Link
-                            href={`/dashboard/security/visitors/${visitor.id}`}
-                          >
-                            <Button variant="outline" size="sm">
-                              View
-                            </Button>
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/dashboard/security/visitors/${visitor.id}`}
+                            >
+                              <Button variant="outline" size="sm">
+                                View
+                              </Button>
+                            </Link>
+                            <Link
+                              href={`/dashboard/security/visitors/${visitor.id}/edit`}
+                            >
+                              <Button 
+                                size="sm"
+                                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all"
+                              >
+                                Edit
+                              </Button>
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))

@@ -203,7 +203,7 @@ export default async function SecurityIncidentsPage() {
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px]">
+              <table className="w-full min-w-[1000px]">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
                     <th className="text-left p-3 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -278,18 +278,31 @@ export default async function SecurityIncidentsPage() {
                             {incident.status.replace("_", " ").toUpperCase()}
                           </span>
                         </td>
-                        <td className="p-3 text-center">
-                          <Link
-                            href={`/dashboard/security/incidents/${incident.id}`}
-                          >
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/dashboard/security/incidents/${incident.id}`}
                             >
-                              View
-                            </Button>
-                          </Link>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                              >
+                                View
+                              </Button>
+                            </Link>
+                            <Link
+                              href={`/dashboard/security/incidents/${incident.id}/edit`}
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                              >
+                                Edit
+                              </Button>
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))

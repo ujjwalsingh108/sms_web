@@ -91,15 +91,13 @@ export default function EditGatePassPage({
     setUpdating(true);
 
     try {
-      const updateData: {
-        status: string;
-        actual_return_time: string | null;
-      } = {
+      const updateData = {
         status: formData.status,
         actual_return_time: formData.actual_return_time || null,
       };
 
-      const { error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
         .from("gate_passes")
         .update(updateData)
         .eq("id", id);
