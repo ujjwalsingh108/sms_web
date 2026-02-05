@@ -196,7 +196,7 @@ export default async function VisitorsPage() {
                       >
                         <td className="p-4">
                           <span className="text-sm font-medium">
-                            {new Date(visitor.visit_date).toLocaleDateString()}
+                            {new Date(visitor.check_in_time).toLocaleDateString()}
                           </span>
                         </td>
                         <td className="p-4">

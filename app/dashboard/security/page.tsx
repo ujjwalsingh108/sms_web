@@ -57,13 +57,26 @@ export default async function SecurityPage() {
     .order("pass_date", { ascending: false })
     .limit(30);
 
-  // Fetch visitors
-  const { data: visitors } = await supabase
+  // Fetch visitors - ordered by check-in time, most recent first
+  const { data: allVisitors } = await supabase
     .from("visitors")
     .select("*")
     .eq("tenant_id", member.tenant_id)
-    .order("visit_date", { ascending: false })
+    .is("is_deleted", false)
+    .order("check_in_time", { ascending: false })
     .limit(20);
+
+  // Filter today's visitors
+  const today = new Date().toDateString();
+  const todayVisitors = (allVisitors as unknown as any[])?.filter((v) => {
+    const visitorDate = new Date(v.check_in_time).toDateString();
+    return visitorDate === today;
+  }) || [];
+
+  // Filter active (checked-in) visitors
+  const activeVisitors = todayVisitors.filter(
+    (v) => v.status === "checked_in"
+  );
 
   type Incident = {
     severity: string;
@@ -164,12 +177,7 @@ export default async function SecurityPage() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                {visitors?.filter(
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  (v: any) =>
-                    new Date(v.visit_date).toDateString() ===
-                    new Date().toDateString()
-                ).length || 0}
+                {todayVisitors?.length || 0}
               </p>
             </CardContent>
           </Card>
@@ -379,67 +387,155 @@ export default async function SecurityPage() {
           </CardContent>
         </Card>
 
-        {/* Visitors */}
+        {/* Active Visitors - Currently on Campus */}
         <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-            <CardTitle className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Recent Visitors
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl md:text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                Active Visitors on Campus
+              </CardTitle>
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-sm font-semibold">
+                <span className="h-2 w-2 bg-green-600 rounded-full animate-pulse"></span>
+                {activeVisitors.length} Active
+              </span>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
+              <table className="w-full min-w-[900px]">
+                <thead className="bg-gray-50 dark:bg-gray-800/50">
                   <tr className="border-b">
-                    <th className="text-left p-3">Date</th>
-                    <th className="text-left p-3">Name</th>
-                    <th className="text-left p-3">Purpose</th>
-                    <th className="text-left p-3">Phone</th>
-                    <th className="text-left p-3">Check-in</th>
-                    <th className="text-left p-3">Check-out</th>
-                    <th className="text-left p-3">Actions</th>
+                    <th className="text-left p-4 text-sm font-semibold">Name</th>
+                    <th className="text-left p-4 text-sm font-semibold hidden md:table-cell">Purpose</th>
+                    <th className="text-left p-4 text-sm font-semibold">Phone</th>
+                    <th className="text-left p-4 text-sm font-semibold">Check-in</th>
+                    <th className="text-left p-4 text-sm font-semibold hidden lg:table-cell">Duration</th>
+                    <th className="text-left p-4 text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {visitors && visitors.length > 0 ? (
+                  {activeVisitors && activeVisitors.length > 0 ? (
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    visitors.map((visitor: any) => (
+                    activeVisitors.map((visitor: any) => {
+                      const checkInTime = new Date(visitor.check_in_time);
+                      const now = new Date();
+                      const durationMs = now.getTime() - checkInTime.getTime();
+                      const hours = Math.floor(durationMs / (1000 * 60 * 60));
+                      const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+
+                      return (
+                        <tr
+                          key={visitor.id}
+                          className="border-b hover:bg-green-50/50 dark:hover:bg-green-900/20 transition-colors"
+                        >
+                          <td className="p-4 font-semibold">{visitor.visitor_name}</td>
+                          <td className="p-4 text-sm hidden md:table-cell">{visitor.purpose || "N/A"}</td>
+                          <td className="p-4 text-sm">{visitor.phone || "N/A"}</td>
+                          <td className="p-4 text-sm font-mono">{checkInTime.toLocaleTimeString()}</td>
+                          <td className="p-4 text-sm hidden lg:table-cell">
+                            <span className="text-green-700 dark:text-green-400 font-medium">
+                              {hours}h {minutes}m
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-2">
+                              <Link href={`/dashboard/security/visitors/${visitor.id}`}>
+                                <Button variant="outline" size="sm">
+                                  View
+                                </Button>
+                              </Link>
+                              <Link href={`/dashboard/security/visitors/${visitor.id}/edit`}>
+                                <Button 
+                                  size="sm"
+                                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all"
+                                >
+                                  Checkout
+                                </Button>
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="text-center p-8 text-gray-500">
+                        No active visitors on campus
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Visitors - Today's Activity */}
+        <Card className="glass-effect border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+          <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Today's Visitor Activity
+              </CardTitle>
+              <Link href="/dashboard/security/visitors/new">
+                <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+                  <Plus className="mr-1 h-4 w-4" />
+                  Log Visitor
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[900px]">
+                <thead className="bg-gray-50 dark:bg-gray-800/50">
+                  <tr className="border-b">
+                    <th className="text-left p-4 text-sm font-semibold">Name</th>
+                    <th className="text-left p-4 text-sm font-semibold hidden md:table-cell">Purpose</th>
+                    <th className="text-left p-4 text-sm font-semibold">Check-in</th>
+                    <th className="text-left p-4 text-sm font-semibold">Check-out</th>
+                    <th className="text-left p-4 text-sm font-semibold">Status</th>
+                    <th className="text-left p-4 text-sm font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {todayVisitors && todayVisitors.length > 0 ? (
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    todayVisitors.map((visitor: any) => (
                       <tr
                         key={visitor.id}
-                        className="border-b hover:bg-gray-50"
+                        className="border-b hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors"
                       >
-                        <td className="p-3">
-                          {new Date(visitor.visit_date).toLocaleDateString()}
+                        <td className="p-4 font-semibold">{visitor.visitor_name}</td>
+                        <td className="p-4 text-sm hidden md:table-cell">{visitor.purpose || "N/A"}</td>
+                        <td className="p-4 text-sm font-mono">
+                          {new Date(visitor.check_in_time).toLocaleTimeString()}
                         </td>
-                        <td className="p-3 font-medium">
-                          {visitor.visitor_name}
+                        <td className="p-4 text-sm font-mono">
+                          {visitor.check_out_time 
+                            ? new Date(visitor.check_out_time).toLocaleTimeString()
+                            : "-"
+                          }
                         </td>
-                        <td className="p-3 text-sm">
-                          {visitor.purpose || "N/A"}
+                        <td className="p-4">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+                              visitor.status === "checked_in"
+                                ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 dark:from-green-900/30 dark:to-emerald-900/30 dark:text-green-400"
+                                : "bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 dark:from-blue-900/30 dark:to-indigo-900/30 dark:text-blue-400"
+                            }`}
+                          >
+                            {visitor.status === "checked_in" ? "Active" : "Left"}
+                          </span>
                         </td>
-                        <td className="p-3">{visitor.phone || "N/A"}</td>
-                        <td className="p-3">
-                          {visitor.check_in_time || "N/A"}
-                        </td>
-                        <td className="p-3">
-                          {visitor.check_out_time || (
-                            <span className="text-orange-600 text-xs">
-                              In Campus
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3">
+                        <td className="p-4">
                           <div className="flex items-center gap-2">
-                            <Link
-                              href={`/dashboard/security/visitors/${visitor.id}`}
-                            >
+                            <Link href={`/dashboard/security/visitors/${visitor.id}`}>
                               <Button variant="outline" size="sm">
                                 View
                               </Button>
                             </Link>
-                            <Link
-                              href={`/dashboard/security/visitors/${visitor.id}/edit`}
-                            >
+                            <Link href={`/dashboard/security/visitors/${visitor.id}/edit`}>
                               <Button 
                                 size="sm"
                                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all"
@@ -453,8 +549,8 @@ export default async function SecurityPage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} className="text-center p-8 text-gray-500">
-                        No visitor records found
+                      <td colSpan={6} className="text-center p-8 text-gray-500">
+                        No visitor records found for today
                       </td>
                     </tr>
                   )}

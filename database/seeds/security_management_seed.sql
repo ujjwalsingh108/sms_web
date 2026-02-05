@@ -200,7 +200,7 @@ INSERT INTO public.gate_passes (
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================================
--- VISITORS
+-- VISITORS - TODAY (04 FEBRUARY 2026)
 -- ============================================================================
 INSERT INTO public.visitors (
   id,
@@ -226,8 +226,8 @@ INSERT INTO public.visitors (
     'rajesh.kumar@example.com',
     'Meet Principal - Admission inquiry',
     'Principal Dr. Sharma',
-    '2026-02-02 10:00:00+00',
-    '2026-02-02 10:45:00+00',
+    '2026-02-04 10:00:00+00',
+    '2026-02-04 10:45:00+00',
     'Aadhar',
     '123456789012',
     'checked_out',
@@ -242,8 +242,8 @@ INSERT INTO public.visitors (
     'priya.sharma@example.com',
     'School fee payment counseling',
     'Accounts Officer',
-    '2026-02-02 11:30:00+00',
-    '2026-02-02 12:15:00+00',
+    '2026-02-04 11:30:00+00',
+    '2026-02-04 12:15:00+00',
     'Passport',
     'N5678901',
     'checked_out',
@@ -258,7 +258,7 @@ INSERT INTO public.visitors (
     'vikram.patel@example.com',
     'IT System Maintenance',
     'IT Head',
-    '2026-02-02 13:00:00+00',
+    '2026-02-04 13:00:00+00',
     NULL,
     'Driving License',
     'DL2678901',
@@ -274,8 +274,8 @@ INSERT INTO public.visitors (
     'anjali.singh@example.com',
     'External examiner - Board Exam Audit',
     'Academic Head',
-    '2026-02-01 09:00:00+00',
-    '2026-02-01 16:30:00+00',
+    '2026-02-04 09:00:00+00',
+    '2026-02-04 16:30:00+00',
     'Aadhar',
     '234567890123',
     'checked_out',
@@ -290,8 +290,8 @@ INSERT INTO public.visitors (
     'suresh.kumar@example.com',
     'Transportation Contractor',
     'Transport Head',
-    '2026-02-02 08:30:00+00',
-    '2026-02-02 09:15:00+00',
+    '2026-02-04 08:30:00+00',
+    '2026-02-04 09:15:00+00',
     'Driving License',
     'DL9876543',
     'checked_out',
@@ -306,7 +306,7 @@ INSERT INTO public.visitors (
     'arjun.desai@example.com',
     'Vendor - Sports Equipment Supply',
     'Sports Coordinator',
-    '2026-02-02 14:30:00+00',
+    '2026-02-04 14:30:00+00',
     NULL,
     'Aadhar',
     '345678901234',

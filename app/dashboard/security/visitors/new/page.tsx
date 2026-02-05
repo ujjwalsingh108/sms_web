@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ArrowLeft, Save, Info } from "lucide-react";
@@ -16,18 +23,31 @@ export default function NewVisitorPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  // Convert ISO string to datetime-local format (YYYY-MM-DDTHH:MM)
+  const getLocalDateTimeString = (isoString: string) => {
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Convert datetime-local string to ISO string
+  const getISOString = (localDateTime: string) => {
+    return new Date(localDateTime).toISOString();
+  };
+
   const [formData, setFormData] = useState({
     visitor_name: "",
     purpose: "",
     phone: "",
-    visit_date: new Date().toISOString().split("T")[0],
-    check_in_time: new Date().toLocaleTimeString("en-US", {
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    whom_to_meet: "",
+    email: "",
+    check_in_time: getLocalDateTimeString(new Date().toISOString()),
+    person_to_meet: "",
     id_proof_type: "",
+    id_proof_type_custom: "",
     id_proof_number: "",
     remarks: "",
   });
@@ -46,10 +66,24 @@ export default function NewVisitorPage() {
         .eq("id", userData.user?.id || "")
         .single();
 
+      // Use custom proof type if "Others" is selected, otherwise use selected value
+      const proofType =
+        formData.id_proof_type === "others"
+          ? formData.id_proof_type_custom
+          : formData.id_proof_type;
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase.from("visitors") as any).insert([
         {
-          ...formData,
+          visitor_name: formData.visitor_name,
+          purpose: formData.purpose,
+          phone: formData.phone,
+          email: formData.email,
+          check_in_time: getISOString(formData.check_in_time),
+          person_to_meet: formData.person_to_meet,
+          id_proof_type: proofType,
+          id_proof_number: formData.id_proof_number,
+          remarks: formData.remarks,
           tenant_id: (tenantData as any)?.tenant_id,
           status: "checked_in",
         },
@@ -139,18 +173,18 @@ export default function NewVisitorPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label
-                    htmlFor="visit_date"
+                    htmlFor="check_in_time"
                     className="text-sm font-semibold text-gray-700 dark:text-gray-300"
                   >
-                    Visit Date <span className="text-red-500">*</span>
+                    Check-in Date & Time <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    id="visit_date"
-                    type="date"
-                    value={formData.visit_date}
-                    onChange={(e) =>
-                      setFormData({ ...formData, visit_date: e.target.value })
-                    }
+                    id="check_in_time"
+                    type="datetime-local"
+                    value={formData.check_in_time}
+                    onChange={(e) => {
+                      setFormData({ ...formData, check_in_time: e.target.value });
+                    }}
                     required
                     className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                   />
@@ -158,43 +192,23 @@ export default function NewVisitorPage() {
 
                 <div className="space-y-2">
                   <Label
-                    htmlFor="check_in_time"
+                    htmlFor="person_to_meet"
                     className="text-sm font-semibold text-gray-700 dark:text-gray-300"
                   >
-                    Check-in Time <span className="text-red-500">*</span>
+                    Whom to Meet <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    id="check_in_time"
-                    type="time"
-                    value={formData.check_in_time}
+                    id="person_to_meet"
+                    type="text"
+                    placeholder="Name of person to meet"
+                    value={formData.person_to_meet}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        check_in_time: e.target.value,
-                      })
+                      setFormData({ ...formData, person_to_meet: e.target.value })
                     }
                     required
                     className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="whom_to_meet"
-                  className="text-sm font-semibold text-gray-700 dark:text-gray-300"
-                >
-                  Whom to Meet
-                </Label>
-                <Input
-                  id="whom_to_meet"
-                  value={formData.whom_to_meet}
-                  onChange={(e) =>
-                    setFormData({ ...formData, whom_to_meet: e.target.value })
-                  }
-                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                  placeholder="Enter name of person to meet"
-                />
               </div>
 
               <div className="space-y-2">
@@ -225,40 +239,78 @@ export default function NewVisitorPage() {
                   >
                     ID Proof Type
                   </Label>
-                  <Input
-                    id="id_proof_type"
+                  <Select
                     value={formData.id_proof_type}
-                    onChange={(e) =>
+                    onValueChange={(value) =>
                       setFormData({
                         ...formData,
-                        id_proof_type: e.target.value,
+                        id_proof_type: value,
+                        id_proof_type_custom: "",
                       })
                     }
-                    className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                    placeholder="e.g., Aadhaar, Driver's License"
-                  />
+                  >
+                    <SelectTrigger className="border-gray-300 focus:border-purple-500 focus:ring-purple-500">
+                      <SelectValue placeholder="Select ID proof type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="aadhar">Aadhaar Card</SelectItem>
+                      <SelectItem value="pan">PAN Card</SelectItem>
+                      <SelectItem value="driving-license">
+                        Driving License
+                      </SelectItem>
+                      <SelectItem value="passport">Passport</SelectItem>
+                      <SelectItem value="voter-id">Voter ID</SelectItem>
+                      <SelectItem value="others">Others</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="id_proof_number"
-                    className="text-sm font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    ID Proof Number
-                  </Label>
-                  <Input
-                    id="id_proof_number"
-                    value={formData.id_proof_number}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        id_proof_number: e.target.value,
-                      })
-                    }
-                    className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                    placeholder="Enter ID number"
-                  />
-                </div>
+                {formData.id_proof_type === "others" && (
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="id_proof_type_custom"
+                      className="text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    >
+                      Specify ID Proof Type <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="id_proof_type_custom"
+                      value={formData.id_proof_type_custom}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          id_proof_type_custom: e.target.value,
+                        })
+                      }
+                      required={formData.id_proof_type === "others"}
+                      className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      placeholder="e.g., Building Pass, Employee ID"
+                    />
+                  </div>
+                )}
+
+                {formData.id_proof_type !== "others" && (
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="id_proof_number"
+                      className="text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    >
+                      ID Proof Number
+                    </Label>
+                    <Input
+                      id="id_proof_number"
+                      value={formData.id_proof_number}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          id_proof_number: e.target.value,
+                        })
+                      }
+                      className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      placeholder="Enter ID number"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
